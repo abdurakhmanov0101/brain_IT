@@ -32,6 +32,7 @@ export interface Student {
   parentPhone: string;
   photo: string;
   groupIds: string[];
+  teacherId?: string;
   balance: number;
   contractId?: string;
   leadSource: string;
@@ -88,26 +89,26 @@ const photos = [
 type InitStudent = Omit<Student, 'studentUsername' | 'studentPassword' | 'parentUsername' | 'parentPassword'>;
 
 const rawStudents: InitStudent[] = [
-  { id: 'st1', fullName: 'Aziz Alimov', phone: '+998901234567', parentPhone: '+998901234560', photo: photos[0], groupIds: ['g1'], balance: 3200000, leadSource: 'Instagram', enrolledDate: '2026-02-01', status: 'active' },
-  { id: 'st2', fullName: 'Malika Sobirova', phone: '+998937654321', parentPhone: '+998937654320', photo: photos[2], groupIds: ['g1'], balance: 800000, leadSource: 'Telegram', enrolledDate: '2026-02-05', status: 'active' },
-  { id: 'st3', fullName: 'Sherzod Umarov', phone: '+998991112233', parentPhone: '+998991112230', photo: photos[1], groupIds: ['g2'], balance: -333333, leadSource: 'Tavsiya', enrolledDate: '2026-01-15', status: 'active' },
-  { id: 'st4', fullName: 'Dilnoza Rahimova', phone: '+998900012345', parentPhone: '+998900012340', photo: photos[3], groupIds: ['g2'], balance: 5000000, leadSource: 'Vebsayt', enrolledDate: '2026-01-20', status: 'active' },
-  { id: 'st5', fullName: 'Jasur Toshmatov', phone: '+998935551234', parentPhone: '+998935551230', photo: photos[1], groupIds: ['g3'], balance: 2100000, leadSource: 'Instagram', enrolledDate: '2026-03-01', status: 'active' },
-  { id: 'st6', fullName: 'Kamola Yusupova', phone: '+998994441122', parentPhone: '+998994441120', photo: photos[7], groupIds: ['g3'], balance: 4000000, leadSource: 'Telegram', enrolledDate: '2026-03-05', status: 'active' },
-  { id: 'st7', fullName: 'Bobur Nazarov', phone: '+998901110022', parentPhone: '+998901110020', photo: photos[6], groupIds: ['g4'], balance: 0, leadSource: 'Tavsiya', enrolledDate: '2026-04-01', status: 'active' },
-  { id: 'st8', fullName: 'Zulfiya Hasanova', phone: '+998933334455', parentPhone: '+998933334450', photo: photos[3], groupIds: ['g4'], balance: 1500000, leadSource: 'Instagram', enrolledDate: '2026-04-10', status: 'active' },
-  { id: 'st9', fullName: 'Otabek Qodirov', phone: '+998905556677', parentPhone: '+998905556670', photo: photos[0], groupIds: ['g1', 'g5'], balance: 6000000, leadSource: 'Vebsayt', enrolledDate: '2026-02-15', status: 'active' },
-  { id: 'st10', fullName: 'Nilufar Ismoilova', phone: '+998907778899', parentPhone: '+998907778890', photo: photos[2], groupIds: ['g5'], balance: -666666, leadSource: 'Instagram', enrolledDate: '2026-05-01', status: 'active' },
-  { id: 'st11', fullName: 'Sardor Bekmurodov', phone: '+998902223344', parentPhone: '+998902223340', photo: photos[5], groupIds: ['g2'], balance: 3500000, leadSource: 'Telegram', enrolledDate: '2026-01-10', status: 'active' },
-  { id: 'st12', fullName: 'Feruza Razzaqova', phone: '+998904445566', parentPhone: '+998904445560', photo: photos[7], groupIds: ['g6'], balance: 2000000, leadSource: 'Tavsiya', enrolledDate: '2026-05-15', status: 'active' },
-  { id: 'st13', fullName: 'Humoyun Valiyev', phone: '+998906667788', parentPhone: '+998906667780', photo: photos[4], groupIds: ['g6'], balance: 500000, leadSource: 'Instagram', enrolledDate: '2026-05-20', status: 'active' },
-  { id: 'st14', fullName: 'Mohira Ergasheva', phone: '+998908889900', parentPhone: '+998908889900', photo: photos[2], groupIds: ['g3'], balance: 4500000, leadSource: 'Telegram', enrolledDate: '2026-03-15', status: 'active' },
-  { id: 'st15', fullName: 'Ulugbek Sobirov', phone: '+998901231234', parentPhone: '+998901231230', photo: photos[6], groupIds: ['g4'], balance: 1800000, leadSource: 'Vebsayt', enrolledDate: '2026-04-20', status: 'frozen' },
-  { id: 'st16', fullName: 'Shakhnoza Mirova', phone: '+998939997766', parentPhone: '+998939997760', photo: photos[3], groupIds: ['g1'], balance: 3800000, leadSource: 'Tavsiya', enrolledDate: '2026-02-25', status: 'active' },
-  { id: 'st17', fullName: 'Eldor Xolmatov', phone: '+998906661122', parentPhone: '+998906661120', photo: photos[1], groupIds: ['g5'], balance: 2600000, leadSource: 'Instagram', enrolledDate: '2026-05-05', status: 'active' },
-  { id: 'st18', fullName: 'Gulnora Abdullayeva', phone: '+998903334455', parentPhone: '+998903334450', photo: photos[7], groupIds: ['g2'], balance: -500000, leadSource: 'Telegram', enrolledDate: '2026-01-25', status: 'active' },
-  { id: 'st19', fullName: 'Ravshan Normatov', phone: '+998905555111', parentPhone: '+998905555110', photo: photos[4], groupIds: ['g6'], balance: 700000, leadSource: 'Instagram', enrolledDate: '2026-06-01', status: 'active' },
-  { id: 'st20', fullName: 'Barno Tursunova', phone: '+998907776655', parentPhone: '+998907776650', photo: photos[2], groupIds: ['g3'], balance: 5200000, leadSource: 'Vebsayt', enrolledDate: '2026-03-10', status: 'left' },
+  { id: 'st1',  fullName: 'Aziz Alimov',        phone: '+998901234567', parentPhone: '+998901234560', photo: photos[0], groupIds: ['g1'],       teacherId: 'tr1', balance: 3200000,  leadSource: 'Instagram', enrolledDate: '2026-02-01', status: 'active' },
+  { id: 'st2',  fullName: 'Malika Sobirova',     phone: '+998937654321', parentPhone: '+998937654320', photo: photos[2], groupIds: ['g1'],       teacherId: 'tr1', balance: 800000,   leadSource: 'Telegram',  enrolledDate: '2026-02-05', status: 'active' },
+  { id: 'st3',  fullName: 'Sherzod Umarov',      phone: '+998991112233', parentPhone: '+998991112230', photo: photos[1], groupIds: ['g2'],       teacherId: 'tr2', balance: -333333,  leadSource: 'Tavsiya',   enrolledDate: '2026-01-15', status: 'active' },
+  { id: 'st4',  fullName: 'Dilnoza Rahimova',    phone: '+998900012345', parentPhone: '+998900012340', photo: photos[3], groupIds: ['g2'],       teacherId: 'tr2', balance: 5000000,  leadSource: 'Vebsayt',   enrolledDate: '2026-01-20', status: 'active' },
+  { id: 'st5',  fullName: 'Jasur Toshmatov',     phone: '+998935551234', parentPhone: '+998935551230', photo: photos[1], groupIds: ['g3'],       teacherId: 'tr3', balance: 2100000,  leadSource: 'Instagram', enrolledDate: '2026-03-01', status: 'active' },
+  { id: 'st6',  fullName: 'Kamola Yusupova',     phone: '+998994441122', parentPhone: '+998994441120', photo: photos[7], groupIds: ['g3'],       teacherId: 'tr3', balance: 4000000,  leadSource: 'Telegram',  enrolledDate: '2026-03-05', status: 'active' },
+  { id: 'st7',  fullName: 'Bobur Nazarov',       phone: '+998901110022', parentPhone: '+998901110020', photo: photos[6], groupIds: ['g4'],       teacherId: 'tr4', balance: 0,        leadSource: 'Tavsiya',   enrolledDate: '2026-04-01', status: 'active' },
+  { id: 'st8',  fullName: 'Zulfiya Hasanova',    phone: '+998933334455', parentPhone: '+998933334450', photo: photos[3], groupIds: ['g4'],       teacherId: 'tr4', balance: 1500000,  leadSource: 'Instagram', enrolledDate: '2026-04-10', status: 'active' },
+  { id: 'st9',  fullName: 'Otabek Qodirov',      phone: '+998905556677', parentPhone: '+998905556670', photo: photos[0], groupIds: ['g1', 'g5'], teacherId: 'tr1', balance: 6000000,  leadSource: 'Vebsayt',   enrolledDate: '2026-02-15', status: 'active' },
+  { id: 'st10', fullName: 'Nilufar Ismoilova',   phone: '+998907778899', parentPhone: '+998907778890', photo: photos[2], groupIds: ['g5'],       teacherId: 'tr5', balance: -666666,  leadSource: 'Instagram', enrolledDate: '2026-05-01', status: 'active' },
+  { id: 'st11', fullName: 'Sardor Bekmurodov',   phone: '+998902223344', parentPhone: '+998902223340', photo: photos[5], groupIds: ['g2'],       teacherId: 'tr2', balance: 3500000,  leadSource: 'Telegram',  enrolledDate: '2026-01-10', status: 'active' },
+  { id: 'st12', fullName: 'Feruza Razzaqova',    phone: '+998904445566', parentPhone: '+998904445560', photo: photos[7], groupIds: ['g6'],       teacherId: 'tr6', balance: 2000000,  leadSource: 'Tavsiya',   enrolledDate: '2026-05-15', status: 'active' },
+  { id: 'st13', fullName: 'Humoyun Valiyev',     phone: '+998906667788', parentPhone: '+998906667780', photo: photos[4], groupIds: ['g6'],       teacherId: 'tr6', balance: 500000,   leadSource: 'Instagram', enrolledDate: '2026-05-20', status: 'active' },
+  { id: 'st14', fullName: 'Mohira Ergasheva',    phone: '+998908889900', parentPhone: '+998908889900', photo: photos[2], groupIds: ['g3'],       teacherId: 'tr3', balance: 4500000,  leadSource: 'Telegram',  enrolledDate: '2026-03-15', status: 'active' },
+  { id: 'st15', fullName: 'Ulugbek Sobirov',     phone: '+998901231234', parentPhone: '+998901231230', photo: photos[6], groupIds: ['g4'],       teacherId: 'tr4', balance: 1800000,  leadSource: 'Vebsayt',   enrolledDate: '2026-04-20', status: 'frozen' },
+  { id: 'st16', fullName: 'Shakhnoza Mirova',    phone: '+998939997766', parentPhone: '+998939997760', photo: photos[3], groupIds: ['g1'],       teacherId: 'tr1', balance: 3800000,  leadSource: 'Tavsiya',   enrolledDate: '2026-02-25', status: 'active' },
+  { id: 'st17', fullName: 'Eldor Xolmatov',      phone: '+998906661122', parentPhone: '+998906661120', photo: photos[1], groupIds: ['g5'],       teacherId: 'tr5', balance: 2600000,  leadSource: 'Instagram', enrolledDate: '2026-05-05', status: 'active' },
+  { id: 'st18', fullName: 'Gulnora Abdullayeva', phone: '+998903334455', parentPhone: '+998903334450', photo: photos[7], groupIds: ['g2'],       teacherId: 'tr2', balance: -500000,  leadSource: 'Telegram',  enrolledDate: '2026-01-25', status: 'active' },
+  { id: 'st19', fullName: 'Ravshan Normatov',    phone: '+998905555111', parentPhone: '+998905555110', photo: photos[4], groupIds: ['g6'],       teacherId: 'tr6', balance: 700000,   leadSource: 'Instagram', enrolledDate: '2026-06-01', status: 'active' },
+  { id: 'st20', fullName: 'Barno Tursunova',     phone: '+998907776655', parentPhone: '+998907776650', photo: photos[2], groupIds: ['g3'],       teacherId: 'tr3', balance: 5200000,  leadSource: 'Vebsayt',   enrolledDate: '2026-03-10', status: 'left' },
 ];
 
 const initialStudents: Student[] = rawStudents.map((s) => ({

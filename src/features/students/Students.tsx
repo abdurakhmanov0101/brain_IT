@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound } from 'lucide-react';
 import { useStudentStore, genStudentUsername, genParentUsername } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
+import { useTeacherStore } from '../../stores/teacherStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Badge, statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
@@ -10,7 +12,7 @@ import { Modal } from '../../components/Modal';
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
 
 interface AddStudentForm {
-  fullName: string; phone: string; parentPhone: string; groupIds: string[]; leadSource: string; status: 'active' | 'frozen' | 'left';
+  fullName: string; phone: string; parentPhone: string; groupIds: string[]; teacherId: string; leadSource: string; status: 'active' | 'frozen' | 'left';
 }
 interface CreatedCreds {
   fullName: string; studentUsername: string; studentPassword: string; parentUsername: string; parentPassword: string;
@@ -35,26 +37,40 @@ const CopyField: React.FC<{ label: string; value: string }> = ({ label, value })
 export const Students: React.FC = () => {
   const { students, addStudent, updateStudent, addPayment } = useStudentStore();
   const { groups } = useGroupStore();
+  const { teachers } = useTeacherStore();
   const { addToast } = useUIStore();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const isTeacher = currentUser?.role === 'Teacher';
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'frozen' | 'left'>('all');
   const [addOpen, setAddOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState<string | null>(null);
   const [createdCreds, setCreatedCreds] = useState<CreatedCreds | null>(null);
-  const [addForm, setAddForm] = useState<AddStudentForm>({ fullName: '', phone: '', parentPhone: '', groupIds: [], leadSource: 'Instagram', status: 'active' });
+  const [addForm, setAddForm] = useState<AddStudentForm>({
+    fullName: '', phone: '', parentPhone: '', groupIds: [],
+    teacherId: isTeacher ? (currentUser?.id ?? '') : '',
+    leadSource: 'Instagram', status: 'active',
+  });
   const [payForm, setPayForm] = useState({ amount: '', type: 'cash' as const, note: '' });
 
-  const filtered = students.filter((s) => {
+  // Teacher sees only their students; admins see all
+  const visibleStudents = isTeacher
+    ? students.filter((s) => s.teacherId === currentUser?.id)
+    : students;
+
+  const filtered = visibleStudents.filter((s) => {
     const matchSearch = s.fullName.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search);
     const matchStatus = statusFilter === 'all' || s.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const activeCount = students.filter((s) => s.status === 'active').length;
-  const debtCount = students.filter((s) => s.balance < 0).length;
-  const lowBalCount = students.filter((s) => s.balance >= 0 && s.balance < 400000).length;
+  const activeCount  = visibleStudents.filter((s) => s.status === 'active').length;
+  const debtCount    = visibleStudents.filter((s) => s.balance < 0).length;
+  const lowBalCount  = visibleStudents.filter((s) => s.balance >= 0 && s.balance < 400000).length;
   const getStudentGroups = (groupIds: string[]) => groups.filter((g) => groupIds.includes(g.id));
+  const getTeacherName = (teacherId?: string) => teachers.find((t) => t.id === teacherId)?.fullName ?? '—';
 
   const handleAddStudent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +80,7 @@ export const Students: React.FC = () => {
     const pphones = addForm.parentPhone.replace(/\D/g, '');
     setCreatedCreds({ fullName: addForm.fullName, studentUsername: genStudentUsername(addForm.fullName, addForm.phone), studentPassword: phones.slice(-6), parentUsername: genParentUsername(addForm.fullName, addForm.parentPhone), parentPassword: pphones.slice(-6) });
     addToast({ type: 'success', message: `${addForm.fullName} qo'shildi` });
-    setAddForm({ fullName: '', phone: '', parentPhone: '', groupIds: [], leadSource: 'Instagram', status: 'active' });
+    setAddForm({ fullName: '', phone: '', parentPhone: '', groupIds: [], teacherId: isTeacher ? (currentUser?.id ?? '') : '', leadSource: 'Instagram', status: 'active' });
     setAddOpen(false);
   };
 
@@ -85,7 +101,9 @@ export const Students: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">O'quvchilar</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Barcha o'quvchilarni boshqarish</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {isTeacher ? `Mening o'quvchilarim (${visibleStudents.length} ta)` : "Barcha o'quvchilarni boshqarish"}
+          </p>
         </div>
         <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20">
           <Plus className="h-4 w-4" /> Yangi o'quvchi
@@ -122,6 +140,7 @@ export const Students: React.FC = () => {
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Guruhlar</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Balans</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">Holat</th>
+                {!isTeacher && <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Ustoz</th>}
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Manba</th>
                 <th className="px-5 py-3.5"></th>
               </tr>
@@ -155,6 +174,7 @@ export const Students: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-5 py-4 hidden sm:table-cell">{statusBadge(student.status)}</td>
+                    {!isTeacher && <td className="px-5 py-4 hidden lg:table-cell"><span className="text-xs text-slate-600 dark:text-slate-300">{getTeacherName(student.teacherId)}</span></td>}
                     <td className="px-5 py-4 hidden lg:table-cell"><Badge label={student.leadSource} color="slate" /></td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
@@ -182,6 +202,22 @@ export const Students: React.FC = () => {
                 className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
           ))}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ustoz</label>
+            {isTeacher ? (
+              <div className="w-full rounded-xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-900/20 py-2.5 px-3 text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                {getTeacherName(currentUser?.id)}
+              </div>
+            ) : (
+              <select value={addForm.teacherId} onChange={(e) => setAddForm((f) => ({ ...f, teacherId: e.target.value }))}
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">— Ustoz tanlang —</option>
+                {teachers.filter((t) => t.status === 'active').map((t) => (
+                  <option key={t.id} value={t.id}>{t.fullName} · {t.specialization}</option>
+                ))}
+              </select>
+            )}
+          </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Manba</label>
             <select value={addForm.leadSource} onChange={(e) => setAddForm((f) => ({ ...f, leadSource: e.target.value }))}
