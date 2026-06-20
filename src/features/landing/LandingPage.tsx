@@ -7,10 +7,9 @@ import {
   Send, Sun, Moon, Cpu, Monitor, ShieldCheck, BookOpen, Globe2, Calculator,
   Smile, Menu, X, Zap, Brain, Rocket, Users, Star, ChevronRight,
   BarChart3, Shield, Cloud, Smartphone, Layers, Bot, MessageSquare,
-  PlayCircle, Clock, MapPin, Phone, Mail, Github, Twitter, Linkedin, Instagram,
+  PlayCircle, Clock, MapPin, Phone, Mail, Link, AtSign, Rss, Camera,
 } from 'lucide-react';
-import maqsadMonitor from '../../assets/maqsad-monitor.svg';
-import TechBackground from '../../components/TechBackground';
+import { MatrixRain } from '../../components/MatrixRain';
 import { courses, projects, type Course, type Project } from '../../data/mockData';
 
 /* ─────────── TYPES ─────────── */
@@ -28,7 +27,7 @@ interface LandingPageProps {
 /* ─────────── ANIMATION VARIANTS ─────────── */
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -309,13 +308,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     if (course) setSelectedCourse(course as Course);
   };
 
-  const projectStats = [
-    { label: t.realProjectsCount, value: `${projects.length}+` },
-    { label: t.activeProjects, value: `${projects.filter((p: Project) => p.status !== 'completed').length}` },
-    { label: t.clientsCount, value: `${new Set(projects.map((p: Project) => p.client)).size}` },
-  ];
-
-  /* ══════════════════════════════════════
+/* ══════════════════════════════════════
      RENDER
   ══════════════════════════════════════ */
   return (
@@ -323,7 +316,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth text-white overflow-x-hidden"
       style={{ background: '#050816' }}
     >
-      <TechBackground />
+      <MatrixRain opacity={0.18} />
 
       {/* ──────────────── NAV ──────────────── */}
       <header className="sticky top-0 z-50 px-6 lg:px-16 py-4 flex justify-between items-center border-b"
@@ -659,13 +652,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                   <div className="mt-4 flex items-center justify-between text-[10px] text-slate-500">
                     <span>{project.tasks.length} ta vazifa</span>
-                    <div className="flex -space-x-1.5">
-                      {project.team.slice(0, 3).map((m, idx) => (
-                        <div key={idx} className="h-5 w-5 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 border border-slate-900 flex items-center justify-center text-[8px] font-bold text-white">
-                          {m[0]}
-                        </div>
-                      ))}
-                    </div>
+                    <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(37,99,235,0.12)', color: '#60a5fa' }}>
+                      {project.progress}% tayyor
+                    </span>
                   </div>
                 </motion.div>
               ))}
@@ -930,10 +919,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Social links */}
               <div className="flex items-center gap-3 pt-2">
                 {[
-                  { Icon: Linkedin, href: '#', color: '#2563EB' },
-                  { Icon: Instagram, href: '#', color: '#EC4899' },
-                  { Icon: Github, href: '#', color: '#94A3B8' },
-                  { Icon: Twitter, href: '#', color: '#06B6D4' },
+                  { Icon: Link, href: '#', color: '#2563EB' },
+                  { Icon: Camera, href: '#', color: '#EC4899' },
+                  { Icon: Rss, href: '#', color: '#94A3B8' },
+                  { Icon: AtSign, href: '#', color: '#06B6D4' },
                 ].map(({ Icon, href, color }, i) => (
                   <a key={i} href={href}
                     className="h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
@@ -1017,7 +1006,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-xs">{t.footerDesc}</p>
             <div className="flex gap-3">
-              {[Linkedin, Instagram, Github, Twitter].map((Icon, i) => (
+              {[Link, Camera, Rss, AtSign].map((Icon, i) => (
                 <a key={i} href="#"
                   className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
                   style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
