@@ -1,84 +1,109 @@
-﻿import { GraduationCap, ArrowRight, CheckCircle, Code, Server, Award, Sparkles, Send, Sun, Moon, Cpu, Monitor, ShieldCheck, BookOpen, Globe2, Calculator, Smile, Menu, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  motion, useInView, useMotionValue, animate, AnimatePresence,
+} from 'framer-motion';
+import {
+  GraduationCap, ArrowRight, CheckCircle, Code, Server, Award, Sparkles,
+  Send, Sun, Moon, Cpu, Monitor, ShieldCheck, BookOpen, Globe2, Calculator,
+  Smile, Menu, X, Zap, Brain, Rocket, Users, Star, ChevronRight,
+  BarChart3, Shield, Cloud, Smartphone, Layers, Bot, MessageSquare,
+  PlayCircle, Clock, MapPin, Phone, Mail, Github, Twitter, Linkedin, Instagram,
+} from 'lucide-react';
 import maqsadMonitor from '../../assets/maqsad-monitor.svg';
-import React, { useState } from 'react';
 import TechBackground from '../../components/TechBackground';
 import { courses, projects, type Course, type Project } from '../../data/mockData';
 
+/* ─────────── TYPES ─────────── */
 interface LandingPageProps {
   onEnterPortal: () => void;
-  onAddLead: (leadData: { name: string; phone: string; email: string; source: string; value: string }) => void;
+  onAddLead: (d: { name: string; phone: string; email: string; source: string; value: string }) => void;
   darkMode: boolean;
-  setDarkMode: (dark: boolean) => void;
+  setDarkMode: (v: boolean) => void;
   language: 'uz' | 'ru' | 'en';
-  setLanguage: (lang: 'uz' | 'ru' | 'en') => void;
+  setLanguage: (l: 'uz' | 'ru' | 'en') => void;
   bgAnimationEnabled?: boolean;
   setBgAnimationEnabled?: (v: boolean) => void;
 }
 
-type TranslationStrings = {
-  navCourses: string;
-  navServices: string;
-  navContact: string;
-  navPortal: string;
-  heroBadge: string;
-  heroTitle: string;
-  heroText: string;
-  btnCourses: string;
-  btnContact: string;
-  statsGraduates: string;
-  statsPlacement: string;
-  statsPartners: string;
-  coursesTitle: string;
-  coursesDesc: string;
-  servicesTitle: string;
-  servicesDesc: string;
-  servicesBadge: string;
-  teamTitle: string;
-  teamDesc: string;
-  projectsTitle: string;
-  projectsDesc: string;
-  contactTitle: string;
-  contactDesc: string;
-  formName: string;
-  formPhone: string;
-  formEmail: string;
-  formService: string;
-  submitButton: string;
-  modalCurriculum: string;
-  btnRegisterNow: string;
-  priceLabel: string;
-  durationLabel: string;
-  detailButton: string;
-  modalCurriculumLabel: string;
-  footerText: string;
-  footerContact: string;
-  realProjectsCount: string;
-  activeProjects: string;
-  clientsCount: string;
-  feature1: string;
-  feature2: string;
-  feature3: string;
-  service1Title: string;
-  service1Desc: string;
-  service2Title: string;
-  service2Desc: string;
-  service3Title: string;
-  service3Desc: string;
-  teamHeader: string;
-  teamSub: string;
-  projectStatsHeader: string;
-  projectStatsSub: string;
-  contactHeader: string;
-  contactSub: string;
-  thankYouTitle: string;
-  thankYouBody: string;
+/* ─────────── ANIMATION VARIANTS ─────────── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 32 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
+const fadeIn = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.5 } },
+};
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
+const staggerFast = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
+
+/* ─────────── ANIMATED SECTION WRAPPER ─────────── */
+const Reveal: React.FC<{ children: React.ReactNode; className?: string; delay?: number }> = ({
+  children, className = '', delay = 0,
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-80px' });
+  return (
+    <motion.div
+      ref={ref}
+      variants={stagger}
+      initial="hidden"
+      animate={inView ? 'show' : 'hidden'}
+      transition={{ delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
 };
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLead, darkMode, setDarkMode, language, setLanguage }) => {
+/* ─────────── ANIMATED COUNTER ─────────── */
+const Counter: React.FC<{ to: number; suffix?: string; prefix?: string }> = ({ to, suffix = '', prefix = '' }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const count = useMotionValue(0);
+  useEffect(() => {
+    if (!inView) return;
+    const c = animate(count, to, {
+      duration: 2,
+      ease: 'easeOut',
+      onUpdate: (v) => { if (ref.current) ref.current.textContent = prefix + Math.round(v) + suffix; },
+    });
+    return c.stop;
+  }, [inView, to, count, suffix, prefix]);
+  return <span ref={ref}>{prefix}0{suffix}</span>;
+};
+
+/* ─────────── SECTION BADGE ─────────── */
+const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#2563EB' }) => (
+  <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-bold"
+    style={{ borderColor: `${color}44`, background: `${color}14`, color }}>
+    {children}
+  </span>
+);
+
+/* ─────────── SECTION HEADING ─────────── */
+const SectionHead: React.FC<{
+  badge?: React.ReactNode; title: React.ReactNode; sub?: string; center?: boolean;
+}> = ({ badge, title, sub, center = true }) => (
+  <div className={`space-y-4 ${center ? 'text-center' : ''}`}>
+    {badge}
+    <motion.h2 variants={fadeUp}
+      className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-white">
+      {title}
+    </motion.h2>
+    {sub && <motion.p variants={fadeUp} className="text-slate-400 max-w-2xl leading-relaxed text-sm sm:text-base mx-auto">{sub}</motion.p>}
+  </div>
+);
+
+/* ══════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════ */
+export const LandingPage: React.FC<LandingPageProps> = ({
+  onEnterPortal, onAddLead, darkMode, setDarkMode, language, setLanguage,
+}) => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // Registration Form
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
@@ -88,30 +113,153 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLe
   const handleRegisterLead = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!leadName.trim()) return;
-
-    // Calculate value based on selected course or service
     let value = '3,500,000 UZS';
     if (leadService.includes('Frontend')) value = '4,000,000 UZS';
     if (leadService.includes('Backend')) value = '4,500,000 UZS';
-    if (leadService.includes('Suniy') || leadService.includes('Intellekt')) value = '5,200,000 UZS';
+    if (leadService.includes('Suniy') || leadService.includes('AI')) value = '5,200,000 UZS';
     if (leadService.includes('Kiber')) value = '5,800,000 UZS';
-
-    onAddLead({
-      name: leadName,
-      phone: leadPhone || '+998901234567',
-      email: leadEmail || 'mijoz@example.com',
-      source: 'Vebsayt Landing',
-      value: value
-    });
-
+    onAddLead({ name: leadName, phone: leadPhone || '+998901234567', email: leadEmail || 'mijoz@example.com', source: 'Vebsayt Landing', value });
     setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
-      setLeadName('');
-      setLeadPhone('');
-      setLeadEmail('');
-    }, 3000);
+    setTimeout(() => { setFormSubmitted(false); setLeadName(''); setLeadPhone(''); setLeadEmail(''); }, 3500);
   };
+
+  /* ── TRANSLATIONS ── */
+  const translations = {
+    uz: {
+      navCourses: "O'quv Kurslari", navServices: "Dasturiy Yechimlar", navContact: "Bog'lanish",
+      navPortal: "LMS Portaliga Kirish",
+      heroBadge: "Brain IT Ecosystem", heroEyebrow: "Kelajak faqat IT bilan!",
+      heroTitle: "0 dan dasturchi bo'lib chiqing!", heroTitleAccent: " Professional darajada.",
+      heroText: "Kompyuter, telefon va biznesni avtomatlashtirishga tegishli dasturlar yaratamiz. Farzandingizni ham dasturchi bo'lishiga professional yondashamiz.",
+      btnCourses: "Kurslarni ko'rish", btnContact: "Konsultatsiya olish", btnPortal: "LMS Portaliga kirish",
+      statsGraduates: "Bitiruvchilar", statsPlacement: "Ishga joylashish", statsPartners: "Hamkorlar", statsCourses: "Kurslar",
+      trustedBy: "Ishonch bildirgan kompaniyalar",
+      coursesTitle: "IT yo'nalishlar", coursesDesc: "O'quv yo'nalishlarimiz 0 dan boshlovchilar uchun amaliy mashg'ulotlar, sertifikatlar va ishga yo'naltirishni o'z ichiga oladi.",
+      servicesTitle: "Enterprise yechimlar", servicesDesc: "Brain IT shunchaki akademiya emas — bu biznes jarayonlarini avtomatlashtiradigan professional jamoa.",
+      servicesBadge: "IT Kompaniya",
+      aiTitle: "AI Kuchli Platforma", aiDesc: "Sun'iy intellekt texnologiyalar bilan ta'lim va biznesingizni yangi darajaga olib chiqing.",
+      aiBadge: "AI Platform",
+      numberTitle: "Raqamlarda Brain IT", numberDesc: "Natijalar o'zi gapiradi.",
+      portfolioTitle: "Real Loyihalar", portfolioDesc: "Hayotga tadbiq etilgan ishlanmalarimiz va case study lar.",
+      internTitle: "Stajirovka Dasturi", internDesc: "Eng yaxshi o'quvchilarimiz Brain IT kompaniyasida real loyihalarda ishlash imkoniyatiga ega bo'ladi.",
+      internBadge: "Internship",
+      teamHeader: "Bizning Jamoa", teamSub: "Har bir a'zo o'z sohasida tajribali va real enterprise loyihalarni yetaklashga tayyor.",
+      testimonialTitle: "Muvaffaqiyat hikoyalari", testimonialDesc: "O'quvchilarimizning hayotini o'zgartirib yuborgan tajribalar.",
+      contactHeader: "Kursga yoki konsultatsiyaga yoziling",
+      contactSub: "Arizangizni qoldiring — tez orada administratorlar siz bilan bog'lanishadi.",
+      formName: "Ismingiz", formPhone: "Telefon raqamingiz", formEmail: "Elektron pochta (ixtiyoriy)",
+      formService: "Kurs yoki xizmat", submitButton: "Yuborish",
+      thankYouTitle: "Rahmat! Arizangiz qabul qilindi.",
+      thankYouBody: "Tez orada menejerlarimiz siz bilan bog'lanishadi.",
+      btnRegisterNow: "Ro'yxatdan o'tish", priceLabel: "Narxi", durationLabel: "Davomiyligi",
+      modalCurriculumLabel: "Kurs dasturi:", detailButton: "Batafsil",
+      footerDesc: "IT ta'lim va enterprise dasturiy yechimlar platformasi. Toshkent, O'zbekiston.",
+      footerLinks: "Havolalar", footerSocial: "Ijtimoiy tarmoqlar",
+      footerText: "© 2026 Brain IT Academy & Co. Barcha huquqlar himoyalangan.",
+      footerContact: "Toshkent, Yubileyin · +998 99 067 00 66",
+      realProjectsCount: "Real loyihalar", activeProjects: "Faol loyihalar", clientsCount: "Mijozlar",
+      feature1: "Multi-tenant arxitektura", feature2: "Face ID davomat", feature3: "Docker production",
+      service1Title: "Veb Dasturlash", service1Desc: "React, Next.js, Django, Node.js bilan zamonaviy platformalar.",
+      service2Title: "Mobil Ilovalar", service2Desc: "iOS va Android uchun yuqori darajali native ilovalar.",
+      service3Title: "Enterprise Infratuzilma", service3Desc: "Multi-tenant tizimlar, Docker, server integratsiyalari.",
+      teamTitle: "Bizning jamoa", teamDesc: "Mutaxassislar.",
+      projectsTitle: "Loyihalar", projectsDesc: "Real ishlanmalar.",
+      contactTitle: "Bog'lanish", contactDesc: "Aloqa.",
+      projectStatsHeader: "Statistika", projectStatsSub: "Raqamlar.", contactHeader2: "Bog'lanish",
+      contactSub2: "Aloqa.",
+    },
+    ru: {
+      navCourses: 'Курсы', navServices: 'Решения', navContact: 'Контакты', navPortal: 'Войти в LMS',
+      heroBadge: 'Brain IT Ecosystem', heroEyebrow: 'Будущее только с IT!',
+      heroTitle: 'Станьте разработчиком с нуля!', heroTitleAccent: ' Профессионально.',
+      heroText: 'Создаём программы для автоматизации бизнеса. Помогаем детям стать программистами.',
+      btnCourses: 'Смотреть курсы', btnContact: 'Консультация', btnPortal: 'Войти в LMS',
+      statsGraduates: 'Выпускников', statsPlacement: 'Трудоустройство', statsPartners: 'Партнёры', statsCourses: 'Курсов',
+      trustedBy: 'Нам доверяют компании',
+      coursesTitle: 'IT направления', coursesDesc: 'Курсы с практикой, AI-проверкой и реальными проектами.',
+      servicesTitle: 'Enterprise решения', servicesDesc: 'Brain IT — профессиональная команда для автоматизации бизнеса.',
+      servicesBadge: 'IT Компания',
+      aiTitle: 'AI-платформа', aiDesc: 'Выводим образование и бизнес на новый уровень с AI.',
+      aiBadge: 'AI Platform',
+      numberTitle: 'Brain IT в цифрах', numberDesc: 'Результаты говорят сами за себя.',
+      portfolioTitle: 'Реальные проекты', portfolioDesc: 'Реализованные решения и кейсы.',
+      internTitle: 'Программа стажировки', internDesc: 'Лучшие студенты работают над реальными проектами в Brain IT.',
+      internBadge: 'Стажировка',
+      teamHeader: 'Наша команда', teamSub: 'Каждый участник ведёт реальные enterprise-проекты.',
+      testimonialTitle: 'Истории успеха', testimonialDesc: 'Опыт, изменивший жизнь наших студентов.',
+      contactHeader: 'Запишитесь на курс', contactSub: 'Оставьте заявку — менеджеры свяжутся с вами.',
+      formName: 'Ваше имя', formPhone: 'Телефон', formEmail: 'Email (необязательно)',
+      formService: 'Курс или услуга', submitButton: 'Отправить',
+      thankYouTitle: 'Спасибо! Заявка принята.', thankYouBody: 'Менеджеры скоро свяжутся с вами.',
+      btnRegisterNow: 'Записаться', priceLabel: 'Цена', durationLabel: 'Длительность',
+      modalCurriculumLabel: 'Программа курса:', detailButton: 'Подробнее',
+      footerDesc: 'IT образование и enterprise решения. Ташкент, Узбекистан.',
+      footerLinks: 'Ссылки', footerSocial: 'Соцсети',
+      footerText: '© 2026 Brain IT Academy. Все права защищены.',
+      footerContact: 'Ташкент, Юбилейный · +998 99 067 00 66',
+      realProjectsCount: 'Проектов', activeProjects: 'Активных', clientsCount: 'Клиентов',
+      feature1: 'Мультиарендная архитектура', feature2: 'Face ID посещаемость', feature3: 'Docker production',
+      service1Title: 'Веб-разработка', service1Desc: 'React, Next.js, Django, Node.js платформы.',
+      service2Title: 'Мобильные приложения', service2Desc: 'Надёжные iOS и Android приложения.',
+      service3Title: 'Enterprise инфраструктура', service3Desc: 'Мультиарендные системы, Docker интеграции.',
+      teamTitle: 'Команда', teamDesc: 'Эксперты.', projectsTitle: 'Проекты', projectsDesc: 'Кейсы.',
+      contactTitle: 'Контакты', contactDesc: 'Связь.',
+      projectStatsHeader: 'Статистика', projectStatsSub: 'Цифры.', contactHeader2: 'Связь', contactSub2: 'Контакт.',
+    },
+    en: {
+      navCourses: 'Courses', navServices: 'Solutions', navContact: 'Contact', navPortal: 'Enter LMS Portal',
+      heroBadge: 'Brain IT Ecosystem', heroEyebrow: 'The Future is IT!',
+      heroTitle: 'Go from zero to developer.', heroTitleAccent: ' Professionally.',
+      heroText: 'We build software for business automation. We help your children become professional programmers.',
+      btnCourses: 'View Courses', btnContact: 'Get Consultation', btnPortal: 'Enter LMS Portal',
+      statsGraduates: 'Graduates', statsPlacement: 'Placement Rate', statsPartners: 'Partners', statsCourses: 'Courses',
+      trustedBy: 'Trusted by companies',
+      coursesTitle: 'IT Directions', coursesDesc: 'Practical courses with AI checks, real projects and certificates.',
+      servicesTitle: 'Enterprise Solutions', servicesDesc: 'Brain IT is more than an academy — a professional software team.',
+      servicesBadge: 'IT Company',
+      aiTitle: 'AI-Powered Platform', aiDesc: 'Bring your education and business to the next level with AI.',
+      aiBadge: 'AI Platform',
+      numberTitle: 'Brain IT in Numbers', numberDesc: 'Results speak for themselves.',
+      portfolioTitle: 'Real Projects', portfolioDesc: 'Delivered enterprise solutions and case studies.',
+      internTitle: 'Internship Program', internDesc: 'Top students work on real projects inside Brain IT company.',
+      internBadge: 'Internship',
+      teamHeader: 'Our Team', teamSub: 'Every member is ready to lead real enterprise projects.',
+      testimonialTitle: 'Success Stories', testimonialDesc: 'Experiences that changed lives of our students.',
+      contactHeader: 'Register for a Course', contactSub: 'Leave your request — managers will contact you soon.',
+      formName: 'Your Name', formPhone: 'Phone Number', formEmail: 'Email (Optional)',
+      formService: 'Course or Service', submitButton: 'Submit',
+      thankYouTitle: 'Thank you! Request received.', thankYouBody: 'Our managers will contact you soon.',
+      btnRegisterNow: 'Register Now', priceLabel: 'Price', durationLabel: 'Duration',
+      modalCurriculumLabel: 'Course Curriculum:', detailButton: 'Learn More',
+      footerDesc: 'IT education and enterprise software solutions. Tashkent, Uzbekistan.',
+      footerLinks: 'Links', footerSocial: 'Social',
+      footerText: '© 2026 Brain IT Academy & Co. All rights reserved.',
+      footerContact: 'Tashkent, Uzbekistan · +998 99 067 00 66',
+      realProjectsCount: 'Projects', activeProjects: 'Active', clientsCount: 'Clients',
+      feature1: 'Multi-tenant architecture', feature2: 'Face ID attendance', feature3: 'Docker production',
+      service1Title: 'Web Development', service1Desc: 'React, Next.js, Django, Node.js platforms.',
+      service2Title: 'Mobile Apps', service2Desc: 'High-quality native iOS and Android apps.',
+      service3Title: 'Enterprise Infrastructure', service3Desc: 'Multi-tenant systems, Docker integrations.',
+      teamTitle: 'Team', teamDesc: 'Experts.', projectsTitle: 'Projects', projectsDesc: 'Case studies.',
+      contactTitle: 'Contact', contactDesc: 'Reach us.',
+      projectStatsHeader: 'Stats', projectStatsSub: 'Numbers.', contactHeader2: 'Contact', contactSub2: 'Reach us.',
+    },
+  };
+  const t = translations[language];
+
+  /* ── DATA ── */
+  const directions = [
+    { icon: Monitor, title: 'Kompyuter savodxonligi', color: '#2563EB' },
+    { icon: Cpu, title: 'Suniy intellekt', color: '#7C3AED' },
+    { icon: BookOpen, title: 'IT Foundation', color: '#06B6D4' },
+    { icon: Code, title: 'Frontend dasturlash', color: '#2563EB' },
+    { icon: Server, title: 'Backend dasturlash', color: '#7C3AED' },
+    { icon: ShieldCheck, title: 'Kiber xavfsizlik', color: '#06B6D4' },
+    { icon: Sparkles, title: 'Roboto-texnika', color: '#2563EB' },
+    { icon: Smile, title: 'IT Kids', color: '#F59E0B' },
+    { icon: Globe2, title: 'English for IT', color: '#10B981' },
+    { icon: Calculator, title: 'Math for IT', color: '#EC4899' },
+  ];
 
   const team = [
     { id: 't1', name: 'Feruza Salimova', role: 'Super Admin & Product Owner', bio: "Loyiha boshqaruvi va mahsulot strategiyasida 6 yillik tajriba. Brain IT ning asoschilaridan biri.", exp: 6, accent: '#6366f1', skills: ['Product Management', 'Agile', 'Scrum'], avatar: 'https://images.unsplash.com/photo-1494790108375-be9c29b29330?w=400&h=400&fit=crop' },
@@ -122,484 +270,458 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLe
     { id: 't6', name: 'Dilnoza Yusupova', role: 'UI/UX Designer', bio: "Foydalanuvchi tajribasini yaxshilashga yo'naltirilgan zamonaviy dizayn. Figma Expert.", exp: 3, accent: '#8b5cf6', skills: ['Figma', 'Prototyping', 'Design Systems'], avatar: 'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=400&h=400&fit=crop' },
   ];
 
-
-  const translations: Record<'uz' | 'ru' | 'en', TranslationStrings> = {
-    uz: {
-      navCourses: "O'quv Kurslari",
-      navServices: "Dasturiy Yechimlar",
-      navContact: "Bog'lanish",
-      navPortal: "LMS Portaliga Kirish",
-      heroBadge: "Brain IT Academy",
-      heroTitle: "0 dan dasturchi bo'lib chiqing!",
-      heroText: "Kompyuter, telefon va biznesni avtomatlashtirishga tegishli dasturlar yaratamiz. Hamda farzandingizni ham dasturchi bo'lishiga professional yondashamiz.",
-      btnCourses: "Kurslarni ko'rish",
-      btnContact: "Konsultatsiya olish",
-      statsGraduates: "Bitiruvchilar",
-      statsPlacement: "Ishga joylashish",
-      statsPartners: "Hamkor kompaniyalar",
-      coursesTitle: "Bizning yo'nalishlar",
-      coursesDesc: "O'quv yo'nalishlarimiz 0 dan boshlovchilar uchun amaliy mashg'ulotlar, sertifikatlar va ishga yo'naltirishni o'z ichiga oladi.",
-      servicesTitle: "MAQSADIMIZ",
-      servicesDesc: "Kompyuter, Telefon va biznesni avtomatlashtirishga tegishli dasturlarni yaratamiz. Hamda farzandingizni ham dasturchi bo'lishiga professional yondashamiz.",
-      servicesBadge: "Kelajak faqat IT bilan!",
-      teamTitle: "Bizning jamoa",
-      teamDesc: "Har bir a'zo o'z sohasida tajribali va real enterprise loyihalarni yetaklashga tayyor.",
-      projectsTitle: "Real loyihalar va statistika",
-      projectsDesc: "O'tkazilgan loyiha tajribamiz va hayotga tadbiq etilgan ishlanmalarimiz haqida ma'lumot.",
-      contactTitle: "Kursga yoki konsultatsiyaga yoziling",
-      contactDesc: "Bizga arizangizni qoldiring, tez orada administratorlarimiz siz bilan bog'lanib, o'quv yoki enterprise rejalarini tuzib berishadi.",
-      formName: "Ismingiz",
-      formPhone: "Telefon Raqamingiz",
-      formEmail: "Elektron pochta (Ixtiyoriy)",
-      formService: "Tanlanayotgan xizmat / kurs",
-      submitButton: "Yuborish",
-      modalCurriculum: "Kurs Dasturi (Syllabus):",
-      btnRegisterNow: "Hozir ro'yxatdan o'tish",
-      footerText: "© 2026 Brain IT Academy. Barcha huquqlar himoyalangan.",
-      footerContact: "Toshkent, Yubileyin korzinka yaqinidagi Lola kafesi ro'parasi | +998 99 067 00 66 | +998 99 037 00 66",
-      realProjectsCount: "Real loyihalar",
-      activeProjects: "Faol loyihalar",
-      clientsCount: "Mijozlar",
-      priceLabel: "Narxi",
-      durationLabel: "Davomiyligi",
-      detailButton: "Batafsil",
-      feature1: "Multi-tenant arxitektura (Shared Database PostgreSQL)",
-      feature2: "Hikvision Face ID Webhook davomat tizimlari",
-      feature3: "Celery, RabbitMQ va Docker-compose production infratuzilmasi",
-      service1Title: "Veb Dasturlash",
-      service1Desc: "Zamonaviy backend (Django, Node.js) va frontend (React, Next.js) platformalari.",
-      service2Title: "Mobil Ilovalar",
-      service2Desc: "iOS va Android tizimlari uchun yuqori darajada himoyalangan native ilovalar.",
-      service3Title: "Enterprise Infratuzilma",
-      service3Desc: "Logical Multi-tenancy tizimlar, Docker va server integratsiyalari.",
-      modalCurriculumLabel: "Kurs Dasturi (Syllabus):",
-      teamHeader: "Bizning jamoa",
-      teamSub: "Har bir a'zo o'z sohasida tajribali va real enterprise loyihalarni yetaklashga tayyor.",
-      projectStatsHeader: "Real loyihalar va statistika",
-      projectStatsSub: "O'tkazilgan loyiha tajribamiz va hayotga tadbiq etilgan ishlanmalarimiz haqida ma'lumot.",
-      contactHeader: "Kursga yoki konsultatsiyaga yoziling",
-      contactSub: "Bizga arizangizni qoldiring, tez orada administratorlarimiz siz bilan bog'lanib, o'quv yoki enterprise rejalarini tuzib berishadi.",
-      thankYouTitle: "Rahmat! Arizangiz qabul qilindi.",
-      thankYouBody: "Tez orada menejerlarimiz siz bilan bog'lanishadi. CRM paneliga o'tib arizani tekshirishingiz mumkin."
-    },
-    ru: {
-      navCourses: 'Курсы',
-      navServices: 'Решения',
-      navContact: 'Контакты',
-      navPortal: 'Войти в LMS',
-      heroBadge: 'Учебный центр & Enterprise',
-      heroTitle: 'Изучайте современные IT-профессии системно',
-      heroText: 'Создаём программы для автоматизации компьютера, телефона и бизнеса. Также помогаем детям стать программистами.',
-      btnCourses: 'Посмотреть курсы',
-      btnContact: 'Получить консультацию',
-      statsGraduates: 'Выпускников',
-      statsPlacement: 'Трудоустройство',
-      statsPartners: 'Партнёры',
-      coursesTitle: 'Наши IT-направления',
-      coursesDesc: 'Курсы с практическими заданиями, AI-проверкой и реальными проектами.',
-      servicesTitle: 'НАША ЦЕЛЬ',
-      servicesDesc: 'Создаём программы для автоматизации компьютера, телефона и бизнеса. Профессионально помогаем детям стать программистами.',
-      servicesBadge: 'Будущее только с IT!',
-      teamTitle: 'Наша команда',
-      teamDesc: 'Каждый участник команды готов вести реальные enterprise-проекты.',
-      projectsTitle: 'Реальные проекты и статистика',
-      projectsDesc: 'Информация о выполненных проектах и реализованных решениях.',
-      contactTitle: 'Запишитесь на курс или консультацию',
-      contactDesc: 'Оставьте заявку, и наши менеджеры свяжутся с вами для формирования обучения или корпоративного решения.',
-      formName: 'Ваше имя',
-      formPhone: 'Телефон',
-      formEmail: 'Электронная почта (необязательно)',
-      formService: 'Выбираемая услуга / курс',
-      submitButton: 'Отправить',
-      modalCurriculum: 'Программа курса:',
-      btnRegisterNow: 'Записаться сейчас',
-      priceLabel: 'Цена',
-      durationLabel: 'Длительность',
-      detailButton: 'Подробнее',
-      modalCurriculumLabel: 'Программа курса:',
-      footerText: '© 2026 Brain IT Academy. Все права защищены.',
-      footerContact: 'Ташкент, Юбилейный, напротив кафе Лола | +998 99 067 00 66 | +998 99 037 00 66',
-      realProjectsCount: 'Реальные проекты',
-      activeProjects: 'Активные проекты',
-      clientsCount: 'Клиенты',
-      feature1: 'Мультиарендная архитектура (Shared Database PostgreSQL)',
-      feature2: 'Hikvision Face ID Webhook системы посещаемости',
-      feature3: 'Celery, RabbitMQ и Docker-compose production инфраструктура',
-      service1Title: 'Веб-разработка',
-      service1Desc: 'Современный backend (Django, Node.js) и frontend (React, Next.js).',
-      service2Title: 'Мобильные приложения',
-      service2Desc: 'Надёжные iOS и Android приложения с высокой безопасностью.',
-      service3Title: 'Enterprise инфраструктура',
-      service3Desc: 'Мультиарендные системы, Docker и серверные интеграции.',
-      teamHeader: 'Наша команда',
-      teamSub: 'Каждый участник команды готов вести реальные enterprise-проекты.',
-      projectStatsHeader: 'Реальные проекты и статистика',
-      projectStatsSub: 'Информация о выполненных проектах и реализованных решениях.',
-      contactHeader: 'Запишитесь на курс или консультацию',
-      contactSub: 'Оставьте заявку, и наши менеджеры свяжутся с вами.',
-      thankYouTitle: 'Спасибо! Ваша заявка принята.',
-      thankYouBody: 'Наши менеджеры скоро свяжутся с вами. Вы можете проверить заявку в CRM.'
-    },
-    en: {
-      navCourses: 'Courses',
-      navServices: 'Solutions',
-      navContact: 'Contact',
-      navPortal: 'Enter LMS Portal',
-      heroBadge: 'Academy & Enterprise',
-      heroTitle: 'Learn modern IT careers with structure',
-      heroText: 'Master practical Python, Django and React courses and build enterprise solutions for companies.',
-      btnCourses: 'View Courses',
-      btnContact: 'Get Consultation',
-      statsGraduates: 'Graduates',
-      statsPlacement: 'Placement',
-      statsPartners: 'Partners',
-      coursesTitle: 'Professional IT Courses',
-      coursesDesc: 'Courses with practical assignments, AI checks, and real-life projects.',
-      servicesTitle: 'Enterprise software solutions',
-      servicesDesc: 'Brain IT is more than an academy — it is a professional team automating business processes.',
-      servicesBadge: 'Enterprise Software Development',
-      teamTitle: 'Our Team',
-      teamDesc: 'Every member is ready to lead real enterprise projects.',
-      projectsTitle: 'Real Projects & Stats',
-      projectsDesc: 'Information about completed projects and delivered enterprise solutions.',
-      contactTitle: 'Register for a course or consultation',
-      contactDesc: 'Leave your request and our team will contact you to organize training or an enterprise plan.',
-      formName: 'Your Name',
-      formPhone: 'Phone Number',
-      formEmail: 'Email (Optional)',
-      formService: 'Selected service / course',
-      submitButton: 'Submit',
-      modalCurriculum: 'Course Curriculum:',
-      btnRegisterNow: 'Register Now',
-      priceLabel: 'Price',
-      durationLabel: 'Duration',
-      detailButton: 'Learn More',
-      modalCurriculumLabel: 'Course Curriculum:',
-      footerText: '© 2026 Brain IT Co. All rights reserved.',
-      footerContact: 'Tashkent, Uzbekistan | Contact: +998901234567 | info@mohirdev.uz',
-      realProjectsCount: 'Real Projects',
-      activeProjects: 'Active Projects',
-      clientsCount: 'Clients',
-      feature1: 'Multi-tenant architecture (Shared Database PostgreSQL)',
-      feature2: 'Hikvision Face ID Webhook attendance systems',
-      feature3: 'Celery, RabbitMQ, and Docker-compose production infrastructure',
-      service1Title: 'Web Development',
-      service1Desc: 'Modern backend (Django, Node.js) and frontend (React, Next.js) platforms.',
-      service2Title: 'Mobile Apps',
-      service2Desc: 'High-quality native iOS and Android applications.',
-      service3Title: 'Enterprise Infrastructure',
-      service3Desc: 'Multi-tenant systems, Docker and server integrations.',
-      teamHeader: 'Our Team',
-      teamSub: 'Every member is ready to lead real enterprise projects.',
-      projectStatsHeader: 'Real Projects & Stats',
-      projectStatsSub: 'Information about completed projects and delivered enterprise solutions.',
-      contactHeader: 'Register for a course or consultation',
-      contactSub: 'Leave your request and our team will contact you.',
-      thankYouTitle: 'Thank you! Your request has been submitted.',
-      thankYouBody: 'Our managers will contact you soon. You can check the request in CRM.'
-    }
-  };
-
-  const t = translations[language] as TranslationStrings;
-
-  const directions = [
-    { icon: Monitor, title: 'Kompyuter savodxonligi' },
-    { icon: Cpu, title: 'Suniy intellekt' },
-    { icon: BookOpen, title: 'IT Foundation' },
-    { icon: Code, title: 'Frontend dasturlash' },
-    { icon: Server, title: 'Backend dasturlash' },
-    { icon: ShieldCheck, title: 'Kiber xavfsizlik' },
-    { icon: Sparkles, title: 'Roboto-texnika' },
-    { icon: Smile, title: 'IT Kids' },
-    { icon: Globe2, title: 'English for IT' },
-    { icon: Calculator, title: 'Math for IT' },
+  const testimonials = [
+    { name: 'Alisher Nazarov', role: 'Frontend Developer at Uzum', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: "Brain IT akademiyasidan o'tgandan keyin 3 oy ichida ish topdim. Ustoz Bobur dan o'rgangan narsalarim haqiqiy enterprise darajasida edi.", stars: 5 },
+    { name: 'Nilufar Rashidova', role: 'Python Developer at IT Park', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop', text: "Backend kursda o'qidim. Haqiqiy loyihalarda ishlash tajribasi berish usullari juda samarali. Endi IT Parkda ishlayman!", stars: 5 },
+    { name: 'Dilshod Yusupov', role: 'React Developer, Freelance', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop', text: "6 oy davomida Frontend kursini o'qidim. Endi oyiga 5,000,000 so'm ishlayman va o'z biznesim bor. Brain IT hayotimni o'zgartirdi.", stars: 5 },
   ];
 
-  const projectStats = [
-    { label: t.realProjectsCount, value: `${projects.length}+` },
-    { label: t.activeProjects, value: `${projects.filter(p => p.status !== 'completed').length}` },
-    { label: t.clientsCount, value: `${new Set(projects.map(p => p.client)).size}` }
+  const services = [
+    { icon: Code, title: 'Veb Dasturlash', desc: 'React, Next.js, Django, Node.js bilan enterprise platformalar.', color: '#2563EB' },
+    { icon: Smartphone, title: 'Mobil Ilovalar', desc: 'iOS va Android uchun Flutter asosida premium ilovalar.', color: '#7C3AED' },
+    { icon: Brain, title: 'AI Yechimlar', desc: "Biznes jarayonlarini sun'iy intellekt bilan avtomatlashtirish.", color: '#06B6D4' },
+    { icon: Shield, title: 'Kiber Xavfsizlik', desc: "Tizimlaringizni himoyalash va zaifliklarni bartaraf etish.", color: '#F59E0B' },
+    { icon: Cloud, title: 'Cloud & DevOps', desc: 'Docker, Kubernetes, CI/CD pipeline va cloud deployment.', color: '#10B981' },
+    { icon: Layers, title: 'UI/UX Design', desc: 'Figma asosida premium, conversion-optimized dizayn tizimlar.', color: '#EC4899' },
   ];
 
-  // Map Maqsad cards to courses (by id) and helpers to open the course modal
-  const cardToCourseMap: Record<string, string> = {
-    'Kompyuter savodxonligi': 'c1',
-    'Suniy intellekt': 'c4',
-    'IT Foundation': 'c1',
-    'Ishga joylashtirish': 'c2'
-  };
+  const aiFeatures = [
+    { icon: Bot, title: 'AI Assistant', desc: "O'quv jarayonida shaxsiy AI mentor yordami." },
+    { icon: BarChart3, title: 'Kurs tavsiyalari', desc: "AI asosida shaxsiy o'quv yo'lini tuzish." },
+    { icon: MessageSquare, title: 'Kod reviewer', desc: "Topshiriqlaringizni AI avtomatik tekshiradi." },
+    { icon: Rocket, title: 'Loyiha generator', desc: "AI bilan real loyiha g'oyalari va kod skeletlari." },
+  ];
+
+  const internSteps = [
+    { num: '01', icon: Award, title: "Kursni tugating", desc: "Har qanday yo'nalishda 80% dan yuqori baho bilan bitirish." },
+    { num: '02', icon: Layers, title: "Portfolio loyiha", desc: "Real IT muammosini hal qiluvchi loyiha yarating." },
+    { num: '03', icon: Users, title: "Jamoa bilan ishlash", desc: "Brain IT kompaniyasida haqiqiy loyihalarda ishlang." },
+  ];
 
   const directionToCourseMap: Record<string, string> = {
-    'Kompyuter savodxonligi': 'c1',
-    'Suniy intellekt': 'c4',
-    'IT Foundation': 'c1',
-    'Frontend dasturlash': 'c2',
-    'Backend dasturlash': 'c3',
-    'Kiber xavfsizlik': 'c5',
-    'Roboto-texnika': 'c1',
-    'IT Kids': 'c1',
-    'English for IT': 'c1',
-    'Math for IT': 'c1'
+    'Kompyuter savodxonligi': 'c1', 'Suniy intellekt': 'c4', 'IT Foundation': 'c1',
+    'Frontend dasturlash': 'c2', 'Backend dasturlash': 'c3', 'Kiber xavfsizlik': 'c5',
+    'Roboto-texnika': 'c1', 'IT Kids': 'c1', 'English for IT': 'c1', 'Math for IT': 'c1',
   };
-
   const openCourseByKey = (key: string) => {
-    const id = cardToCourseMap[key] || directionToCourseMap[key];
+    const id = directionToCourseMap[key];
     const course = courses.find(c => c.id === id) || courses[0] || null;
     if (course) setSelectedCourse(course as Course);
   };
 
-  const getCourseImageForKey = (_key: string) => {
-    return maqsadMonitor;
-  };
+  const projectStats = [
+    { label: t.realProjectsCount, value: `${projects.length}+` },
+    { label: t.activeProjects, value: `${projects.filter((p: Project) => p.status !== 'completed').length}` },
+    { label: t.clientsCount, value: `${new Set(projects.map((p: Project) => p.client)).size}` },
+  ];
 
+  /* ══════════════════════════════════════
+     RENDER
+  ══════════════════════════════════════ */
   return (
-    <div className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth text-white">
+    <div
+      className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth text-white overflow-x-hidden"
+      style={{ background: '#050816' }}
+    >
       <TechBackground />
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 px-6 lg:px-16 py-4 flex justify-between items-center backdrop-blur-md bg-slate-950/80 border-b border-white/10">
-        {/* Logo */}
+
+      {/* ──────────────── NAV ──────────────── */}
+      <header className="sticky top-0 z-50 px-6 lg:px-16 py-4 flex justify-between items-center border-b"
+        style={{ background: 'rgba(5,8,22,0.85)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
-          <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-600/30">
+          <div className="bg-gradient-to-br from-blue-600 to-violet-600 p-2 rounded-xl text-white shadow-lg shadow-blue-600/30">
             <GraduationCap className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="font-heading font-black text-lg leading-tight tracking-wide text-white">Brain IT Academy</h1>
-            <span className="text-[10px] text-indigo-400 font-bold tracking-wider uppercase">IT Ta'lim markazi</span>
+            <h1 className="font-heading font-black text-lg leading-tight tracking-wide text-white">Brain IT</h1>
+            <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase">Academy & Enterprise</span>
           </div>
         </div>
 
-        {/* Right controls */}
         <div className="flex items-center gap-3">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value as 'uz' | 'ru' | 'en')}
-            className="bg-white/10 border border-white/20 text-white rounded-2xl py-2 px-3 text-xs font-semibold focus:outline-none"
-          >
-            <option value="uz" className="bg-slate-900 text-white">UZ</option>
-            <option value="ru" className="bg-slate-900 text-white">RU</option>
-            <option value="en" className="bg-slate-900 text-white">EN</option>
+          <select value={language} onChange={(e) => setLanguage(e.target.value as 'uz' | 'ru' | 'en')}
+            className="border rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none"
+            style={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.12)', color: '#fff' }}>
+            <option value="uz" style={{ background: '#0d1117' }}>UZ</option>
+            <option value="ru" style={{ background: '#0d1117' }}>RU</option>
+            <option value="en" style={{ background: '#0d1117' }}>EN</option>
           </select>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="bg-white/10 border border-white/20 rounded-2xl p-2 transition-all hover:bg-white/20"
-            title={darkMode ? 'Light mode' : 'Dark mode'}
-          >
-            {darkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-indigo-500" />}
+          <button onClick={() => setDarkMode(!darkMode)}
+            className="rounded-xl p-2 transition-all hover:bg-white/10 border"
+            style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+            {darkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-blue-400" />}
           </button>
-
-          {/* Nav links — faqat >= 1000px da ko'rinadi */}
           <nav className="hidden nav:flex items-center gap-6 text-xs font-semibold text-slate-300">
             <a href="#courses" className="hover:text-white transition-colors">{t.navCourses}</a>
             <a href="#services" className="hover:text-white transition-colors">{t.navServices}</a>
             <a href="#contact" className="hover:text-white transition-colors">{t.navContact}</a>
           </nav>
-
-          {/* Portal tugmasi — >= 1000px da ko'rinadi */}
-          <button
-            onClick={onEnterPortal}
-            className="hidden nav:flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-5 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all"
-          >
+          <button onClick={onEnterPortal}
+            className="hidden nav:flex items-center gap-1.5 text-xs font-bold py-2.5 px-5 rounded-xl transition-all text-white"
+            style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', boxShadow: '0 4px 24px rgba(37,99,235,0.35)' }}>
             {t.navPortal} <ArrowRight className="h-4 w-4" />
           </button>
-
-          {/* Hamburger — faqat < 1000px da ko'rinadi */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="nav:hidden bg-white/10 border border-white/20 rounded-xl p-2 text-white hover:bg-white/20 transition-all"
-            aria-label="Menyuni ochish"
-          >
+          <button onClick={() => setMenuOpen(true)} className="nav:hidden border rounded-xl p-2 text-white hover:bg-white/10 transition-all"
+            style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
             <Menu className="h-5 w-5" />
           </button>
         </div>
       </header>
 
-      {/* Mobile menu overlay — < 1000px */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-[60] nav:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
-          <div className="absolute top-0 right-0 h-full w-72 bg-slate-950 border-l border-white/10 flex flex-col p-6 gap-6">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Menyu</span>
-              <button onClick={() => setMenuOpen(false)} className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-1">
-              {[
-                { href: '#courses', label: t.navCourses },
-                { href: '#services', label: t.navServices },
-                { href: '#contact', label: t.navContact },
-              ].map(({ href, label }) => (
-                <a
-                  key={href}
-                  href={href}
-                  onClick={() => setMenuOpen(false)}
-                  className="px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
-            <div className="mt-auto">
-              <button
-                onClick={() => { setMenuOpen(false); onEnterPortal(); }}
-                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3 px-5 rounded-2xl shadow-lg shadow-indigo-600/20 transition-all"
-              >
-                {t.navPortal} <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div className="fixed inset-0 z-[60] nav:hidden"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+            <motion.div className="absolute top-0 right-0 h-full w-72 flex flex-col p-6 gap-6 border-l"
+              style={{ background: '#0a0f1e', borderColor: 'rgba(255,255,255,0.08)' }}
+              initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} transition={{ type: 'spring', damping: 28 }}>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Menyu</span>
+                <button onClick={() => setMenuOpen(false)} className="p-2 rounded-xl hover:bg-white/10 text-slate-400 transition">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-1">
+                {[{ href: '#courses', label: t.navCourses }, { href: '#services', label: t.navServices }, { href: '#contact', label: t.navContact }].map(({ href, label }) => (
+                  <a key={href} href={href} onClick={() => setMenuOpen(false)}
+                    className="px-4 py-3 rounded-xl text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-between">
+                    {label} <ChevronRight className="h-4 w-4 opacity-40" />
+                  </a>
+                ))}
+              </nav>
+              <div className="mt-auto">
+                <button onClick={() => { setMenuOpen(false); onEnterPortal(); }}
+                  className="w-full flex items-center justify-center gap-2 text-white text-sm font-bold py-3 px-5 rounded-xl"
+                  style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
+                  {t.navPortal} <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Hero Section */}
-      <section className="relative px-6 lg:px-16 py-24 lg:py-36 flex flex-col items-center text-center border-b border-white/10">
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="w-[600px] h-[400px] rounded-full bg-indigo-600/20 blur-3xl" />
+      {/* ──────────────── HERO ──────────────── */}
+      <section className="relative flex flex-col items-center text-center px-6 pt-28 pb-24 lg:pt-36 lg:pb-32 overflow-hidden">
+        {/* Animated orbs */}
+        <div className="pointer-events-none absolute inset-0">
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.35, 0.55, 0.35] }}
+            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full"
+            style={{ background: 'radial-gradient(ellipse, rgba(37,99,235,0.30) 0%, transparent 70%)', filter: 'blur(60px)' }}
+          />
+          <motion.div
+            animate={{ scale: [1.1, 1, 1.1], opacity: [0.2, 0.38, 0.2] }}
+            transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+            className="absolute bottom-0 right-1/3 w-[600px] h-[400px] rounded-full"
+            style={{ background: 'radial-gradient(ellipse, rgba(124,58,237,0.30) 0%, transparent 70%)', filter: 'blur(60px)' }}
+          />
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.28, 0.15] }}
+            transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 6 }}
+            className="absolute top-2/3 left-1/5 w-[400px] h-[300px] rounded-full"
+            style={{ background: 'radial-gradient(ellipse, rgba(6,182,212,0.25) 0%, transparent 70%)', filter: 'blur(50px)' }}
+          />
         </div>
-        <div className="relative z-10 space-y-6 max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-300 dark:border-indigo-400/40 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-indigo-300">
-            <Sparkles className="h-4 w-4 text-indigo-400" /> {t.heroBadge}
-          </span>
-          <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl leading-tight tracking-tight text-white dark:drop-shadow-lg">
-            {t.heroTitle}
-          </h2>
-          <p className="mx-auto max-w-2xl text-sm sm:text-base text-slate-300 leading-7">
-            {t.heroText}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-5">
-            <a href="#courses" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-3 px-7 rounded-2xl transition-colors shadow-lg shadow-indigo-600/30">
-              {t.btnCourses}
-            </a>
-            <a href="#contact" className="border border-slate-300 dark:border-white/25 hover:border-indigo-400 dark:hover:border-white/50 text-slate-700 dark:text-white text-xs font-semibold py-3 px-7 rounded-2xl transition-colors">
-              {t.btnContact}
-            </a>
-          </div>
-        </div>
-        <div className="relative z-10 mt-16 max-w-4xl w-full grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/15 dark:backdrop-blur-md p-6 rounded-3xl ">
-          <div className="space-y-2">
-            <p className="text-2xl font-black text-indigo-400">1,200+</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">{t.statsGraduates}</p>
-          </div>
-          <div className="space-y-2 border-t border-white/10 py-4 sm:border-t-0 sm:border-x sm:py-0 px-0 sm:px-4">
-            <p className="text-2xl font-black text-emerald-400">95%</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">{t.statsPlacement}</p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-2xl font-black text-violet-400">15+</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold">{t.statsPartners}</p>
-          </div>
-        </div>
-      </section>
 
-      {/* Bizning yo'nalishlar section */}
-      <section id="courses" className="px-6 lg:px-16 py-20 space-y-12 max-w-7xl mx-auto w-full">
-        <div className="text-center space-y-3">
-          <h3 className="font-heading font-black text-2xl sm:text-3xl text-white">{t.coursesTitle}</h3>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">{t.coursesDesc}</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-          {directions.map((direction, index) => {
-            const Icon = direction.icon;
-            return (
-              <button
-                key={index}
-                onClick={() => openCourseByKey(direction.title)}
-                className="group flex min-h-[120px] flex-col items-center justify-center gap-4 rounded-3xl border border-white/10 bg-white dark:bg-white/5 dark:backdrop-blur-md text-center p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-400/60 hover:shadow-xl hover:shadow-indigo-500/10 "
-              >
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-300 transition-all duration-300 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/25">
-                  <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                </div>
-                <p className="text-[13px] font-semibold text-slate-200 leading-snug group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">
-                  {direction.title}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+        {/* Noise grid */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-      {/* Maqsadlarimiz */}
-      <section id="maqsadlar" className="py-20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-16">
-          <div className="space-y-4 text-center lg:text-left">
-            <span className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-300 dark:border-indigo-400/30 text-indigo-300 text-[10px] uppercase font-bold tracking-widest px-4 py-1.5 rounded-full inline-flex items-center gap-1.5">
-              {t.servicesBadge}
+        <div className="relative z-10 max-w-4xl mx-auto space-y-7">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <Badge color="#06B6D4"><Zap className="h-3.5 w-3.5" />{t.heroEyebrow}</Badge>
+          </motion.div>
+
+          <motion.h2 initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+            className="font-heading font-black text-4xl sm:text-6xl lg:text-7xl leading-[1.05] tracking-tight">
+            <span className="text-white">{t.heroTitle}</span>
+            <br />
+            <span style={{ background: 'linear-gradient(135deg, #2563EB, #06B6D4, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {t.heroTitleAccent}
             </span>
-            <h3 className="font-heading font-black text-3xl leading-tight text-white">{t.servicesTitle}</h3>
-            <p className="mx-auto max-w-3xl text-xs sm:text-sm text-slate-400 leading-relaxed lg:mx-0">{t.servicesDesc}</p>
-          </div>
+          </motion.h2>
 
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[
-              { key: 'Kompyuter savodxonligi', title: 'Kompyuter savodxonligi', desc: 'Asosiy ofis dasturlari, tizim bilan ishlash va kundalik muammolarni hal qilish.', items: ["Boshlang'ich va o'rta daraja darslar", 'Amaliy mashg\'ulotlar va loyihalar', 'Sertifikat bilan yakunlanadi'] },
-              { key: 'Suniy intellekt', title: 'Suniy intellekt', desc: "AI asoslari, mashina o'rganish va amaliy loyihalar bilan bilimlarni mustahkamlash.", items: ['Python va ML kutubxonalari', 'Modellarni o\'qitish va baholash', 'Real dunyo loyihalari'] },
-              { key: 'IT Foundation', title: 'IT Foundation', desc: 'IT asoslari: algoritmlar, tarmoq, va dasturlashning muhim jihatlari.', items: ['Nazariy va amaliy mashg\'ulotlar', 'Mentorlik va kod ko\'rib chiqish', 'Tayyor ish portfoliolari'] },
-              { key: 'Ishga joylashtirish', title: 'Ishga joylashtirish', desc: "Tayyor talabalarni ishga yo'naltirish, Brain IT kompaniyasi bilan hamkorlikda imkoniyatlar.", items: ['Rezyume va intervyu tayyorlash', 'Stajirovka va ishga yo\'naltirish', "O'quvchilarga qo'llab-quvvatlash"] },
-            ].map((card) => (
-              <div key={card.key} className="group rounded-3xl border border-white/10 bg-white dark:bg-white/5 dark:backdrop-blur-md p-6 flex gap-6 items-center transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/60 hover:shadow-xl ">
-                <img src={getCourseImageForKey(card.key)} alt={card.title} className="w-36 h-24 rounded-xl object-cover shrink-0 shadow-md group-hover:scale-105 transition-all duration-300" />
-                <div>
-                  <h4 className="font-heading font-black text-lg text-white group-hover:text-indigo-300 transition-colors">{card.title}</h4>
-                  <p className="text-sm text-slate-400 mt-2">{card.desc}</p>
-                  <ul className="mt-3 text-xs text-slate-400 space-y-1">
-                    {card.items.map((item) => <li key={item}>• {item}</li>)}
-                  </ul>
-                  <div className="mt-4">
-                    <button onClick={() => openCourseByKey(card.key)} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all duration-300">
-                      Batafsil <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+            className="mx-auto max-w-xl text-slate-300 text-sm sm:text-base leading-7">
+            {t.heroText}
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+            <motion.a href="#courses" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center justify-center gap-2 text-white text-sm font-bold py-3.5 px-8 rounded-2xl"
+              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', boxShadow: '0 8px 32px rgba(37,99,235,0.4)' }}>
+              {t.btnCourses} <ArrowRight className="h-4 w-4" />
+            </motion.a>
+            <motion.a href="#contact" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center justify-center gap-2 text-slate-200 text-sm font-bold py-3.5 px-8 rounded-2xl border transition-colors hover:border-blue-500/50"
+              style={{ borderColor: 'rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)' }}>
+              <PlayCircle className="h-4 w-4 text-blue-400" /> {t.btnContact}
+            </motion.a>
+          </motion.div>
+        </div>
+
+        {/* Hero stats */}
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
+          className="relative z-10 mt-20 max-w-4xl w-full grid grid-cols-2 sm:grid-cols-4 gap-px rounded-3xl overflow-hidden"
+          style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          {[
+            { label: t.statsGraduates, value: 1200, suffix: '+', color: '#2563EB' },
+            { label: t.statsPlacement, value: 95, suffix: '%', color: '#06B6D4' },
+            { label: t.statsPartners, value: 15, suffix: '+', color: '#7C3AED' },
+            { label: t.statsCourses, value: 10, suffix: '+', color: '#F59E0B' },
+          ].map((stat, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5 py-7 px-4"
+              style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <p className="text-3xl font-black" style={{ color: stat.color }}>
+                <Counter to={stat.value} suffix={stat.suffix} />
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold text-center">{stat.label}</p>
+            </div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ──────────────── TRUSTED BY ──────────────── */}
+      <section className="py-14 border-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-center text-[11px] uppercase tracking-[0.25em] text-slate-500 font-bold mb-8">{t.trustedBy}</p>
+          <div className="flex flex-wrap justify-center gap-8 items-center">
+            {['IT Park', 'Ucell', 'Beeline', 'Hamkorbank', 'EPAM', 'Humo', 'UMS', 'Inplat'].map((name) => (
+              <span key={name} className="text-sm font-bold text-slate-600 hover:text-slate-400 transition-colors cursor-default tracking-widest uppercase">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────── COURSES / DIRECTIONS ──────────────── */}
+      <section id="courses" className="py-24 px-6 lg:px-16 max-w-7xl mx-auto w-full">
+        <Reveal className="space-y-16">
+          <div className="text-center space-y-4">
+            <motion.div variants={fadeIn}><Badge color="#2563EB"><BookOpen className="h-3.5 w-3.5" />IT Academy</Badge></motion.div>
+            <SectionHead title={t.coursesTitle} sub={t.coursesDesc} />
+          </div>
+          <motion.div variants={staggerFast} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {directions.map((dir, i) => {
+              const Icon = dir.icon;
+              return (
+                <motion.button key={i} variants={fadeUp}
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => openCourseByKey(dir.title)}
+                  className="group flex flex-col items-center justify-center gap-4 rounded-2xl p-5 text-center transition-all duration-300"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${dir.color}55`; (e.currentTarget as HTMLElement).style.background = `${dir.color}0d`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
+                >
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300"
+                    style={{ background: `${dir.color}18` }}>
+                    <Icon className="h-6 w-6" style={{ color: dir.color }} />
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <p className="text-[13px] font-semibold text-slate-200 leading-snug group-hover:text-white transition-colors">{dir.title}</p>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </Reveal>
+      </section>
+
+      {/* ──────────────── SERVICES ──────────────── */}
+      <section id="services" className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-7xl mx-auto">
+          <Reveal className="space-y-16">
+            <div className="space-y-4">
+              <motion.div variants={fadeIn}><Badge color="#7C3AED"><Rocket className="h-3.5 w-3.5" />{t.servicesBadge}</Badge></motion.div>
+              <SectionHead title={t.servicesTitle} sub={t.servicesDesc} center={false} />
+            </div>
+            <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {services.map((srv, i) => {
+                const Icon = srv.icon;
+                return (
+                  <motion.div key={i} variants={fadeUp}
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    className="group rounded-2xl p-6 cursor-pointer transition-all duration-300"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${srv.color}44`; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                  >
+                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center mb-5"
+                      style={{ background: `${srv.color}18` }}>
+                      <Icon className="h-6 w-6" style={{ color: srv.color }} />
+                    </div>
+                    <h4 className="font-bold text-white text-lg mb-2 group-hover:text-blue-300 transition-colors">{srv.title}</h4>
+                    <p className="text-sm text-slate-400 leading-relaxed">{srv.desc}</p>
+                    <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: srv.color }}>
+                      {t.detailButton} <ChevronRight className="h-3.5 w-3.5" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Projects Section */}
-      <section id="projects" className="px-6 lg:px-16 py-20">
-        <div className="max-w-6xl mx-auto space-y-10">
-          <div className="text-center space-y-3">
-            <h3 className="font-heading font-black text-2xl sm:text-3xl text-white">{t.projectsTitle}</h3>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">{t.projectsDesc}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {projectStats.map((stat) => (
-              <div key={stat.label} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 text-center ">
-                <p className="text-3xl font-black text-white">{stat.value}</p>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 font-semibold mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects.slice(0, 3).map((project: Project) => (
-              <div key={project.id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 space-y-3 hover:border-indigo-400/40 transition-colors ">
-                <p className="text-xs uppercase tracking-[0.18em] text-indigo-400 font-semibold">{project.status.replace('_', ' ').toUpperCase()}</p>
-                <h4 className="font-heading font-bold text-lg text-white">{project.name}</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">{project.client}</p>
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.16em] text-slate-400">
-                  <span>{project.tasks.length} ta vazifa</span>
-                  <span className="text-indigo-400">{project.progress}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ──────────────── AI PLATFORM ──────────────── */}
+      <section className="py-24 px-6 lg:px-16 relative overflow-hidden">
+        {/* background glow */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="w-[800px] h-[400px] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(ellipse, #7C3AED, transparent 70%)', filter: 'blur(80px)' }} />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <Reveal>
+            <div className="text-center space-y-4 mb-16">
+              <motion.div variants={fadeIn}><Badge color="#7C3AED"><Brain className="h-3.5 w-3.5" />{t.aiBadge}</Badge></motion.div>
+              <SectionHead title={t.aiTitle} sub={t.aiDesc} />
+            </div>
+            <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {aiFeatures.map((feat, i) => {
+                const Icon = feat.icon;
+                return (
+                  <motion.div key={i} variants={fadeUp} whileHover={{ y: -4 }}
+                    className="rounded-2xl p-6 text-center transition-all duration-300"
+                    style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)' }}>
+                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                      style={{ background: 'rgba(124,58,237,0.18)' }}>
+                      <Icon className="h-6 w-6" style={{ color: '#a855f7' }} />
+                    </div>
+                    <h4 className="font-bold text-white mb-2">{feat.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{feat.desc}</p>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Team Section — Filmstrip / Plyokka */}
-      <section id="team" className="py-20">
-        <div className="max-w-6xl mx-auto px-6 lg:px-16 mb-10">
-          <div className="text-center space-y-3">
-            <h3 className="font-heading font-black text-2xl sm:text-3xl text-white">{t.teamHeader}</h3>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">{t.teamSub}</p>
-          </div>
+      {/* ──────────────── NUMBERS ──────────────── */}
+      <section className="py-20 px-6 border-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-14 space-y-4">
+              <motion.div variants={fadeIn}><Badge color="#06B6D4"><Star className="h-3.5 w-3.5" />{t.numberTitle}</Badge></motion.div>
+              <motion.p variants={fadeUp} className="text-slate-400 text-sm">{t.numberDesc}</motion.p>
+            </div>
+            <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+              {[
+                { label: "Talabalar", to: 1200, suffix: '+', color: '#2563EB' },
+                { label: "Kurslar", to: 10, suffix: '+', color: '#7C3AED' },
+                { label: "O'qituvchilar", to: 8, suffix: '', color: '#06B6D4' },
+                { label: "Loyihalar", to: projects.length, suffix: '+', color: '#F59E0B' },
+              ].map((s, i) => (
+                <motion.div key={i} variants={fadeUp}
+                  className="rounded-2xl py-8 px-4"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p className="text-4xl font-black mb-2" style={{ color: s.color }}>
+                    <Counter to={s.to} suffix={s.suffix} />
+                  </p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400 font-semibold">{s.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ──────────────── PORTFOLIO ──────────────── */}
+      <section id="projects" className="py-24 px-6 lg:px-16">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <div className="text-center space-y-4 mb-14">
+              <motion.div variants={fadeIn}><Badge color="#06B6D4"><Layers className="h-3.5 w-3.5" />Portfolio</Badge></motion.div>
+              <SectionHead title={t.portfolioTitle} sub={t.portfolioDesc} />
+            </div>
+            <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {projects.slice(0, 6).map((project: Project) => (
+                <motion.div key={project.id} variants={fadeUp} whileHover={{ y: -5 }}
+                  className="group rounded-2xl p-5 transition-all duration-300 cursor-default"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] uppercase tracking-[0.18em] font-bold"
+                      style={{ color: project.status === 'completed' ? '#10B981' : project.status === 'in_progress' ? '#2563EB' : '#F59E0B' }}>
+                      {project.status.replace('_', ' ')}
+                    </span>
+                    <span className="text-[10px] text-slate-500">{project.progress}%</span>
+                  </div>
+                  <h4 className="font-bold text-white text-base mb-1 group-hover:text-blue-300 transition-colors">{project.name}</h4>
+                  <p className="text-xs text-slate-500 mb-4">{project.client}</p>
+                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${project.progress}%`, background: 'linear-gradient(90deg, #2563EB, #7C3AED)' }} />
+                  </div>
+                  <div className="mt-4 flex items-center justify-between text-[10px] text-slate-500">
+                    <span>{project.tasks.length} ta vazifa</span>
+                    <div className="flex -space-x-1.5">
+                      {project.team.slice(0, 3).map((m, idx) => (
+                        <div key={idx} className="h-5 w-5 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 border border-slate-900 flex items-center justify-center text-[8px] font-bold text-white">
+                          {m[0]}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ──────────────── INTERNSHIP ──────────────── */}
+      <section className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <div className="text-center space-y-4 mb-16">
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Rocket className="h-3.5 w-3.5" />{t.internBadge}</Badge></motion.div>
+              <SectionHead title={t.internTitle} sub={t.internDesc} />
+            </div>
+            <motion.div variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {internSteps.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <motion.div key={i} variants={fadeUp}
+                    className="relative rounded-2xl p-7 text-center"
+                    style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                    {i < internSteps.length - 1 && (
+                      <div className="hidden md:block absolute top-1/2 -right-3 z-10 transform -translate-y-1/2 text-slate-700">
+                        <ChevronRight className="h-5 w-5" />
+                      </div>
+                    )}
+                    <span className="text-5xl font-black opacity-15" style={{ color: '#10B981' }}>{step.num}</span>
+                    <div className="h-12 w-12 rounded-2xl flex items-center justify-center mx-auto my-4"
+                      style={{ background: 'rgba(16,185,129,0.15)' }}>
+                      <Icon className="h-6 w-6 text-emerald-400" />
+                    </div>
+                    <h4 className="font-bold text-white mb-2">{step.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ──────────────── TEAM FILMSTRIP ──────────────── */}
+      <section id="team" className="py-24 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-16 mb-12">
+          <Reveal>
+            <div className="text-center space-y-4">
+              <motion.div variants={fadeIn}><Badge color="#F59E0B"><Users className="h-3.5 w-3.5" />{t.teamHeader}</Badge></motion.div>
+              <SectionHead title={t.teamHeader} sub={t.teamSub} />
+            </div>
+          </Reveal>
         </div>
 
-        {/* Full-width filmstrip */}
+        {/* Full-width filmstrip — PRESERVED */}
         <div className="relative overflow-hidden">
-          {/* Scrolling track — 2 copies for seamless loop */}
           <div className="filmstrip-track">
             {[...team, ...team].map((member, i) => (
               <div key={i} className="shrink-0 w-72 mx-4">
@@ -620,7 +742,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLe
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">{member.bio}</p>
                     <div className="flex items-center gap-0.5">
-                      {[1,2,3,4,5].map(s => (
+                      {[1, 2, 3, 4, 5].map(s => (
                         <svg key={s} className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -636,7 +758,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLe
                       ))}
                     </div>
                     <div className="pt-2 border-t border-white/5 flex justify-between items-center">
-                      <span className="text-[10px] tracking-widest font-bold text-slate-600">BRAIN IT ACADEMY</span>
+                      <span className="text-[10px] tracking-widest font-bold text-slate-600">BRAIN IT</span>
                       <span className="text-xs font-black" style={{ color: `${member.accent}88` }}>◈</span>
                     </div>
                   </div>
@@ -644,160 +766,289 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterPortal, onAddLe
               </div>
             ))}
           </div>
-
-          {/* Left blur + fade overlay — cards emerge from darkness on right, but fade into this on left */}
-          <div className="absolute inset-y-0 left-0 w-[34%] z-10 pointer-events-none" style={{
-            background: 'linear-gradient(to right, rgba(9,10,15,1) 0%, rgba(9,10,15,0.88) 30%, rgba(9,10,15,0.55) 60%, transparent 100%)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            maskImage: 'linear-gradient(to right, black 55%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, black 55%, transparent 100%)',
-          }} />
-
-          {/* Right blur + fade overlay — cards enter blurry from right */}
-          <div className="absolute inset-y-0 right-0 w-[34%] z-10 pointer-events-none" style={{
-            background: 'linear-gradient(to left, rgba(9,10,15,1) 0%, rgba(9,10,15,0.88) 30%, rgba(9,10,15,0.55) 60%, transparent 100%)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            maskImage: 'linear-gradient(to left, black 55%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to left, black 55%, transparent 100%)',
-          }} />
+          <div className="absolute inset-y-0 left-0 w-[28%] z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, #050816 0%, rgba(5,8,22,0.8) 50%, transparent 100%)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', maskImage: 'linear-gradient(to right, black 50%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 50%, transparent 100%)' }} />
+          <div className="absolute inset-y-0 right-0 w-[28%] z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to left, #050816 0%, rgba(5,8,22,0.8) 50%, transparent 100%)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', maskImage: 'linear-gradient(to left, black 50%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to left, black 50%, transparent 100%)' }} />
         </div>
       </section>
 
-      {/* Lead Capture Registration form */}
-      <section id="contact" className="px-6 lg:px-16 py-20 max-w-6xl mx-auto w-full">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.9fr]">
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl ">
-            {formSubmitted ? (
-              <div className="py-8 text-center space-y-3">
-                <div className="h-12 w-12 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-400 animate-bounce">
-                  <CheckCircle className="h-6 w-6" />
-                </div>
-                <h4 className="font-heading font-bold text-base text-emerald-400">{t.thankYouTitle}</h4>
-                <p className="text-xs text-slate-400">{t.thankYouBody}</p>
-              </div>
-            ) : (
-              <form onSubmit={handleRegisterLead} className="space-y-4 text-xs font-semibold">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="uppercase tracking-wider font-bold text-slate-400">{t.formName}</label>
-                    <input type="text" required placeholder="Elyor Karimov" value={leadName} onChange={(e) => setLeadName(e.target.value)}
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="uppercase tracking-wider font-bold text-slate-400">{t.formPhone}</label>
-                    <input type="tel" required placeholder="+998901234567" value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)}
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="uppercase tracking-wider font-bold text-slate-400">{t.formEmail}</label>
-                    <input type="email" placeholder="email@example.com" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)}
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-semibold" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="uppercase tracking-wider font-bold text-slate-400">{t.formService}</label>
-                    <select value={leadService} onChange={(e) => setLeadService(e.target.value)}
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none font-semibold">
-                      {courses.map(course => (
-                        <option key={course.id} value={course.title} className="bg-white dark:bg-slate-900 text-slate-900">{course.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="pt-4 flex justify-end">
-                  <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 px-6 rounded-xl flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
-                    {t.submitButton} <Send className="h-4 w-4" />
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-
-          <aside className="space-y-4 rounded-3xl border border-white/10 bg-slate-50 dark:bg-white/5 dark:backdrop-blur-md p-8 text-sm ">
-            <div className="space-y-3">
-              <h3 className="font-heading text-xl font-black text-white">Bog'lanish</h3>
-              <p className="text-xs leading-relaxed text-slate-400">Yubileyin korzinka yaqinidagi Lola kafesi ro'parasi</p>
-              <div className="space-y-1 pt-2">
-                <p className="font-semibold text-slate-300">Telefon:</p>
-                <p className="text-indigo-400">+998 99 067 00 66</p>
-                <p className="text-indigo-400">+998 99 037 00 66</p>
-              </div>
-              <div className="space-y-1 pt-2">
-                <p className="font-semibold text-slate-300">Telegram:</p>
-                <p className="text-slate-400">@Brain_IT_academy</p>
-                <p className="font-semibold text-slate-300">Manager:</p>
-                <p className="text-slate-400">@brain_administrator</p>
-              </div>
-              <div className="space-y-1 pt-2">
-                <p className="font-semibold text-slate-300">Instagram:</p>
-                <p className="text-slate-400">@Brain_it_academy</p>
-              </div>
-              <div className="bg-indigo-500/10 border border-indigo-400/20 rounded-3xl p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-indigo-400 font-bold">Kelajak faqat IT bilan!</p>
-              </div>
+      {/* ──────────────── TESTIMONIALS ──────────────── */}
+      <section className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center space-y-4 mb-14">
+              <motion.div variants={fadeIn}><Badge color="#F59E0B"><Star className="h-3.5 w-3.5" />{t.testimonialTitle}</Badge></motion.div>
+              <SectionHead title={t.testimonialTitle} sub={t.testimonialDesc} />
             </div>
-          </aside>
+            <motion.div variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t2, i) => (
+                <motion.div key={i} variants={fadeUp} whileHover={{ y: -5 }}
+                  className="rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: t2.stars }).map((_, s) => (
+                      <Star key={s} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed flex-1">"{t2.text}"</p>
+                  <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                    <img src={t2.avatar} alt={t2.name} className="h-9 w-9 rounded-full object-cover" />
+                    <div>
+                      <p className="text-sm font-bold text-white">{t2.name}</p>
+                      <p className="text-[11px] text-blue-400">{t2.role}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Course Detail Modal */}
-      {selectedCourse && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 max-w-xl w-full p-6 rounded-3xl shadow-2xl relative space-y-6">
-            <button 
-              onClick={() => setSelectedCourse(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 font-bold"
-            >
-              ✕
-            </button>
+      {/* ──────────────── CONTACT ──────────────── */}
+      <section id="contact" className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center space-y-4 mb-14">
+              <motion.div variants={fadeIn}><Badge color="#2563EB"><Send className="h-3.5 w-3.5" />{t.contactHeader}</Badge></motion.div>
+              <SectionHead title={t.contactHeader} sub={t.contactSub} />
+            </div>
+          </Reveal>
 
-            <div className="space-y-4 text-xs leading-relaxed text-slate-300">
-              <div className="flex items-center gap-2">
-                <Award className="h-6 w-6 text-amber-500" />
+          <div className="grid gap-8 lg:grid-cols-[1.4fr_0.8fr]">
+            {/* Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.6 }}
+              className="rounded-2xl p-8"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <AnimatePresence mode="wait">
+                {formSubmitted ? (
+                  <motion.div key="thanks" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                    className="py-12 text-center space-y-4">
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}
+                      className="h-16 w-16 rounded-full flex items-center justify-center mx-auto"
+                      style={{ background: 'rgba(16,185,129,0.15)' }}>
+                      <CheckCircle className="h-8 w-8 text-emerald-400" />
+                    </motion.div>
+                    <h4 className="font-bold text-lg text-emerald-400">{t.thankYouTitle}</h4>
+                    <p className="text-sm text-slate-400">{t.thankYouBody}</p>
+                  </motion.div>
+                ) : (
+                  <motion.form key="form" onSubmit={handleRegisterLead} className="space-y-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formName}</label>
+                        <input type="text" required placeholder="Elyor Karimov" value={leadName} onChange={(e) => setLeadName(e.target.value)}
+                          className="w-full rounded-xl py-3 px-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formPhone}</label>
+                        <input type="tel" required placeholder="+998 90 123 45 67" value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)}
+                          className="w-full rounded-xl py-3 px-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formEmail}</label>
+                        <input type="email" placeholder="email@example.com" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)}
+                          className="w-full rounded-xl py-3 px-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formService}</label>
+                        <select value={leadService} onChange={(e) => setLeadService(e.target.value)}
+                          className="w-full rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}>
+                          {courses.map(course => (
+                            <option key={course.id} value={course.title} style={{ background: '#0d1117' }}>{course.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="pt-2">
+                      <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 text-white text-sm font-bold py-3 px-8 rounded-xl"
+                        style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', boxShadow: '0 8px 24px rgba(37,99,235,0.35)' }}>
+                        {t.submitButton} <Send className="h-4 w-4" />
+                      </motion.button>
+                    </div>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Contact info */}
+            <motion.aside
+              initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
+              className="rounded-2xl p-8 space-y-6"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h3 className="font-bold text-xl text-white">Bog'lanish</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'rgba(37,99,235,0.15)' }}>
+                    <MapPin className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300 mb-0.5">Manzil</p>
+                    <p className="text-xs text-slate-400">Toshkent, Yubileyin korzinka yaqinidagi Lola kafesi ro'parasi</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'rgba(37,99,235,0.15)' }}>
+                    <Phone className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300 mb-0.5">Telefon</p>
+                    <p className="text-xs text-blue-400">+998 99 067 00 66</p>
+                    <p className="text-xs text-blue-400">+998 99 037 00 66</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'rgba(37,99,235,0.15)' }}>
+                    <Mail className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-300 mb-0.5">Telegram / Instagram</p>
+                    <p className="text-xs text-slate-400">@Brain_IT_academy</p>
+                    <p className="text-xs text-slate-400">@brain_administrator</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl p-4 mt-2"
+                style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(124,58,237,0.15))', border: '1px solid rgba(37,99,235,0.25)' }}>
+                <p className="text-xs font-bold tracking-widest uppercase" style={{ color: '#06B6D4' }}>Kelajak faqat IT bilan!</p>
+              </div>
+
+              {/* Social links */}
+              <div className="flex items-center gap-3 pt-2">
+                {[
+                  { Icon: Linkedin, href: '#', color: '#2563EB' },
+                  { Icon: Instagram, href: '#', color: '#EC4899' },
+                  { Icon: Github, href: '#', color: '#94A3B8' },
+                  { Icon: Twitter, href: '#', color: '#06B6D4' },
+                ].map(({ Icon, href, color }, i) => (
+                  <a key={i} href={href}
+                    className="h-9 w-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Icon className="h-4 w-4" style={{ color }} />
+                  </a>
+                ))}
+              </div>
+            </motion.aside>
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────── COURSE MODAL ──────────────── */}
+      <AnimatePresence>
+        {selectedCourse && (
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSelectedCourse(null)} />
+            <motion.div className="relative max-w-xl w-full rounded-3xl p-6 space-y-5 shadow-2xl z-10"
+              style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.10)' }}
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}>
+              <button onClick={() => setSelectedCourse(null)}
+                className="absolute top-4 right-4 h-8 w-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(37,99,235,0.15)' }}>
+                  <Award className="h-5 w-5 text-blue-400" />
+                </div>
                 <h4 className="font-heading font-black text-lg text-white">{selectedCourse.title}</h4>
               </div>
-              
-              <p>{selectedCourse.category} · {selectedCourse.level} · {selectedCourse.duration}</p>
-              
-              <div className="bg-slate-50 dark:bg-dark-bg p-4 rounded-xl border border-slate-200 dark:border-dark-border space-y-2">
-                <p className="font-bold text-slate-900 dark:text-slate-200">{t.modalCurriculumLabel}</p>
-                <ul className="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400">
+              <div className="flex gap-3 text-xs text-slate-400">
+                <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>{selectedCourse.category}</span>
+                <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>{selectedCourse.level}</span>
+                <span className="px-3 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                  <Clock className="inline h-3 w-3 mr-1" />{selectedCourse.duration}
+                </span>
+              </div>
+              <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">{t.modalCurriculumLabel}</p>
+                <ul className="space-y-1">
                   {selectedCourse.modules.map(mod => (
-                    <li key={mod.id} className="font-semibold">{mod.title} ({mod.lessons.length} ta dars)</li>
+                    <li key={mod.id} className="text-xs text-slate-400 flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                      {mod.title} ({mod.lessons.length} ta dars)
+                    </li>
                   ))}
                 </ul>
               </div>
+              <div className="flex items-center justify-between text-sm font-bold">
+                <span style={{ color: '#06B6D4' }}>{t.durationLabel}: {selectedCourse.duration}</span>
+                <span className="text-amber-400">{t.priceLabel}: {selectedCourse.price}</span>
+              </div>
+              <div className="flex justify-end pt-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                <motion.a href="#contact" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => setSelectedCourse(null)}
+                  className="inline-flex items-center gap-2 text-white text-xs font-bold py-2.5 px-6 rounded-xl"
+                  style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
+                  {t.btnRegisterNow} <ArrowRight className="h-3.5 w-3.5" />
+                </motion.a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <div className="flex justify-between items-center font-bold">
-                <span className="text-indigo-400">{t.durationLabel}: {selectedCourse.duration}</span>
-                <span className="text-amber-500">{t.priceLabel}: {selectedCourse.price}</span>
+      {/* ──────────────── FOOTER ──────────────── */}
+      <footer className="border-t" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-16 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="space-y-4 lg:col-span-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-blue-600 to-violet-600 p-2 rounded-xl">
+                <GraduationCap className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-heading font-black text-white">Brain IT</p>
+                <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Academy & Enterprise</p>
               </div>
             </div>
-
-            <div className="flex justify-end pt-4 border-t border-slate-800">
-              <a
-                href="#contact"
-                onClick={() => {
-                  setSelectedCourse(null);
-                }}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-6 rounded-xl transition-all shadow-md shadow-indigo-600/10"
-              >
-                {t.btnRegisterNow}
-              </a>
+            <p className="text-xs text-slate-400 leading-relaxed max-w-xs">{t.footerDesc}</p>
+            <div className="flex gap-3">
+              {[Linkedin, Instagram, Github, Twitter].map((Icon, i) => (
+                <a key={i} href="#"
+                  className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <Icon className="h-3.5 w-3.5" />
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">{t.footerLinks}</p>
+            <div className="space-y-2">
+              {[t.navCourses, t.navServices, t.navContact, 'Portfolio', 'Internship'].map((link) => (
+                <a key={link} href="#" className="block text-xs text-slate-500 hover:text-white transition-colors">{link}</a>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Aloqa</p>
+            <div className="space-y-2 text-xs text-slate-500">
+              <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-blue-500 shrink-0" />Toshkent, Yubileyin</p>
+              <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />+998 99 067 00 66</p>
+              <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />@Brain_IT_academy</p>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Footer */}
-      <footer className="mt-auto border-t border-white/10 py-8 px-6 lg:px-16 text-center text-xs font-semibold space-y-2 bg-slate-100 dark:bg-slate-950/60 dark:backdrop-blur-md text-slate-400">
-        <p>{t.footerText}</p>
-        <p>{t.footerContact}</p>
+        <div className="border-t py-5 px-6 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-600"
+          style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <p>{t.footerText}</p>
+          <p>{t.footerContact}</p>
+        </div>
       </footer>
     </div>
   );
 };
-
