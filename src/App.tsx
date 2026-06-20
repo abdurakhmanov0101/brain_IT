@@ -22,6 +22,7 @@ import {
   type AttendanceLog,
 } from './data/mockData';
 
+const Teachers       = lazy(() => import('./features/teachers/Teachers').then((m) => ({ default: m.Teachers })));
 const Groups         = lazy(() => import('./features/groups/Groups').then((m) => ({ default: m.Groups })));
 const Courses        = lazy(() => import('./features/courses/Courses').then((m) => ({ default: m.Courses })));
 const Students       = lazy(() => import('./features/students/Students').then((m) => ({ default: m.Students })));
@@ -52,6 +53,7 @@ const TAB_ACCESS: Record<string, User['role'][]> = {
   academy:          ['Super Admin', 'Academy Director', 'Teacher', 'Student'],
   courses:          ['Super Admin', 'Academy Director', 'Teacher'],
   groups:           ['Super Admin', 'Academy Director', 'Teacher'],
+  teachers:         ['Super Admin', 'Academy Director'],
   students:         ['Super Admin', 'Academy Director', 'Teacher'],
   attendance:       ['Super Admin', 'Academy Director', 'Teacher'],
   finance:          ['Super Admin', 'Academy Director', 'Company Director'],
@@ -135,6 +137,7 @@ function App() {
       case 'pm':             return <KanbanBoard projectsList={projectsList} setProjectsList={setProjectsList} />;
       case 'faceid':         return <FaceIDAttendance logs={logs} setLogs={setLogs} />;
       case 'crm':            return <CrmPipeline leadsList={leadsList} setLeadsList={setLeadsList} />;
+      case 'teachers':       return <Suspense fallback={<Spinner />}><Teachers /></Suspense>;
       case 'groups':         return <Suspense fallback={<Spinner />}><Groups /></Suspense>;
       case 'courses':        return <Suspense fallback={<Spinner />}><Courses /></Suspense>;
       case 'students':       return <Suspense fallback={<Spinner />}><Students /></Suspense>;

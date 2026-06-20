@@ -39,6 +39,7 @@ const menuGroups = [
       { id: 'courses',    name: 'Kurslar',         icon: BookOpen,      roles: ['Super Admin', 'Academy Director', 'Teacher'] },
       { id: 'groups',     name: 'Guruhlar',        icon: UsersRound,    roles: ['Super Admin', 'Academy Director', 'Teacher'] },
       { id: 'students',   name: "O'quvchilar",     icon: Users,         roles: ['Super Admin', 'Academy Director', 'Teacher'] },
+      { id: 'teachers',   name: "O'qituvchilar",    icon: Users,         roles: ['Super Admin', 'Academy Director'] },
       { id: 'attendance', name: 'Davomat',         icon: CalendarCheck, roles: ['Super Admin', 'Academy Director', 'Teacher'] },
     ] as MenuItem[],
   },
