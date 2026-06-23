@@ -105,9 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
       ].join(' ')}>
         <div className="px-4 py-5 border-b border-slate-800 flex items-center gap-3 shrink-0">
-          <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-600/30 shrink-0">
-            <GraduationCap className="h-5 w-5" />
-          </div>
+          <img src="/image.png" alt="Brain IT Logo" className="h-9 w-9 rounded-xl object-contain shrink-0" />
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <h1 className="font-heading font-bold text-base leading-tight truncate">Brain IT</h1>

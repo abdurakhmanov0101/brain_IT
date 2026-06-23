@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Lock, Eye, EyeOff, LogIn, AlertCircle, Cpu, Zap, Fingerprint, Shield, Globe } from 'lucide-react';
+import { Lock, Eye, EyeOff, LogIn, AlertCircle, Zap, Fingerprint, Shield, Globe } from 'lucide-react';
 import { useAuthStore, ADMIN_ACCOUNTS, type AuthRole } from '../../stores/authStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { initialTeachers } from '../../stores/teacherStore';
@@ -179,7 +179,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, setDarkMode }) =>
             <div className="relative group cursor-pointer mb-2">
                <div className="absolute -inset-4 bg-cyan-500/20 rounded-full blur-[20px] opacity-0 group-hover:opacity-100 transition duration-700"></div>
                <div className="relative bg-[#0f172a] w-20 h-20 rounded-2xl border border-cyan-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all duration-300">
-                <Cpu className="w-10 h-10 text-cyan-400 group-hover:drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] transition-all" />
+                <img src="/image.png" alt="Brain IT" className="w-14 h-14 object-contain" />
                 <Zap className="absolute -bottom-2 -right-2 w-6 h-6 text-cyan-300 animate-pulse" />
               </div>
             </div>

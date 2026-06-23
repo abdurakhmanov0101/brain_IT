@@ -372,9 +372,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <header className="fixed top-0 left-0 right-0 z-50 px-6 lg:px-16 py-4 flex justify-between items-center border-b"
         style={{ background: 'rgba(5,8,22,0.92)', backdropFilter: 'blur(24px)', borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-blue-600 to-violet-600 p-2 rounded-xl text-white shadow-lg shadow-blue-600/30">
-            <GraduationCap className="h-6 w-6" />
-          </div>
+          <img src="/image.png" alt="Brain IT Logo" className="h-10 w-10 rounded-xl object-contain" />
           <div>
             <h1 className="font-heading font-black text-lg leading-tight tracking-wide text-white">Brain IT</h1>
             <span className="text-[10px] text-blue-400 font-bold tracking-wider uppercase">Academy & Enterprise</span>
@@ -1155,9 +1153,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="space-y-4 lg:col-span-2">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-600 to-violet-600 p-2 rounded-xl">
-                <GraduationCap className="h-5 w-5 text-white" />
-              </div>
+              <img src="/image.png" alt="Brain IT Logo" className="h-10 w-10 rounded-xl object-contain" />
               <div>
                 <p className="font-heading font-black text-white">Brain IT</p>
                 <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Academy & Enterprise</p>
