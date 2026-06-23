@@ -323,7 +323,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       exp: 5, accent: '#f59e0b',
       skills: ['DTM Matematika', 'SAT Math', 'Milliy Sertifikat', 'Math for IT', 'Mantiqiy Fikrlash', 'Chuqurlashtirilgan Dastur'],
       avatar: '/husniddin.jpg',
-      photoStyle: { objectPosition: 'center 5%', transform: 'scale(1.08)', transformOrigin: '50% 0%', vignetteY: '35%', filter: 'contrast(1.15) brightness(1.05) saturate(1.1)' },
+      photoStyle: { objectFit: 'contain', objectPosition: 'center top', photoBg: '#f0f2f5', transform: 'scale(1.0)', transformOrigin: '50% 0%', vignetteY: '35%', filter: 'contrast(1.1) brightness(1.0) saturate(1.05)' },
     },
   ];
 
@@ -766,16 +766,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   boxShadow: `0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)`,
                 }}>
                   <div className="h-1.5 shrink-0" style={{ background: `linear-gradient(90deg,${member.accent},${member.accent}33)` }} />
-                  <div className="relative shrink-0 overflow-hidden" style={{ height: '250px' }}>
+                  <div className="relative shrink-0 overflow-hidden" style={{ height: '250px', background: (member.photoStyle as any).photoBg || 'transparent' }}>
                     <img
                       src={member.avatar}
                       alt={member.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
                       style={{
-                        objectPosition: 'center 5%',
-                        transform: 'scale(1.08)',
-                        transformOrigin: '50% 0%',
-                        filter: 'contrast(1.15) brightness(1.05) saturate(1.1)',
+                        objectFit: (member.photoStyle as any).objectFit || 'cover',
+                        objectPosition: member.photoStyle.objectPosition,
+                        transform: member.photoStyle.transform,
+                        transformOrigin: member.photoStyle.transformOrigin,
+                        filter: member.photoStyle.filter,
                         transition: 'transform 0.5s ease',
                       }}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).src = ''; }}
@@ -1040,13 +1041,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="absolute top-4 right-4 h-8 w-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10">
                   <X className="h-4 w-4" />
                 </button>
-                <div className="relative overflow-hidden" style={{ height: '260px' }}>
-                  <img src={m.avatar} alt={m.name} className="w-full h-full object-cover"
+                <div className="relative overflow-hidden" style={{ height: '260px', background: (m.photoStyle as any).photoBg || 'transparent' }}>
+                  <img src={m.avatar} alt={m.name} className="w-full h-full"
                     style={{
-                      objectPosition: 'center 5%',
-                      transform: 'scale(1.08)',
-                      transformOrigin: '50% 0%',
-                      filter: 'contrast(1.15) brightness(1.05) saturate(1.1)',
+                      objectFit: (m.photoStyle as any).objectFit || 'cover',
+                      objectPosition: m.photoStyle.objectPosition,
+                      transform: m.photoStyle.transform,
+                      transformOrigin: m.photoStyle.transformOrigin,
+                      filter: m.photoStyle.filter,
                     }}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = ''; }} />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top,#0d1117 0%,transparent 55%)' }} />
