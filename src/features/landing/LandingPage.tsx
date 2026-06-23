@@ -3,7 +3,7 @@ import {
   motion, useInView, useMotionValue, animate, AnimatePresence,
 } from 'framer-motion';
 import {
-  GraduationCap, ArrowRight, CheckCircle, Code, Server, Award, Sparkles,
+  ArrowRight, CheckCircle, Code, Server, Award, Sparkles,
   Send, Sun, Moon, Cpu, Monitor, ShieldCheck, BookOpen, Globe2, Calculator,
   Smile, Menu, X, Zap, Brain, Rocket, Users, Star, ChevronRight,
   BarChart3, Shield, Cloud, Smartphone, Layers, Bot, MessageSquare,
@@ -315,6 +315,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       exp: 10, accent: '#10b981',
       skills: ['MS Office', 'Kompyuter asoslari', 'Windows', 'Internet', 'Photoshop'],
       avatar: '/behruz.jpg',
+      photoStyle: { objectPosition: 'center 5%', transform: 'scale(1.08)', transformOrigin: '50% 0%', vignetteY: '35%', filter: 'contrast(1.15) brightness(1.05) saturate(1.1)' },
+    },
+    {
+      id: 't7', name: 'Qurbonov Husniddin', role: 'Matematika Ustozi',
+      bio: "DTM & Milliy sertifikat bo'yicha davlat oliy maktablariga 100% tayyorgarlik, SAT Math orqali xalqaro universitetlar uchun, Prezident va Al-Xorazmiy maktablari tanlovi dasturi, hamda kelajak dasturchilari uchun Math for IT yo'nalishi.",
+      exp: 5, accent: '#f59e0b',
+      skills: ['DTM Matematika', 'SAT Math', 'Milliy Sertifikat', 'Math for IT', 'Mantiqiy Fikrlash', 'Chuqurlashtirilgan Dastur'],
+      avatar: '/husniddin.jpg',
       photoStyle: { objectPosition: 'center 5%', transform: 'scale(1.08)', transformOrigin: '50% 0%', vignetteY: '35%', filter: 'contrast(1.15) brightness(1.05) saturate(1.1)' },
     },
   ];
