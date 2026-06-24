@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Lock, Eye, EyeOff, LogIn, AlertCircle, Zap, Fingerprint, Shield, Globe } from 'lucide-react';
 import { useAuthStore, ADMIN_ACCOUNTS, type AuthRole } from '../../stores/authStore';
 import { useStudentStore } from '../../stores/studentStore';
-import { initialTeachers } from '../../stores/teacherStore';
+import { useTeacherStore } from '../../stores/teacherStore';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -92,6 +92,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, setDarkMode }) =>
 
   const { setUser } = useAuthStore();
   const { students } = useStudentStore();
+  const { teachers } = useTeacherStore();
 
   useEffect(() => {
     setMounted(true);
@@ -116,10 +117,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, setDarkMode }) =>
     const adminAcc = ADMIN_ACCOUNTS.find((a) => a.username === u && a.password === p);
     if (adminAcc) { setUser(adminAcc.user); onLogin(); setLoading(false); return; }
 
-    const teacher = initialTeachers.find((t) => {
-      const tUsername = t.email.split('@')[0].toLowerCase();
-      const tPassword = t.phone.replace(/\D/g, '').slice(-6);
-      return tUsername === u && tPassword === p;
+    const teacher = teachers.find((t) => {
+      const byUsername = t.username.toLowerCase() === u && t.password === p;
+      const byEmail = t.email.split('@')[0].toLowerCase() === u && t.phone.replace(/\D/g, '').slice(-6) === p;
+      return byUsername || byEmail;
     });
     if (teacher) {
       setUser({ id: teacher.id, name: teacher.fullName, role: 'Teacher' as AuthRole, avatar: teacher.photo });

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Teacher {
   id: string;
@@ -19,6 +20,7 @@ interface TeacherState {
   teachers: Teacher[];
   addTeacher: (t: Omit<Teacher, 'id'>) => void;
   updateTeacher: (id: string, patch: Partial<Teacher>) => void;
+  deleteTeacher: (id: string) => void;
 }
 
 export const initialTeachers: Teacher[] = [
@@ -32,10 +34,16 @@ export const initialTeachers: Teacher[] = [
   { id: 'tr8', fullName: 'Zulfiya Nazarova', phone: '+998908889900', email: 'zulfiya@brainit.uz', photo: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop', courseIds: ['ac6'], groupIds: [],    hiredDate: '2025-06-01', status: 'vacation', specialization: 'Computer Literacy',  username: 'zulfiya', password: 'Zulfiya@2025' },
 ];
 
-export const useTeacherStore = create<TeacherState>((set) => ({
-  teachers: initialTeachers,
-  addTeacher: (t) => set((s) => ({ teachers: [...s.teachers, { ...t, id: `tr${Date.now()}` }] })),
-  updateTeacher: (id, patch) => set((s) => ({
-    teachers: s.teachers.map((t) => t.id === id ? { ...t, ...patch } : t)
-  })),
-}));
+export const useTeacherStore = create<TeacherState>()(
+  persist(
+    (set) => ({
+      teachers: initialTeachers,
+      addTeacher: (t) => set((s) => ({ teachers: [...s.teachers, { ...t, id: `tr${Date.now()}` }] })),
+      updateTeacher: (id, patch) => set((s) => ({
+        teachers: s.teachers.map((t) => t.id === id ? { ...t, ...patch } : t),
+      })),
+      deleteTeacher: (id) => set((s) => ({ teachers: s.teachers.filter((t) => t.id !== id) })),
+    }),
+    { name: 'teacher-store' }
+  )
+);

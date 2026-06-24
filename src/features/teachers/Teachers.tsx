@@ -30,7 +30,7 @@ const AVATAR_PLACEHOLDERS = [
 ];
 
 export const Teachers: React.FC = () => {
-  const { teachers, addTeacher, updateTeacher } = useTeacherStore();
+  const { teachers, addTeacher, updateTeacher, deleteTeacher } = useTeacherStore();
   const { students } = useStudentStore();
   const { groups } = useGroupStore();
   const { courses } = useCourseStore();
@@ -172,7 +172,7 @@ export const Teachers: React.FC = () => {
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 transition-colors">
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => updateTeacher(teacher.id, { status: teacher.status === 'active' ? 'fired' : 'active' })}
+                      <button onClick={() => { if (window.confirm(`${teacher.fullName} ni o'chirishni tasdiqlaysizmi?`)) { deleteTeacher(teacher.id); addToast({ type: 'success', message: `${teacher.fullName} o'chirildi` }); } }}
                         className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

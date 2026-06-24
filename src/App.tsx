@@ -91,13 +91,23 @@ function App() {
   const [bgAnimationEnabled, setBgAnimationEnabled] = useState(() => {
     try { return localStorage.getItem('landing:bgAnimationEnabled') !== '0'; } catch { return true; }
   });
-  const [leadsList, setLeadsList] = useState<Lead[]>(initialLeads);
-  const [projectsList, setProjectsList] = useState<Project[]>(initialProjects);
-  const [logs, setLogs] = useState<AttendanceLog[]>(initialAttendance);
+  const [leadsList, setLeadsList] = useState<Lead[]>(() => {
+    try { const s = localStorage.getItem('crm-leads'); return s ? JSON.parse(s) : initialLeads; } catch { return initialLeads; }
+  });
+  const [projectsList, setProjectsList] = useState<Project[]>(() => {
+    try { const s = localStorage.getItem('kanban-projects'); return s ? JSON.parse(s) : initialProjects; } catch { return initialProjects; }
+  });
+  const [logs, setLogs] = useState<AttendanceLog[]>(() => {
+    try { const s = localStorage.getItem('faceid-logs'); return s ? JSON.parse(s) : initialAttendance; } catch { return initialAttendance; }
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  useEffect(() => { try { localStorage.setItem('crm-leads', JSON.stringify(leadsList)); } catch {} }, [leadsList]);
+  useEffect(() => { try { localStorage.setItem('kanban-projects', JSON.stringify(projectsList)); } catch {} }, [projectsList]);
+  useEffect(() => { try { localStorage.setItem('faceid-logs', JSON.stringify(logs)); } catch {} }, [logs]);
 
   useEffect(() => {
     try { localStorage.setItem('landing:bgAnimationEnabled', bgAnimationEnabled ? '1' : '0'); } catch {}
@@ -147,8 +157,8 @@ function App() {
       case 'contracts':      return <Suspense fallback={<Spinner />}><Contracts /></Suspense>;
       case 'notifications':  return <Suspense fallback={<Spinner />}><Notifications /></Suspense>;
       case 'reports':        return <Suspense fallback={<Spinner />}><Reports /></Suspense>;
-      case 'student-portal': return <Suspense fallback={<Spinner />}><StudentPortal /></Suspense>;
-      case 'parent-portal':  return <Suspense fallback={<Spinner />}><ParentPortal /></Suspense>;
+      case 'student-portal': return <Suspense fallback={<Spinner />}><StudentPortal studentId={authStore.currentUser?.studentId ?? authStore.currentUser?.id ?? 'st1'} /></Suspense>;
+      case 'parent-portal':  return <Suspense fallback={<Spinner />}><ParentPortal studentId={authStore.currentUser?.studentId ?? authStore.currentUser?.id ?? 'st1'} /></Suspense>;
       default:               return <Overview currentUser={currentUser} setActiveTab={setActiveTab} projectsList={projectsList} />;
     }
   };

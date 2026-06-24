@@ -81,7 +81,7 @@ export const Attendance: React.FC = () => {
       const prev = getRecord(s.id);
       if (prev?.status !== 'present') {
         markAttendance({ studentId: s.id, groupId: selectedGroup, date: selectedDate, status: 'present', checkedBy: 'manual', deductionApplied: true });
-        if (course && prev?.status !== 'late') deductLesson({ studentId: s.id, groupId: selectedGroup, lessonDate: selectedDate, amount: course.lessonPrice });
+        if (course && !prev?.deductionApplied) deductLesson({ studentId: s.id, groupId: selectedGroup, lessonDate: selectedDate, amount: course.lessonPrice });
       }
     });
     addToast({ type: 'success', message: `${activeStudents.length} ta o'quvchi "Keldi" deb belgilandi` });

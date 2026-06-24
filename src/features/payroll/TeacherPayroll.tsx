@@ -3,19 +3,30 @@ import { DollarSign, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { useFinanceStore } from '../../stores/financeStore';
 import type { PayrollRecord } from '../../stores/financeStore';
 import { useTeacherStore } from '../../stores/teacherStore';
+import { useCourseStore } from '../../stores/courseStore';
 import { useUIStore } from '../../stores/uiStore';
 import { statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { Modal } from '../../components/Modal';
 import { exportCSV } from '../../utils/exportCSV';
 
-const MONTHS = ['2026-04', '2026-05', '2026-06'];
+const generateMonths = (count = 6): string[] => {
+  const months: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  return months;
+};
+const MONTHS = generateMonths();
 
 export const TeacherPayroll: React.FC = () => {
   const { payrollRecords, updatePayroll, addPayrollRecord } = useFinanceStore();
   const { teachers } = useTeacherStore();
+  const { courses } = useCourseStore();
   const { addToast } = useUIStore();
-  const [selectedMonth, setSelectedMonth] = useState('2026-06');
+  const [selectedMonth, setSelectedMonth] = useState(MONTHS[0]);
   const [payOpen, setPayOpen] = useState<PayrollRecord | null>(null);
   const [partialAmount, setPartialAmount] = useState('');
 
@@ -45,7 +56,12 @@ export const TeacherPayroll: React.FC = () => {
     const existing = payrollRecords.filter((r) => r.month === selectedMonth).map((r) => r.teacherId);
     const missing = teachers.filter((t) => t.status === 'active' && !existing.includes(t.id));
     missing.forEach((t) => {
-      addPayrollRecord({ teacherId: t.id, month: selectedMonth, lessonsCount: 0, totalAmount: 1500000, status: 'pending', paidAmount: 0 });
+      const teacherCourses = courses.filter((c) => t.courseIds.includes(c.id));
+      const totalAmount = teacherCourses.length > 0
+        ? teacherCourses.reduce((sum, c) => sum + Math.round(c.monthlyPrice * c.teacherPercent / 100), 0)
+        : 1500000;
+      const lessonsCount = teacherCourses.reduce((sum, c) => sum + c.lessonsPerWeek * 4, 0);
+      addPayrollRecord({ teacherId: t.id, month: selectedMonth, lessonsCount, totalAmount, status: 'pending', paidAmount: 0 });
     });
     if (missing.length > 0) addToast({ type: 'success', message: `${missing.length} ta ustoz uchun maosh yaratildi` });
     else addToast({ type: 'info', message: 'Barcha ustoz maoshlari allaqachon yaratilgan' });

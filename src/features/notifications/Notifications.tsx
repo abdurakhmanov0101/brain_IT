@@ -127,10 +127,15 @@ export const Notifications: React.FC = () => {
           )}
           {notifs.map((n) => (
             <div key={n.id}
-              className="px-5 py-4 flex items-center gap-4 transition-all duration-400"
+              className="px-5 py-4 flex items-center gap-4 overflow-hidden"
               style={{
                 opacity: dismissing.has(n.id) ? 0 : 1,
                 transform: dismissing.has(n.id) ? 'translateX(40px)' : 'translateX(0)',
+                maxHeight: dismissing.has(n.id) ? '0' : '80px',
+                paddingTop: dismissing.has(n.id) ? 0 : undefined,
+                paddingBottom: dismissing.has(n.id) ? 0 : undefined,
+                transition: 'opacity 0.35s ease, transform 0.35s ease, max-height 0.4s ease, padding 0.4s ease',
+                pointerEvents: dismissing.has(n.id) ? 'none' : 'auto',
               }}>
               <div className={`p-2 rounded-lg shrink-0 ${n.channel === 'telegram' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-500' : 'bg-green-50 dark:bg-green-900/20 text-green-500'}`}>
                 {n.channel === 'telegram' ? <MessageCircle className="h-4 w-4" /> : <Bell className="h-4 w-4" />}

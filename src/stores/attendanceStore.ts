@@ -52,6 +52,13 @@ export const useAttendanceStore = create<AttendanceState>()(
     (set, get) => ({
       records: sampleRecords,
       markAttendance: (r) => {
+        const existing = get().records.find(
+          (x) => x.studentId === r.studentId && x.groupId === r.groupId && x.date === r.date
+        );
+        if (existing) {
+          set((s) => ({ records: s.records.map((x) => x.id === existing.id ? { ...x, ...r } : x) }));
+          return existing.id;
+        }
         const id = `ar${Date.now()}`;
         set((s) => ({ records: [...s.records, { ...r, id }] }));
         return id;

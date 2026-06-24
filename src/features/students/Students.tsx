@@ -36,7 +36,7 @@ const CopyField: React.FC<{ label: string; value: string }> = ({ label, value })
 
 export const Students: React.FC = () => {
   const { students, addStudent, updateStudent, addPayment } = useStudentStore();
-  const { groups } = useGroupStore();
+  const { groups, addStudentToGroup } = useGroupStore();
   const { teachers } = useTeacherStore();
   const { addToast } = useUIStore();
   const currentUser = useAuthStore((s) => s.currentUser);
@@ -75,7 +75,9 @@ export const Students: React.FC = () => {
   const handleAddStudent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.fullName || !addForm.phone) { addToast({ type: 'error', message: 'Ism va telefon kiritilishi shart' }); return; }
+    const newId = `st${Date.now()}`;
     addStudent({ ...addForm, photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop', enrolledDate: new Date().toISOString().split('T')[0] });
+    addForm.groupIds.forEach((gId) => addStudentToGroup(gId, newId));
     const phones = addForm.phone.replace(/\D/g, '');
     const pphones = addForm.parentPhone.replace(/\D/g, '');
     setCreatedCreds({ fullName: addForm.fullName, studentUsername: genStudentUsername(addForm.fullName, addForm.phone), studentPassword: phones.slice(-6), parentUsername: genParentUsername(addForm.fullName, addForm.parentPhone), parentPassword: pphones.slice(-6) });
