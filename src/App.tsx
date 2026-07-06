@@ -1,7 +1,8 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { ToastContainer } from './components/Toast';
+import { useEffect, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { MainLayout } from './layouts/MainLayout';
+import { AuthLayout } from './layouts/AuthLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './features/landing/LandingPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { Overview } from './features/dashboard/Overview';
@@ -10,17 +11,6 @@ import { KanbanBoard } from './features/pm/KanbanBoard';
 import { FaceIDAttendance } from './features/faceid/FaceIDAttendance';
 import { CrmPipeline } from './features/crm/CrmPipeline';
 import { useUIStore } from './stores/uiStore';
-import { useAuthStore } from './stores/authStore';
-import {
-  users,
-  leads as initialLeads,
-  projects as initialProjects,
-  initialAttendance,
-  type User,
-  type Lead,
-  type Project,
-  type AttendanceLog,
-} from './data/mockData';
 
 const Teachers       = lazy(() => import('./features/teachers/Teachers').then((m) => ({ default: m.Teachers })));
 const Groups         = lazy(() => import('./features/groups/Groups').then((m) => ({ default: m.Groups })));
@@ -32,194 +22,98 @@ const TeacherPayroll = lazy(() => import('./features/payroll/TeacherPayroll').th
 const Contracts      = lazy(() => import('./features/contracts/Contracts').then((m) => ({ default: m.Contracts })));
 const Notifications  = lazy(() => import('./features/notifications/Notifications').then((m) => ({ default: m.Notifications })));
 const Reports        = lazy(() => import('./features/reports/Reports').then((m) => ({ default: m.Reports })));
+const Market         = lazy(() => import('./features/market/Market').then((m) => ({ default: m.Market })));
+const StaffModule    = lazy(() => import('./features/staff/Staff').then((m) => ({ default: m.StaffModule })));
+const TeacherPortal  = lazy(() => import('./features/portals/TeacherPortal').then((m) => ({ default: m.TeacherPortal })));
 const StudentPortal  = lazy(() => import('./features/portals/StudentPortal').then((m) => ({ default: m.StudentPortal })));
 const ParentPortal   = lazy(() => import('./features/portals/ParentPortal').then((m) => ({ default: m.ParentPortal })));
+const StaffPortal    = lazy(() => import('./features/portals/StaffPortal').then((m) => ({ default: m.StaffPortal })));
+const CoinPanel      = lazy(() => import('./features/coins/CoinPanel').then((m) => ({ default: m.CoinPanel })));
+const Homework       = lazy(() => import('./features/homework/Homework').then((m) => ({ default: m.Homework })));
+const SettingsPage   = lazy(() => import('./features/settings/Settings').then((m) => ({ default: m.Settings })));
+const RolesPage      = lazy(() => import('./features/roles/RolesPage').then((m) => ({ default: m.RolesPage })));
 
 const Spinner = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="h-10 w-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+  <div className="flex items-center justify-center h-full w-full min-h-[50vh]">
+    <div className="h-12 w-12 rounded-full border-4 border-cyan-500 border-t-transparent animate-spin shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
   </div>
 );
 
-type ViewMode = 'landing' | 'login' | 'portal';
-
-const DEFAULT_TABS: Partial<Record<User['role'], string>> = {
-  Student: 'student-portal',
-  Parent: 'parent-portal',
-};
-
-const TAB_ACCESS: Record<string, User['role'][]> = {
-  dashboard:        ['Super Admin', 'Academy Director', 'Company Director', 'Project Manager', 'Teacher', 'Student'],
-  academy:          ['Super Admin', 'Academy Director', 'Teacher', 'Student'],
-  courses:          ['Super Admin', 'Academy Director', 'Teacher'],
-  groups:           ['Super Admin', 'Academy Director', 'Teacher'],
-  teachers:         ['Super Admin', 'Academy Director'],
-  students:         ['Super Admin', 'Academy Director', 'Teacher'],
-  attendance:       ['Super Admin', 'Academy Director', 'Teacher'],
-  finance:          ['Super Admin', 'Academy Director', 'Company Director'],
-  payroll:          ['Super Admin', 'Academy Director'],
-  pm:               ['Super Admin', 'Company Director', 'Project Manager', 'Developer', 'Client'],
-  faceid:           ['Super Admin', 'Academy Director', 'Company Director', 'Teacher'],
-  crm:              ['Super Admin', 'Company Director', 'Project Manager'],
-  contracts:        ['Super Admin', 'Academy Director'],
-  notifications:    ['Super Admin', 'Academy Director'],
-  reports:          ['Super Admin', 'Academy Director', 'Company Director'],
-  'student-portal': ['Super Admin', 'Academy Director', 'Student', 'Parent'],
-  'parent-portal':  ['Super Admin', 'Academy Director', 'Student', 'Parent'],
-};
-
-function buildPortalUser(authUser: { id: string; name: string; role: User['role']; avatar?: string }): User {
-  const matched = users.find((u) => u.role === authUser.role);
-  return {
-    id: authUser.id,
-    name: authUser.name,
-    email: matched?.email ?? `${authUser.role.replace(/\s+/g, '').toLowerCase()}@brainit.uz`,
-    role: authUser.role,
-    avatar: authUser.avatar ?? matched?.avatar ?? 'https://images.unsplash.com/photo-1550525811-e5869dd03032?w=100&h=100&fit=crop',
-  };
-}
-
-function App() {
+function AppRoutes() {
   const { darkMode, setDarkMode, language, setLanguage } = useUIStore();
-  const authStore = useAuthStore();
-
-  const [viewMode, setViewMode] = useState<ViewMode>('landing');
-  const [currentUser, setCurrentUser] = useState<User>(users[0]);
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [bgAnimationEnabled, setBgAnimationEnabled] = useState(() => {
-    try { return localStorage.getItem('landing:bgAnimationEnabled') !== '0'; } catch { return true; }
-  });
-  const [leadsList, setLeadsList] = useState<Lead[]>(() => {
-    try { const s = localStorage.getItem('crm-leads'); return s ? JSON.parse(s) : initialLeads; } catch { return initialLeads; }
-  });
-  const [projectsList, setProjectsList] = useState<Project[]>(() => {
-    try { const s = localStorage.getItem('kanban-projects'); return s ? JSON.parse(s) : initialProjects; } catch { return initialProjects; }
-  });
-  const [logs, setLogs] = useState<AttendanceLog[]>(() => {
-    try { const s = localStorage.getItem('faceid-logs'); return s ? JSON.parse(s) : initialAttendance; } catch { return initialAttendance; }
-  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  useEffect(() => { try { localStorage.setItem('crm-leads', JSON.stringify(leadsList)); } catch {} }, [leadsList]);
-  useEffect(() => { try { localStorage.setItem('kanban-projects', JSON.stringify(projectsList)); } catch {} }, [projectsList]);
-  useEffect(() => { try { localStorage.setItem('faceid-logs', JSON.stringify(logs)); } catch {} }, [logs]);
-
-  useEffect(() => {
-    try { localStorage.setItem('landing:bgAnimationEnabled', bgAnimationEnabled ? '1' : '0'); } catch {}
-  }, [bgAnimationEnabled]);
-
-  const handleAddLead = (data: { name: string; phone: string; email: string; source: string; value: string }) => {
-    setLeadsList((p) => [...p, { id: `ld_${Date.now()}`, ...data, status: 'new', date: new Date().toISOString().split('T')[0] }]);
-  };
-
-  const handleLoginSuccess = () => {
-    const auth = authStore.currentUser;
-    if (!auth) return;
-    const user = buildPortalUser(auth);
-    setCurrentUser(user);
-    setActiveTab(DEFAULT_TABS[user.role] ?? 'dashboard');
-    setViewMode('portal');
-  };
-
-  const handleRoleChange = (role: User['role']) => {
-    const found = users.find((u) => u.role === role) ?? {
-      id: `u_${role.replace(/\s+/g, '_').toLowerCase()}`,
-      name: role,
-      email: `${role.replace(/\s+/g, '').toLowerCase()}@brainit.uz`,
-      role,
-      avatar: 'https://images.unsplash.com/photo-1550525811-e5869dd03032?w=100&h=100&fit=crop',
-    };
-    setCurrentUser(found);
-    const next = DEFAULT_TABS[role];
-    if (next) { setActiveTab(next); return; }
-    if (!TAB_ACCESS[activeTab]?.includes(role)) setActiveTab('dashboard');
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':      return <Overview currentUser={currentUser} setActiveTab={setActiveTab} projectsList={projectsList} />;
-      case 'academy':        return <Classroom currentUser={currentUser} />;
-      case 'pm':             return <KanbanBoard projectsList={projectsList} setProjectsList={setProjectsList} />;
-      case 'faceid':         return <FaceIDAttendance logs={logs} setLogs={setLogs} />;
-      case 'crm':            return <CrmPipeline leadsList={leadsList} setLeadsList={setLeadsList} />;
-      case 'teachers':       return <Suspense fallback={<Spinner />}><Teachers /></Suspense>;
-      case 'groups':         return <Suspense fallback={<Spinner />}><Groups /></Suspense>;
-      case 'courses':        return <Suspense fallback={<Spinner />}><Courses /></Suspense>;
-      case 'students':       return <Suspense fallback={<Spinner />}><Students /></Suspense>;
-      case 'attendance':     return <Suspense fallback={<Spinner />}><Attendance /></Suspense>;
-      case 'finance':        return <Suspense fallback={<Spinner />}><Finance /></Suspense>;
-      case 'payroll':        return <Suspense fallback={<Spinner />}><TeacherPayroll /></Suspense>;
-      case 'contracts':      return <Suspense fallback={<Spinner />}><Contracts /></Suspense>;
-      case 'notifications':  return <Suspense fallback={<Spinner />}><Notifications /></Suspense>;
-      case 'reports':        return <Suspense fallback={<Spinner />}><Reports /></Suspense>;
-      case 'student-portal': return <Suspense fallback={<Spinner />}><StudentPortal studentId={authStore.currentUser?.studentId ?? authStore.currentUser?.id ?? 'st1'} /></Suspense>;
-      case 'parent-portal':  return <Suspense fallback={<Spinner />}><ParentPortal studentId={authStore.currentUser?.studentId ?? authStore.currentUser?.id ?? 'st1'} /></Suspense>;
-      default:               return <Overview currentUser={currentUser} setActiveTab={setActiveTab} projectsList={projectsList} />;
-    }
-  };
-
-  if (viewMode === 'landing') {
-    return (
-      <LandingPage
-        onEnterPortal={() => setViewMode('login')}
-        onAddLead={handleAddLead}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        language={language}
-        setLanguage={setLanguage}
-        bgAnimationEnabled={bgAnimationEnabled}
-        setBgAnimationEnabled={setBgAnimationEnabled}
-      />
-    );
-  }
-
-  if (viewMode === 'login') {
-    return (
-      <LoginPage
-        onLogin={handleLoginSuccess}
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
-    );
-  }
-
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-dark-bg transition-colors duration-300">
-      <Sidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        currentUser={currentUser}
-        onRoleChange={handleRoleChange}
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-        showRbac
-      />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header
-          activeTab={activeTab}
-          currentUser={currentUser}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          language={language}
-          setLanguage={setLanguage}
-          bgAnimationEnabled={bgAnimationEnabled}
-          setBgAnimationEnabled={setBgAnimationEnabled}
-          onLogout={() => { authStore.logout(); setViewMode('landing'); }}
-          onMobileMenuToggle={() => setMobileOpen(true)}
-        />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          {renderContent()}
-        </main>
-      </div>
-      <ToastContainer />
-    </div>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage 
+        onEnterPortal={() => navigate('/login')} 
+        onAddLead={() => {}} 
+        darkMode={darkMode} 
+        setDarkMode={setDarkMode} 
+        language={language} 
+        setLanguage={setLanguage} 
+        bgAnimationEnabled={true} 
+        setBgAnimationEnabled={() => {}} 
+      />} />
+
+      {/* Auth Routes */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<LoginPage 
+          onLogin={() => navigate('/dashboard')} 
+          darkMode={darkMode} 
+          setDarkMode={setDarkMode} 
+        />} />
+      </Route>
+
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path="/dashboard" element={<Overview />} />
+          <Route path="/academy" element={<Classroom />} />
+          <Route path="/pm" element={<KanbanBoard />} />
+          <Route path="/faceid" element={<FaceIDAttendance />} />
+          <Route path="/crm" element={<CrmPipeline />} />
+          
+          {/* Lazy Loaded Routes */}
+          <Route path="/teachers" element={<Suspense fallback={<Spinner />}><Teachers /></Suspense>} />
+          <Route path="/groups" element={<Suspense fallback={<Spinner />}><Groups /></Suspense>} />
+          <Route path="/courses" element={<Suspense fallback={<Spinner />}><Courses /></Suspense>} />
+          <Route path="/students" element={<Suspense fallback={<Spinner />}><Students /></Suspense>} />
+          <Route path="/attendance" element={<Suspense fallback={<Spinner />}><Attendance /></Suspense>} />
+          <Route path="/finance" element={<Suspense fallback={<Spinner />}><Finance /></Suspense>} />
+          <Route path="/payroll" element={<Suspense fallback={<Spinner />}><TeacherPayroll /></Suspense>} />
+          <Route path="/contracts" element={<Suspense fallback={<Spinner />}><Contracts /></Suspense>} />
+          <Route path="/notifications" element={<Suspense fallback={<Spinner />}><Notifications /></Suspense>} />
+          <Route path="/market" element={<Suspense fallback={<Spinner />}><Market /></Suspense>} />
+          <Route path="/staff" element={<Suspense fallback={<Spinner />}><StaffModule /></Suspense>} />
+          <Route path="/teacher-portal" element={<Suspense fallback={<Spinner />}><TeacherPortal /></Suspense>} />
+          <Route path="/reports" element={<Suspense fallback={<Spinner />}><Reports /></Suspense>} />
+          <Route path="/student-portal" element={<Suspense fallback={<Spinner />}><StudentPortal studentId="st1" /></Suspense>} />
+          <Route path="/parent-portal" element={<Suspense fallback={<Spinner />}><ParentPortal studentId="st1" /></Suspense>} />
+          <Route path="/staff-portal" element={<Suspense fallback={<Spinner />}><StaffPortal /></Suspense>} />
+          <Route path="/coins" element={<Suspense fallback={<Spinner />}><CoinPanel /></Suspense>} />
+          <Route path="/homework" element={<Suspense fallback={<Spinner />}><Homework /></Suspense>} />
+          <Route path="/settings" element={<Suspense fallback={<Spinner />}><SettingsPage /></Suspense>} />
+          <Route path="/roles" element={<Suspense fallback={<Spinner />}><RolesPage /></Suspense>} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
 

@@ -7,6 +7,7 @@ import { Badge } from '../../components/Badge';
 import { useStudentStore } from '../../stores/studentStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useFaceStore, type RegisteredFace } from '../../stores/faceStore';
+import { useFaceidStore } from '../../stores/faceidStore';
 import { useUIStore } from '../../stores/uiStore';
 import type { AttendanceLog } from '../../data/mockData';
 
@@ -14,13 +15,12 @@ type ScanPhase = 'idle' | 'loading' | 'scanning' | 'detected' | 'error';
 type Tab = 'scan' | 'register';
 type PersonType = 'student' | 'teacher';
 
-interface Props { logs: AttendanceLog[]; setLogs: React.Dispatch<React.SetStateAction<AttendanceLog[]>>; }
-
-export const FaceIDAttendance: React.FC<Props> = ({ logs, setLogs }) => {
+export const FaceIDAttendance: React.FC = () => {
   /* ---------- stores ---------- */
   const { students } = useStudentStore();
   const { teachers } = useTeacherStore();
   const { faces, registerFace, removeFace, isRegistered } = useFaceStore();
+  const { logs, setLogs } = useFaceidStore();
   const { addToast } = useUIStore();
 
   /* ---------- camera refs ---------- */
@@ -139,19 +139,19 @@ export const FaceIDAttendance: React.FC<Props> = ({ logs, setLogs }) => {
         const now = new Date();
         const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         setDetected(pick); setDetectedStatus(status); setPhase('detected');
-        setLogs((prev) => {
-          if (prev.some((l) => l.userId === pick.personId && l.time === time)) return prev;
-          return [{
+        
+        if (!logs.some((l) => l.userId === pick.personId && l.time === time)) {
+          setLogs([{
             id: `al_${Date.now()}`,
             userId: pick.personId, name: pick.personName,
             role: pick.personRole, department: 'Brain IT',
             photo: pick.facePhoto || pick.personPhoto,
             time, status,
-          }, ...prev];
-        });
+          }, ...logs]);
+        }
       }, 400);
     }, 1800 + Math.random() * 800);
-  }, [cameraOn, phase, faces, animateScanLine, addToast, setLogs]);
+  }, [cameraOn, phase, faces, animateScanLine, addToast, setLogs, logs]);
 
   useEffect(() => () => { stopCamera(); }, [stopCamera]);
 

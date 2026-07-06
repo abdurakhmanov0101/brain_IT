@@ -43,6 +43,10 @@ export interface Student {
   studentPassword: string;
   parentUsername: string;
   parentPassword: string;
+  coins: number;
+  paymentStatus?: 'paid' | 'partial' | 'unpaid';
+  paymentNote?: string;
+  nextPaymentDate?: string;
 }
 
 export interface Payment {
@@ -86,7 +90,7 @@ const photos = [
   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop',
 ];
 
-type InitStudent = Omit<Student, 'studentUsername' | 'studentPassword' | 'parentUsername' | 'parentPassword'>;
+type InitStudent = Omit<Student, 'studentUsername' | 'studentPassword' | 'parentUsername' | 'parentPassword' | 'coins'>;
 
 const rawStudents: InitStudent[] = [
   { id: 'st1',  fullName: 'Aziz Alimov',        phone: '+998901234567', parentPhone: '+998901234560', photo: photos[0], groupIds: ['g1'],       teacherId: 'tr1', balance: 3200000,  leadSource: 'Instagram', enrolledDate: '2026-02-01', status: 'active' },
@@ -117,6 +121,7 @@ const initialStudents: Student[] = rawStudents.map((s) => ({
   studentPassword: phonePass(s.phone),
   parentUsername: genParentUsername(s.fullName, s.parentPhone),
   parentPassword: phonePass(s.parentPhone),
+  coins: 0,
 }));
 
 const initialPayments: Payment[] = [
@@ -146,7 +151,7 @@ export const useStudentStore = create<StudentState>()(
         const studentPassword = phonePass(s.phone) || genRandomPassword();
         const parentUsername = genParentUsername(s.fullName, s.parentPhone);
         const parentPassword = phonePass(s.parentPhone) || genRandomPassword();
-        const newStudent: Student = { ...s, id, balance: 0, studentUsername, studentPassword, parentUsername, parentPassword };
+        const newStudent: Student = { ...s, id, balance: 0, studentUsername, studentPassword, parentUsername, parentPassword, coins: 0 };
         set((state) => ({ students: [...state.students, newStudent] }));
         return id;
       },

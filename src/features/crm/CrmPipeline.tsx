@@ -4,6 +4,7 @@ import { useStudentStore } from '../../stores/studentStore';
 import { useCourseStore } from '../../stores/courseStore';
 import { useContractStore } from '../../stores/contractStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useCrmStore } from '../../stores/crmStore';
 import { Modal } from '../../components/Modal';
 import type { Lead } from '../../data/mockData';
 
@@ -19,13 +20,13 @@ const STAGES: { key: Lead['status']; label: string; color: string }[] = [
 
 const SOURCES = ['Instagram', 'Telegram', 'Facebook', 'Website', 'Referral', 'YouTube'];
 
-interface Props { leadsList: Lead[]; setLeadsList: React.Dispatch<React.SetStateAction<Lead[]>>; }
-
-export const CrmPipeline: React.FC<Props> = ({ leadsList, setLeadsList }) => {
+export const CrmPipeline: React.FC = () => {
   const { students } = useStudentStore();
   const { courses } = useCourseStore();
   const { addContract } = useContractStore();
   const { addToast } = useUIStore();
+  const { leads: leadsList, addLead, updateLeadStatus, deleteLead: removeLead } = useCrmStore();
+  
   const [addOpen, setAddOpen] = useState(false);
   const [detailLead, setDetailLead] = useState<Lead | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '', source: 'Instagram', courseInterest: '', value: '', notes: '' });
@@ -34,20 +35,20 @@ export const CrmPipeline: React.FC<Props> = ({ leadsList, setLeadsList }) => {
   const stageIdx = (key: Lead['status']) => STAGES.findIndex((s) => s.key === key);
 
   const moveLead = (id: string, dir: 1 | -1) => {
-    setLeadsList((prev) => prev.map((l) => {
-      if (l.id !== id) return l;
-      const next = stageIdx(l.status) + dir;
-      if (next < 0 || next >= STAGES.length) return l;
-      return { ...l, status: STAGES[next].key };
-    }));
+    const lead = leadsList.find((l) => l.id === id);
+    if (!lead) return;
+    const next = stageIdx(lead.status) + dir;
+    if (next >= 0 && next < STAGES.length) {
+      updateLeadStatus(id, STAGES[next].key);
+    }
   };
 
-  const deleteLead = (id: string) => { setLeadsList((p) => p.filter((l) => l.id !== id)); setDetailLead(null); addToast({ type: 'warning', message: "Lead o'chirildi" }); };
+  const deleteLead = (id: string) => { removeLead(id); setDetailLead(null); addToast({ type: 'warning', message: "Lead o'chirildi" }); };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.phone) { addToast({ type: 'error', message: 'Ism va telefon kiritilishi shart' }); return; }
-    setLeadsList((p) => [...p, { id: `ld_${Date.now()}`, ...form, status: 'new', date: new Date().toISOString().split('T')[0] }]);
+    addLead(form);
     addToast({ type: 'success', message: `${form.name} CRM ga qo'shildi` });
     setForm({ name: '', phone: '', email: '', source: 'Instagram', courseInterest: '', value: '', notes: '' });
     setAddOpen(false);

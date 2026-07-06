@@ -17,7 +17,7 @@ const emptyForm: FormState = {
   fullName: '', phone: '', email: '', photo: '',
   courseIds: [], groupIds: [], hiredDate: new Date().toISOString().split('T')[0],
   status: 'active', specialization: 'Frontend',
-  username: '', password: '',
+  username: '', password: '', coins: 0, salaryPercentage: 35, salaryBalance: 0,
 };
 
 const AVATAR_PLACEHOLDERS = [
@@ -260,7 +260,12 @@ export const Teachers: React.FC = () => {
                 </select>
               </div>
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-1">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Oylik foizi (%)</label>
+              <input type="number" min="0" max="100" value={form.salaryPercentage} onChange={(e) => setForm((f) => ({ ...f, salaryPercentage: Number(e.target.value) }))}
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div className="sm:col-span-1">
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ishga qabul sanasi</label>
               <input type="date" value={form.hiredDate} onChange={(e) => setForm((f) => ({ ...f, hiredDate: e.target.value }))}
                 className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />

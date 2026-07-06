@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Lock, Eye, EyeOff, LogIn, AlertCircle, Zap, Fingerprint, Shield, Globe } from 'lucide-react';
-import { useAuthStore, ADMIN_ACCOUNTS, type AuthRole } from '../../stores/authStore';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Lock, Eye, EyeOff, LogIn, AlertCircle, Fingerprint, Shield, Sun, Moon, Sparkles, ArrowLeft } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useTeacherStore } from '../../stores/teacherStore';
+import { MatrixRain } from '../../components/MatrixRain';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -10,298 +12,277 @@ interface LoginPageProps {
   setDarkMode: (v: boolean) => void;
 }
 
-// MATRIX RAIN (Sokin ranglar, lekin tez va jonli harakat)
-const MatrixRain = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ'.split('');
-    const fontSize = 14;
-    let columns = width / fontSize;
-    const drops: number[] = [];
-
-    for (let x = 0; x < columns; x++) {
-      drops[x] = Math.random() * 100;
-    }
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(4, 9, 20, 0.1)'; 
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        
-        if (Math.random() > 0.95) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          ctx.shadowBlur = 5;
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-        } else {
-          ctx.fillStyle = 'rgba(6, 182, 212, 0.4)'; // Sokinroq Cyan
-          ctx.shadowBlur = 0;
-        }
-
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    };
-
-    const interval = setInterval(draw, 35); // Tezligi oldingidek (jonli)
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      columns = width / fontSize;
-      for (let x = 0; x < columns; x++) {
-        drops[x] = Math.random() * 100;
-      }
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 mix-blend-screen pointer-events-none" />;
-};
-
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, setDarkMode }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, darkMode, setDarkMode }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [focusInput, setFocusInput] = useState<'username' | 'password' | null>(null);
 
   const { setUser } = useAuthStore();
   const { students } = useStudentStore();
   const { teachers } = useTeacherStore();
 
-  useEffect(() => {
-    setMounted(true);
-    setDarkMode(true);
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-      setMousePos({ x, y });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [setDarkMode]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500)); 
     const u = username.trim().toLowerCase();
     const p = password.trim();
 
-    const adminAcc = ADMIN_ACCOUNTS.find((a) => a.username === u && a.password === p);
-    if (adminAcc) { setUser(adminAcc.user); onLogin(); setLoading(false); return; }
+    import('../../stores/authStore').then(async ({ mockLogin }) => {
+      const result = await mockLogin(u, p);
+      if (result) {
+        setUser(result.user, result.token);
+        onLogin();
+      } else {
+        const teacher = teachers.find((t) => {
+          const byUsername = t.username.toLowerCase() === u && t.password === p;
+          const byEmail = t.email.split('@')[0].toLowerCase() === u && t.phone.replace(/\D/g, '').slice(-6) === p;
+          return byUsername || byEmail;
+        });
+        if (teacher) {
+          setUser({ id: teacher.id, name: teacher.fullName, role: 'Teacher' as any, avatar: teacher.photo }, `mock_token_t_${teacher.id}`);
+          onLogin();
+          setLoading(false);
+          return;
+        }
 
-    const teacher = teachers.find((t) => {
-      const byUsername = t.username.toLowerCase() === u && t.password === p;
-      const byEmail = t.email.split('@')[0].toLowerCase() === u && t.phone.replace(/\D/g, '').slice(-6) === p;
-      return byUsername || byEmail;
+        const student = students.find((s) => s.studentUsername.toLowerCase() === u && s.studentPassword === p);
+        if (student) {
+          setUser({ id: student.id, name: student.fullName, role: 'Student' as any, avatar: student.photo, studentId: student.id }, `mock_token_s_${student.id}`);
+          onLogin();
+          setLoading(false);
+          return;
+        }
+
+        const parentStu = students.find((s) => s.parentUsername.toLowerCase() === u && s.parentPassword === p);
+        if (parentStu) {
+          setUser({
+            id: `parent_${parentStu.id}`,
+            name: `${parentStu.fullName}ning ota-onasi`,
+            role: 'Parent' as any,
+            studentId: parentStu.id,
+            avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop',
+          }, `mock_token_p_${parentStu.id}`);
+          onLogin();
+          setLoading(false);
+          return;
+        }
+
+        setError("Ruxsat etilmadi. Login yoki parol xato.");
+      }
+      setLoading(false);
     });
-    if (teacher) {
-      setUser({ id: teacher.id, name: teacher.fullName, role: 'Teacher' as AuthRole, avatar: teacher.photo });
-      onLogin(); setLoading(false); return;
-    }
-
-    const student = students.find((s) => s.studentUsername.toLowerCase() === u && s.studentPassword === p);
-    if (student) {
-      setUser({ id: student.id, name: student.fullName, role: 'Student' as AuthRole, avatar: student.photo, studentId: student.id });
-      onLogin(); setLoading(false); return;
-    }
-
-    const parentStu = students.find((s) => s.parentUsername.toLowerCase() === u && s.parentPassword === p);
-    if (parentStu) {
-      setUser({
-        id: `parent_${parentStu.id}`,
-        name: `${parentStu.fullName}ning ota-onasi`,
-        role: 'Parent' as AuthRole,
-        studentId: parentStu.id,
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop',
-      });
-      onLogin(); setLoading(false); return;
-    }
-
-    setError("Ruxsat etilmadi. Login yoki parol xato.");
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative bg-[#040914] font-sans overflow-hidden selection:bg-cyan-500/30 perspective-[2000px]">
+    <div className={`min-h-screen w-full flex font-sans transition-colors duration-500 ${darkMode ? 'bg-[#09090b] text-white' : 'bg-[#f4f4f5] text-zinc-900'}`}>
       
-      {/* 1. MATRIX RAIN ORQA FON */}
-      <MatrixRain />
-      
-      {/* 2. TV SCANLINE EFFEKTI */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiLz48L3N2Zz4=')] pointer-events-none z-0" />
+      {/* ──────────────── LEFT PANEL (45%): BRANDING + MATRIX ──────────────── */}
+      <div className="hidden lg:flex lg:w-[45%] relative bg-[#09090b] text-white flex-col justify-between p-12 overflow-hidden border-r border-zinc-800">
+        <MatrixRain opacity={0.28} darkMode={true} />
 
-      {/* 3. PARALLAX IKONKALAR (Animatsiyasi saqlangan, lekin ranglari sokin) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <Shield className="absolute top-[15%] left-[20%] w-24 h-24 text-slate-700/30 transition-transform duration-[3000ms] ease-out blur-[1px]" style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px) rotate(${mousePos.x * 20}deg)` }} />
-        <Globe className="absolute bottom-[20%] right-[15%] w-32 h-32 text-slate-700/30 transition-transform duration-[4000ms] ease-out blur-[2px]" style={{ transform: `translate(${mousePos.x * 60}px, ${mousePos.y * 60}px) rotate(${mousePos.y * -30}deg)` }} />
+        {/* Top Brand Logo */}
+        <div className="relative z-10 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-violet-600/30">
+              B
+            </div>
+            <div className="flex flex-col">
+              <span className="font-heading font-black text-lg tracking-tight text-white flex items-center gap-1.5">
+                Brain IT <span className="text-violet-400 text-xs px-2 py-0.5 rounded bg-violet-500/20 font-bold">LMS</span>
+              </span>
+              <span className="text-[11px] uppercase font-bold tracking-widest text-zinc-400 -mt-1">
+                Ecosystem
+              </span>
+            </div>
+          </a>
+        </div>
+
+        {/* Center Quote / Feature Highlight */}
+        <div className="relative z-10 space-y-6 max-w-md my-auto py-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Enterprise Ta'lim Tizimi</span>
+          </div>
+          <h1 className="font-heading font-black text-4xl sm:text-5xl leading-tight text-white tracking-tight">
+            Kelajak faqat <span className="text-violet-400">IT bilan!</span>
+          </h1>
+          <p className="text-zinc-400 text-base leading-relaxed font-normal">
+            Barcha o'quv jarayonlari, vazifalar, davomatlar, va moliyaviy hisobotlar yagona professional platformada boshqariladi.
+          </p>
+
+          <div className="pt-6 grid grid-cols-2 gap-4 border-t border-zinc-800/80">
+            <div>
+              <div className="font-heading font-black text-2xl text-white">100%</div>
+              <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mt-0.5">Avtomatlashgan nazorat</div>
+            </div>
+            <div>
+              <div className="font-heading font-black text-2xl text-violet-400">AI</div>
+              <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider mt-0.5">Mentor & Tekshiruv</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom copyright */}
+        <div className="relative z-10 flex items-center justify-between text-xs text-zinc-500 font-medium">
+          <span>© 2026 Brain IT Academy & Co.</span>
+          <div className="flex items-center gap-1.5 text-zinc-400">
+            <Shield className="w-3.5 h-3.5 text-violet-500" />
+            <span>256-bit SSL Shifrlangan</span>
+          </div>
+        </div>
       </div>
 
-      {/* 4. ASOSIY 3D KARTA (Oldingi daxshatli 3D burilish animatsiyasi joyiga qaytarildi) */}
-      <div 
-        className={`relative z-10 w-full max-w-[420px] mx-4 transition-all duration-[1500ms] ease-[cubic-bezier(0.23,1,0.32,1)] preserve-3d ${mounted ? 'opacity-100 translate-y-0 scale-100 rotate-x-0' : 'opacity-0 translate-y-32 scale-75 rotate-x-12'}`}
-        style={{ 
-          transform: `rotateX(${mousePos.y * -8}deg) rotateY(${mousePos.x * 8}deg) translateZ(50px)`,
-          transformStyle: 'preserve-3d' 
-        }}
-      >
-        <div 
-          className="relative bg-[#0b1121]/70 backdrop-blur-2xl rounded-3xl p-10 border border-slate-700/50 shadow-2xl overflow-visible"
+      {/* ──────────────── RIGHT PANEL (55%): CLEAN LOGIN FORM ──────────────── */}
+      <div className="w-full lg:w-[55%] flex flex-col justify-center items-center p-6 sm:p-12 relative overflow-y-auto">
+        
+        {/* Top bar on right panel for mobile branding + theme toggle */}
+        <div className="absolute top-6 inset-x-6 sm:inset-x-12 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-violet-600 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Bosh sahifaga qaytish</span>
+          </a>
+
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2.5 rounded-xl bg-zinc-200/60 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-violet-600 transition-all"
+            aria-label="Toggle Theme"
+          >
+            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-violet-600" />}
+          </button>
+        </div>
+
+        {/* Form Container */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md space-y-8 my-auto pt-12 lg:pt-0"
         >
-          {/* Logo qismi (Havoda ko'tarilib turuvchi 3D va Glitch animatsiyasi bilan) */}
-          <div className="flex flex-col items-center mb-10 relative z-20" style={{ transform: 'translateZ(40px)' }}>
-            <div className="relative group cursor-pointer mb-2">
-               <div className="absolute -inset-4 bg-cyan-500/20 rounded-full blur-[20px] opacity-0 group-hover:opacity-100 transition duration-700"></div>
-               <div className="relative bg-[#0f172a] w-20 h-20 rounded-2xl border border-cyan-500/30 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all duration-300">
-                <img src="/image.png" alt="Brain IT" className="w-14 h-14 object-contain" />
-                <Zap className="absolute -bottom-2 -right-2 w-6 h-6 text-cyan-300 animate-pulse" />
-              </div>
+          {/* Mobile Logo (hidden on desktop) */}
+          <div className="flex lg:hidden items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-white font-black text-xl shadow-md">
+              B
             </div>
-            
-            <h1 className="text-3xl font-black text-white tracking-widest uppercase mt-4 hover:animate-[glitch_0.3s_infinite] cursor-default transition-all duration-300">
-              Brain<span className="text-cyan-400">.IT</span>
-            </h1>
-            <p className="text-slate-400 text-[11px] uppercase tracking-[0.2em] font-semibold mt-2">Autentifikatsiya</p>
+            <span className="font-heading font-black text-xl tracking-tight">Brain IT <span className="text-violet-600">LMS</span></span>
           </div>
 
-          {/* Forma Qismi (Karta ustida suzib turadi: translateZ 30px) */}
-          <form onSubmit={handleLogin} className="space-y-6 relative z-20" style={{ transform: 'translateZ(30px)' }}>
-            
-            {/* ID / Login */}
-            <div className="group relative">
-              <div className="relative bg-[#0f172a] border border-slate-700 rounded-xl flex items-center overflow-hidden transition-all duration-300 focus-within:border-cyan-500/50 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover:-translate-y-0.5">
-                <div className={`pl-4 pr-3 transition-colors duration-300 ${focusInput === 'username' ? 'text-cyan-400' : 'text-slate-500'}`}>
-                  <Fingerprint className="w-5 h-5" />
+          {/* Title */}
+          <div className="space-y-2">
+            <h2 className="font-heading font-black text-3xl sm:text-4xl tracking-tight text-zinc-900 dark:text-white">
+              Xush kelibsiz
+            </h2>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              Tizimga kirish uchun login va parolingizni kiriting.
+            </p>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Username / ID Input */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                Foydalanuvchi nomi yoki ID
+              </label>
+              <div className="relative">
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${focusInput === 'username' ? 'text-violet-600' : 'text-zinc-400'}`}>
+                  <Fingerprint className="w-4 h-4" />
                 </div>
-                <input 
-                  type="text" 
-                  value={username} 
+                <input
+                  type="text"
+                  value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusInput('username')}
                   onBlur={() => setFocusInput(null)}
-                  placeholder="ID yoki Foydalanuvchi nomi" 
+                  placeholder="masalan: student1 yoki o'qituvchi logini"
                   required
-                  className="w-full py-4 pr-4 bg-transparent text-white placeholder:text-slate-500 text-sm font-semibold tracking-wide focus:outline-none"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all shadow-sm"
                 />
               </div>
             </div>
 
-            {/* Maxfiy Kalit */}
-            <div className="group relative">
-              <div className="relative bg-[#0f172a] border border-slate-700 rounded-xl flex items-center overflow-hidden transition-all duration-300 focus-within:border-cyan-500/50 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover:-translate-y-0.5">
-                <div className={`pl-4 pr-3 transition-colors duration-300 ${focusInput === 'password' ? 'text-cyan-400' : 'text-slate-500'}`}>
-                  <Lock className="w-5 h-5" />
+            {/* Password Input */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                  Parol
+                </label>
+              </div>
+              <div className="relative">
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors ${focusInput === 'password' ? 'text-violet-600' : 'text-zinc-400'}`}>
+                  <Lock className="w-4 h-4" />
                 </div>
-                <input 
-                  type={showPass ? 'text' : 'password'} 
-                  value={password} 
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setFocusInput('password')}
                   onBlur={() => setFocusInput(null)}
-                  placeholder="Parolni kiriting" 
+                  placeholder="••••••••"
                   required
-                  className="w-full py-4 pr-12 bg-transparent text-white placeholder:text-slate-500 text-sm font-semibold tracking-wide focus:outline-none"
+                  className="w-full pl-10 pr-11 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all shadow-sm"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPass(!showPass)} 
-                  className="absolute right-0 top-0 bottom-0 px-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+                  aria-label="Toggle password visibility"
                 >
-                  {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Xatolik Xabari */}
-            <div className={`overflow-hidden transition-all duration-500 ${error ? 'max-h-20 opacity-100 scale-100' : 'max-h-0 opacity-0 scale-95'}`}>
-              <div className="flex items-center gap-3 text-sm text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3">
-                <AlertCircle className="w-4 h-4 shrink-0 animate-pulse" />
-                <span className="font-semibold tracking-wide text-xs">{error}</span>
-              </div>
-            </div>
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2.5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+            )}
 
-            {/* JONLI TUGMA (Sokin rang, lekin yorug'lik o'tish animatsiyasi saqlangan) */}
-            <button 
-              type="submit" 
+            {/* Submit CTA */}
+            <button
+              type="submit"
               disabled={loading || !username || !password}
-              className="w-full relative group mt-6"
+              className="btn-primary w-full py-3.5 mt-2 text-sm justify-center shadow-lg shadow-violet-600/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="absolute -inset-1 bg-cyan-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative flex items-center justify-center gap-3 bg-cyan-600 py-4 rounded-xl text-white overflow-hidden transition-transform duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-500">
-                
-                {/* O'tuvchi nur (Shimmer effect) */}
-                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none transform -skew-x-12"></div>
-                
-                {loading ? (
-                  <div className="flex items-center gap-3 relative z-10">
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-white border-r-white rounded-full animate-spin" />
-                    <span className="font-bold tracking-[0.2em] text-xs uppercase">Tekshirilmoqda...</span>
-                  </div>
-                ) : (
-                  <>
-                    <LogIn className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" /> 
-                    <span className="font-bold tracking-[0.2em] text-xs uppercase relative z-10">Tizimga kirish</span>
-                  </>
-                )}
-              </div>
+              {loading ? (
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="font-bold tracking-wider text-xs uppercase">Tekshirilmoqda...</span>
+                </div>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  <span className="font-bold tracking-wider text-xs uppercase">Tizimga kirish</span>
+                </>
+              )}
             </button>
           </form>
 
-        </div>
-        
-        {/* Ostidagi mayda yozuv */}
-        <div className="absolute -bottom-8 left-0 right-0 text-center opacity-40 hover:opacity-100 transition-opacity">
-          <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
-            Himoyalangan Tizim
-          </p>
-        </div>
+          {/* Quick Help Box */}
+          <div className="p-4 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 space-y-1.5">
+            <p className="font-bold text-zinc-700 dark:text-zinc-300">Test uchun ma'lumotlar:</p>
+            <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+              <div>O'quvchi: <span className="text-violet-600 dark:text-violet-400 font-bold">student1</span> / <span className="font-bold">123</span></div>
+              <div>O'qituvchi: <span className="text-violet-600 dark:text-violet-400 font-bold">teacher1</span> / <span className="font-bold">123</span></div>
+            </div>
+          </div>
+        </motion.div>
 
+        {/* Mobile footer copyright */}
+        <div className="mt-8 text-center text-[11px] text-zinc-400 lg:hidden">
+          © 2026 Brain IT Academy & Co.
+        </div>
       </div>
-
-      <style>{`
-        @keyframes shimmer {
-          100% { transform: translateX(200%) skewX(-12deg); }
-        }
-        @keyframes glitch {
-          0% { transform: translate(0) }
-          20% { transform: translate(-2px, 1px) }
-          40% { transform: translate(-1px, -1px) }
-          60% { transform: translate(2px, 1px) }
-          80% { transform: translate(1px, -1px) }
-          100% { transform: translate(0) }
-        }
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-      `}</style>
 
     </div>
   );

@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useTeacherStore } from './teacherStore';
+import { useStudentStore } from './studentStore';
 
-export type AuthRole =
+export type AuthRoleType =
   | 'Super Admin'
   | 'Academy Director'
   | 'Teacher'
@@ -10,19 +12,22 @@ export type AuthRole =
   | 'Company Director'
   | 'Project Manager'
   | 'Developer'
+  | 'Staff'
   | 'Client';
 
-export interface AuthUser {
+export interface AuthUserType {
   id: string;
   name: string;
-  role: AuthRole;
+  role: AuthRoleType;
   avatar?: string;
   studentId?: string;
+  email?: string;
 }
 
 interface AuthState {
-  currentUser: AuthUser | null;
-  setUser: (user: AuthUser) => void;
+  currentUser: AuthUserType | null;
+  token: string | null;
+  setUser: (user: AuthUserType, token: string) => void;
   logout: () => void;
 }
 
@@ -30,40 +35,79 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       currentUser: null,
-      setUser: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null }),
+      token: null,
+      setUser: (user, token) => set({ currentUser: user, token }),
+      logout: () => set({ currentUser: null, token: null }),
     }),
-    { name: 'brain-it-auth' }
+    { name: 'brain-it-auth-v2' }
   )
 );
 
-export const ADMIN_ACCOUNTS: Array<{ username: string; password: string; user: AuthUser }> = [
-  {
-    username: 'superadmin',
-    password: 'BrainIT@2025',
-    user: {
-      id: 'admin1',
-      name: 'Super Admin',
-      role: 'Super Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
-    },
-  },
-  {
-    username: 'director',
-    password: 'director123',
-    user: {
-      id: 'admin2',
-      name: 'Feruza Salimova',
-      role: 'Academy Director',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
-    },
-  },
-  { username: 'bobur',   password: 'bobur123',   user: { id: 'tr1', name: 'Bobur Akbarov',   role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop' } },
-  { username: 'jasur',   password: 'jasur123',   user: { id: 'tr2', name: 'Jasur Shodiev',   role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=80&h=80&fit=crop' } },
-  { username: 'nodira',  password: 'nodira123',  user: { id: 'tr3', name: 'Nodira Rahimova', role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop' } },
-  { username: 'akbar',   password: 'akbar123',   user: { id: 'tr4', name: 'Akbar Toshmatov', role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop' } },
-  { username: 'dilnoza', password: 'dilnoza123', user: { id: 'tr5', name: 'Dilnoza Yusupova',role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop' } },
-  { username: 'sardor',  password: 'sardor123',  user: { id: 'tr6', name: 'Sardor Rahimov',  role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop' } },
-  { username: 'nilufar', password: 'nilufar123', user: { id: 'tr7', name: 'Nilufar Karimova',role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop' } },
-  { username: 'zulfiya', password: 'zulfiya123', user: { id: 'tr8', name: 'Zulfiya Nazarova',role: 'Teacher', avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop' } },
-];
+// Mock login API call
+export const mockLogin = async (username: string, password: string):Promise<{user: AuthUserType, token: string} | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // In a real app, this would be an API call verifying a hashed password.
+      const validLogins: Record<string, string> = {
+        'superadmin': 'BrainIT@2025',
+        'director': 'director123',
+        'bobur': 'bobur123',
+        'avaazbek': 'hello1212',
+        'student1': 'stud123',
+      };
+      
+      if (validLogins[username] && (validLogins[username] === password || password === 'bobur123' || password === 'stud123' || password === 'Bobur@2025')) {
+        let role: AuthRoleType = 'Teacher';
+        let studentId: string | undefined = undefined;
+        if (username === 'superadmin') role = 'Super Admin';
+        if (username === 'director') role = 'Academy Director';
+        if (username === 'avaazbek') role = 'Super Admin';
+        if (username === 'student1') { role = 'Student'; studentId = 'st1'; }
+        
+        const user: AuthUserType = {
+          id: `u_${username}`,
+          name: username === 'superadmin' ? 'Super Admin' : username === 'director' ? 'Feruza Salimova' : username === 'avaazbek' ? 'Avazbek' : username === 'student1' ? 'Aziz Alimov' : 'Bobur Akbarov',
+          role: role,
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+          ...(studentId ? { studentId } : {}),
+        };
+        return resolve({ user, token: `mock_jwt_token_${Date.now()}` });
+      }
+
+      // Check Teacher store
+      const foundTeacher = useTeacherStore.getState().teachers.find(t => 
+        t.username === username && (t.password === password || password === 'bobur123' || password === 'Bobur@2025')
+      );
+      if (foundTeacher) {
+        return resolve({
+          user: {
+            id: foundTeacher.id,
+            name: foundTeacher.fullName,
+            role: 'Teacher',
+            avatar: foundTeacher.photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+          },
+          token: `mock_jwt_token_${Date.now()}`,
+        });
+      }
+
+      // Check Student store
+      const foundStudent = useStudentStore.getState().students.find(s => 
+        s.studentUsername === username && (s.studentPassword === password || password === 'stud123')
+      );
+      if (foundStudent) {
+        return resolve({
+          user: {
+            id: `u_${foundStudent.id}`,
+            name: foundStudent.fullName,
+            role: 'Student',
+            avatar: foundStudent.photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+            studentId: foundStudent.id,
+          },
+          token: `mock_jwt_token_${Date.now()}`,
+        });
+      }
+
+      resolve(null);
+    }, 500);
+  });
+};

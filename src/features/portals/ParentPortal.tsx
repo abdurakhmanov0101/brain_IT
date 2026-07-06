@@ -4,25 +4,48 @@ import { useStudentStore } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useCourseStore } from '../../stores/courseStore';
 import { useAttendanceStore } from '../../stores/attendanceStore';
+import { useAuthStore } from '../../stores/authStore';
 
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
 
 interface Props { studentId?: string; }
 
-export const ParentPortal: React.FC<Props> = ({ studentId = 'st1' }) => {
+export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) => {
   const { students, payments } = useStudentStore();
   const { groups } = useGroupStore();
   const { courses } = useCourseStore();
   const { getByStudent } = useAttendanceStore();
+  const { currentUser } = useAuthStore();
+  
   const [activeTab, setActiveTab] = useState<'overview' | 'attendance' | 'payments'>('overview');
+  const [selectedId, setSelectedId] = useState<string | null>(defaultStudentId || (currentUser?.role === 'Student' ? currentUser.studentId || null : null));
+  const [search, setSearch] = useState('');
 
-  const student = students.find((s) => s.id === studentId);
+  if (!selectedId) {
+    const filtered = students.filter(s => s.fullName.toLowerCase().includes(search.toLowerCase()));
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 pt-10">
+        <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-4">O'quvchini tanlang (Ota-ona portali)</h2>
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="O'quvchi ismini izlang..."
+          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white" />
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+          {filtered.map(s => (
+            <button key={s.id} onClick={() => setSelectedId(s.id)} className="w-full text-left p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all font-semibold text-slate-800 dark:text-white">
+              {s.fullName}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const student = students.find((s) => s.id === selectedId);
   if (!student) return <div className="text-center py-20 text-slate-400">O'quvchi topilmadi</div>;
 
   const studentGroups = groups.filter((g) => student.groupIds.includes(g.id));
   const studentCourses = courses.filter((c) => studentGroups.some((g) => g.courseId === c.id));
-  const myPayments = payments.filter((p) => p.studentId === studentId).slice().reverse();
-  const attendance = getByStudent(studentId);
+  const myPayments = payments.filter((p) => p.studentId === selectedId).slice().reverse();
+  const attendance = getByStudent(selectedId);
   const presentCount = attendance.filter((r) => r.status === 'present').length;
   const lateCount = attendance.filter((r) => r.status === 'late').length;
   const absentCount = attendance.filter((r) => r.status === 'absent').length;
@@ -42,6 +65,11 @@ export const ParentPortal: React.FC<Props> = ({ studentId = 'st1' }) => {
 
   return (
     <div className="space-y-6">
+      {(!defaultStudentId && currentUser?.role !== 'Student') && (
+        <button onClick={() => setSelectedId(null)} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mb-2 inline-block">
+          &larr; Boshqa o'quvchini tanlash
+        </button>
+      )}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 p-6 text-white">
         <div className="relative z-10 flex items-center gap-4">
           <div className="bg-white/20 p-3 rounded-xl"><Shield className="h-8 w-8 text-white" /></div>
@@ -118,12 +146,8 @@ export const ParentPortal: React.FC<Props> = ({ studentId = 'st1' }) => {
             </div>
           </div>
           <div className={`rounded-2xl p-5 border ${isDebt || isLow ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-dark-border'}`}>
-            <h3 className="font-semibold text-slate-800 dark:text-white mb-3">To'lov qilish</h3>
+            <h3 className="font-semibold text-slate-800 dark:text-white mb-3">Balans Holati</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Joriy balans: <strong className={isDebt ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'}>{fmtMoney(student.balance)}</strong></p>
-            <div className="flex gap-3">
-              <a href="https://payme.uz" target="_blank" rel="noreferrer" className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold text-center">📱 Payme</a>
-              <a href="https://click.uz" target="_blank" rel="noreferrer" className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold text-center">⚡ Click</a>
-            </div>
           </div>
         </div>
       )}

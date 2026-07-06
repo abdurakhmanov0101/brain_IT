@@ -36,7 +36,7 @@ const CopyField: React.FC<{ label: string; value: string }> = ({ label, value })
 
 export const Students: React.FC = () => {
   const { students, addStudent, updateStudent, addPayment } = useStudentStore();
-  const { groups, addStudentToGroup } = useGroupStore();
+  const { groups, addStudentToGroup, removeStudentFromGroup } = useGroupStore();
   const { teachers } = useTeacherStore();
   const { addToast } = useUIStore();
   const currentUser = useAuthStore((s) => s.currentUser);
@@ -76,7 +76,7 @@ export const Students: React.FC = () => {
     e.preventDefault();
     if (!addForm.fullName || !addForm.phone) { addToast({ type: 'error', message: 'Ism va telefon kiritilishi shart' }); return; }
     const newId = `st${Date.now()}`;
-    addStudent({ ...addForm, photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop', enrolledDate: new Date().toISOString().split('T')[0] });
+    addStudent({ ...addForm, coins: 0, photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop', enrolledDate: new Date().toISOString().split('T')[0] });
     addForm.groupIds.forEach((gId) => addStudentToGroup(gId, newId));
     const phones = addForm.phone.replace(/\D/g, '');
     const pphones = addForm.parentPhone.replace(/\D/g, '');
@@ -107,9 +107,11 @@ export const Students: React.FC = () => {
             {isTeacher ? `Mening o'quvchilarim (${visibleStudents.length} ta)` : "Barcha o'quvchilarni boshqarish"}
           </p>
         </div>
-        <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20">
-          <Plus className="h-4 w-4" /> Yangi o'quvchi
-        </button>
+        {!isTeacher && (
+          <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20">
+            <Plus className="h-4 w-4" /> Yangi o'quvchi
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -335,6 +337,41 @@ export const Students: React.FC = () => {
                 {getStudentGroups(detailStudent.groupIds).map((g) => <Badge key={g.id} label={g.name} color="indigo" />)}
                 {detailStudent.groupIds.length === 0 && <span className="text-sm text-slate-400">Guruhga biriktirilmagan</span>}
               </div>
+              {!isTeacher && (
+                <div className="mt-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-3">
+                  <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2">Guruhlarga biriktirish / olib tashlash:</p>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {groups.filter(g => g.status !== 'archived').map(g => {
+                      const isAssigned = detailStudent.groupIds.includes(g.id);
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => {
+                            const newGroupIds = isAssigned
+                              ? detailStudent.groupIds.filter(id => id !== g.id)
+                              : [...detailStudent.groupIds, g.id];
+                            updateStudent(detailStudent.id, { groupIds: newGroupIds });
+                            if (isAssigned) {
+                              removeStudentFromGroup(g.id, detailStudent.id);
+                            } else {
+                              addStudentToGroup(g.id, detailStudent.id);
+                            }
+                            addToast({ type: 'success', message: isAssigned ? `${g.name} guruhidan olindi` : `${g.name} guruhiga biriktirildi` });
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                            isAssigned
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-500'
+                          }`}
+                        >
+                          {isAssigned ? '✓' : '+'} {g.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="border-t border-slate-100 dark:border-dark-border pt-4">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Login ma'lumotlari</p>

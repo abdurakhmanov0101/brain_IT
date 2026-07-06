@@ -25,7 +25,7 @@ interface UIState {
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
-      darkMode: true,
+      darkMode: false,
       language: 'uz',
       sidebarCollapsed: false,
       toasts: [],

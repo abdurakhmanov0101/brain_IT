@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Plus, ChevronRight, ChevronLeft, Trash2, Clock, User } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { useUIStore } from '../../stores/uiStore';
-import type { Project, Task } from '../../data/mockData';
+import { usePmStore } from '../../stores/pmStore';
+import type { Task } from '../../data/mockData';
 
 const COLUMNS: { key: Task['status']; label: string }[] = [
   { key: 'todo',        label: 'Bajariladiganlar' },
@@ -26,10 +27,10 @@ const TEAM_AVATARS = [
   { name: 'Bobur Akbarov',   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop' },
 ];
 
-interface Props { projectsList: Project[]; setProjectsList: React.Dispatch<React.SetStateAction<Project[]>>; }
-
-export const KanbanBoard: React.FC<Props> = ({ projectsList, setProjectsList }) => {
+export const KanbanBoard: React.FC = () => {
   const { addToast } = useUIStore();
+  const { projects: projectsList, setProjects, updateProjectTaskStatus } = usePmStore();
+  
   const [selectedProjectId, setSelectedProjectId] = useState(projectsList[0]?.id ?? '');
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium' as Task['priority'], estimatedHours: 8, assigneeIdx: 0 });
@@ -41,21 +42,23 @@ export const KanbanBoard: React.FC<Props> = ({ projectsList, setProjectsList }) 
   const colIdx = (status: Task['status']) => COLUMNS.findIndex((c) => c.key === status);
 
   const moveTask = (taskId: string, dir: 1 | -1) => {
-    setProjectsList((prev) => prev.map((p) => {
-      if (p.id !== selectedProjectId) return p;
-      const tasks = p.tasks.map((t) => {
-        if (t.id !== taskId) return t;
-        const next = colIdx(t.status) + dir;
-        if (next < 0 || next >= COLUMNS.length) return t;
-        return { ...t, status: COLUMNS[next].key };
-      });
-      const done = tasks.filter((t) => t.status === 'done').length;
-      return { ...p, tasks, progress: Math.round((done / tasks.length) * 100) };
-    }));
+    const task = project.tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    const next = colIdx(task.status) + dir;
+    if (next >= 0 && next < COLUMNS.length) {
+      updateProjectTaskStatus(selectedProjectId, taskId, COLUMNS[next].key);
+      
+      // Update progress logic locally
+      setProjects(usePmStore.getState().projects.map(p => {
+        if (p.id !== selectedProjectId) return p;
+        const done = p.tasks.filter(t => t.status === 'done').length;
+        return { ...p, progress: Math.round((done / p.tasks.length) * 100) };
+      }));
+    }
   };
 
   const deleteTask = (taskId: string) => {
-    setProjectsList((prev) => prev.map((p) => {
+    setProjects(projectsList.map((p) => {
       if (p.id !== selectedProjectId) return p;
       const tasks = p.tasks.filter((t) => t.id !== taskId);
       const done = tasks.filter((t) => t.status === 'done').length;
@@ -69,7 +72,7 @@ export const KanbanBoard: React.FC<Props> = ({ projectsList, setProjectsList }) 
     if (!form.title) return;
     const assignee = TEAM_AVATARS[form.assigneeIdx];
     const newTask: Task = { id: `t_${Date.now()}`, title: form.title, description: form.description, status: 'todo', priority: form.priority, assignee, estimatedHours: form.estimatedHours };
-    setProjectsList((prev) => prev.map((p) => {
+    setProjects(projectsList.map((p) => {
       if (p.id !== selectedProjectId) return p;
       return { ...p, tasks: [...p.tasks, newTask] };
     }));

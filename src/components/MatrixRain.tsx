@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const CHARS =
-  'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン' +
-  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&';
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*+<>{}[]~' +
+  'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 
 interface MatrixRainProps {
   opacity?: number;
+  darkMode?: boolean;
 }
 
-export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
+export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.25, darkMode = true }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -17,8 +18,10 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const FONT_SIZE = 14;
-    const FPS = 25;
+    const isMobile = window.innerWidth < 768;
+    // Mobile optimization: larger font size = fewer columns = better performance
+    const FONT_SIZE = isMobile ? 18 : 16;
+    const FPS = isMobile ? 18 : 24;
     const INTERVAL = 1000 / FPS;
 
     const resize = () => {
@@ -26,19 +29,16 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
       canvas.height = window.innerHeight;
     };
     resize();
-    window.addEventListener('resize', resize);
 
-    let cols = Math.floor(canvas.width / FONT_SIZE);
-    // Each drop starts at a random negative Y to stagger them
-    let drops: number[] = Array.from({ length: cols }, () => Math.random() * -120);
-    // Each column has a random speed multiplier
-    let speeds: number[] = Array.from({ length: cols }, () => 0.4 + Math.random() * 0.8);
+    let cols = Math.floor(canvas.width / (isMobile ? FONT_SIZE : FONT_SIZE * 0.85));
+    let drops: number[] = Array.from({ length: cols }, () => Math.random() * -100);
+    let speeds: number[] = Array.from({ length: cols }, () => (isMobile ? 0.3 : 0.4) + Math.random() * 0.6);
 
     const handleResize = () => {
       resize();
-      cols = Math.floor(canvas.width / FONT_SIZE);
+      cols = Math.floor(canvas.width / (isMobile ? FONT_SIZE : FONT_SIZE * 0.85));
       drops = Array.from({ length: cols }, () => Math.random() * -50);
-      speeds = Array.from({ length: cols }, () => 0.4 + Math.random() * 0.8);
+      speeds = Array.from({ length: cols }, () => (isMobile ? 0.3 : 0.4) + Math.random() * 0.6);
     };
     window.addEventListener('resize', handleResize);
 
@@ -50,11 +50,13 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
       if (time - last < INTERVAL) return;
       last = time;
 
-      // Semi-transparent overlay — creates the fading trail
-      ctx.fillStyle = 'rgba(5, 8, 22, 0.08)';
+      // Trail fade background: dark zinc-950 vs light zinc-100
+      ctx.fillStyle = darkMode ? 'rgba(9, 9, 11, 0.1)' : 'rgba(250, 250, 250, 0.08)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = `${FONT_SIZE}px 'Courier New', monospace`;
+      ctx.font = darkMode 
+        ? `bold ${FONT_SIZE}px 'Manrope', monospace`
+        : `600 ${FONT_SIZE}px "JetBrains Mono", monospace`;
 
       for (let i = 0; i < cols; i++) {
         const y = drops[i] * FONT_SIZE;
@@ -65,22 +67,22 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
 
         const char = CHARS[Math.floor(Math.random() * CHARS.length)];
 
-        // Occasionally flash the head character white/cyan for depth
-        if (Math.random() > 0.92) {
-          ctx.fillStyle = '#c8fff0';
-          ctx.globalAlpha = 1;
+        // WCAG AA Contrast (> 4.5:1)
+        if (Math.random() > 0.93) {
+          ctx.fillStyle = darkMode ? '#a7f3d0' : '#4c1d95'; // head flash
+          ctx.globalAlpha = darkMode ? 1 : 0.85;
         } else {
-          ctx.fillStyle = '#00ff87';
-          ctx.globalAlpha = 0.75 + Math.random() * 0.25;
+          ctx.fillStyle = darkMode ? '#10b981' : '#6d28d9'; // main character
+          ctx.globalAlpha = darkMode ? (0.7 + Math.random() * 0.3) : 0.35; // distinct opacity body in light mode
         }
 
-        ctx.fillText(char, i * FONT_SIZE, y);
+        const xPos = isMobile ? i * FONT_SIZE : i * (FONT_SIZE * 0.85);
+        ctx.fillText(char, xPos, y);
         ctx.globalAlpha = 1;
 
-        // Reset column once it scrolls past the canvas
         if (y > canvas.height && Math.random() > 0.97) {
           drops[i] = 0;
-          speeds[i] = 0.4 + Math.random() * 0.8;
+          speeds[i] = (isMobile ? 0.3 : 0.4) + Math.random() * 0.6;
         }
         drops[i] += speeds[i];
       }
@@ -92,14 +94,15 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.18 }) => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [darkMode]);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 0, opacity }}
+      className="fixed inset-0 pointer-events-none transition-opacity duration-500 matrix-canvas"
+      style={{ zIndex: 0, opacity: darkMode ? opacity : opacity * 1.5 }}
     />
   );
 };
+export default MatrixRain;

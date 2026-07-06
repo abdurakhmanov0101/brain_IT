@@ -66,9 +66,9 @@ const initialExpenses: Expense[] = [
 export const useFinanceStore = create<FinanceState>()(persist((set, get) => ({
   expenses: initialExpenses,
   payrollRecords: initialPayroll,
-  addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: `exp${Date.now()}` }] })),
+  addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: `exp${Date.now()}_${Math.random().toString(36).substr(2, 9)}` }] })),
   updatePayroll: (id, patch) => set((s) => ({ payrollRecords: s.payrollRecords.map((r) => r.id === id ? { ...r, ...patch } : r) })),
-  addPayrollRecord: (r) => set((s) => ({ payrollRecords: [...s.payrollRecords, { ...r, id: `pr${Date.now()}` }] })),
+  addPayrollRecord: (r) => set((s) => ({ payrollRecords: [...s.payrollRecords, { ...r, id: `pr${Date.now()}_${Math.random().toString(36).substr(2, 9)}` }] })),
   getTotalIncome: (payments, month) => {
     const filtered = month ? payments.filter((p) => p.date.startsWith(month)) : payments;
     return filtered.reduce((sum, p) => sum + p.amount, 0);

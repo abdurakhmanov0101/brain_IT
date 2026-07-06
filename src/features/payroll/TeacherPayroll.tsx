@@ -28,6 +28,7 @@ export const TeacherPayroll: React.FC = () => {
   const { addToast } = useUIStore();
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[0]);
   const [payOpen, setPayOpen] = useState<PayrollRecord | null>(null);
+  const [penaltyAmount, setPenaltyAmount] = useState('');
   const [partialAmount, setPartialAmount] = useState('');
 
   const getTeacher = (id: string) => teachers.find((t) => t.id === id);
@@ -36,20 +37,28 @@ export const TeacherPayroll: React.FC = () => {
   const totalPending = monthRecords.filter((r) => r.status !== 'paid').reduce((s, r) => s + (r.totalAmount - r.paidAmount), 0);
 
   const handlePayFull = (record: PayrollRecord) => {
-    updatePayroll(record.id, { status: 'paid', paidAmount: record.totalAmount, paidDate: new Date().toISOString().split('T')[0] });
-    addToast({ type: 'success', message: `${getTeacher(record.teacherId)?.fullName ?? record.teacherId} — to'liq to'landi` });
+    const penalty = Number(penaltyAmount) || 0;
+    const finalAmount = record.totalAmount + penalty;
+    updatePayroll(record.id, { status: 'paid', paidAmount: finalAmount, paidDate: new Date().toISOString().split('T')[0] });
+    addToast({ type: 'success', message: `${getTeacher(record.teacherId)?.fullName ?? record.teacherId} — to'liq${penalty > 0 ? ` + izho (${penalty.toLocaleString()} so'm)` : ''} to'landi` });
     setPayOpen(null);
+    setPenaltyAmount('');
   };
 
   const handlePayPartial = (record: PayrollRecord) => {
+    const penalty = Number(penaltyAmount) || 0;
+    const effectiveTotal = record.totalAmount + penalty;
     const amount = Number(partialAmount);
-    if (!amount || amount <= 0 || amount > record.totalAmount - record.paidAmount) {
-      addToast({ type: 'error', message: "Noto'g'ri summa" }); return;
+    if (!amount || amount <= 0 || amount > effectiveTotal - record.paidAmount) {
+      addToast({ type: 'error', message: "Noto'g'ri summa" });
+      return;
     }
     const newPaid = record.paidAmount + amount;
-    updatePayroll(record.id, { status: newPaid >= record.totalAmount ? 'paid' : 'partial', paidAmount: newPaid, paidDate: new Date().toISOString().split('T')[0] });
+    updatePayroll(record.id, { status: newPaid >= effectiveTotal ? 'paid' : 'partial', paidAmount: newPaid, paidDate: new Date().toISOString().split('T')[0] });
     addToast({ type: 'success', message: `${amount.toLocaleString()} so'm to'landi` });
-    setPayOpen(null); setPartialAmount('');
+    setPayOpen(null);
+    setPartialAmount('');
+    setPenaltyAmount('');
   };
 
   const handleGenerate = () => {
@@ -119,6 +128,8 @@ export const TeacherPayroll: React.FC = () => {
               {monthRecords.map((record) => {
                 const teacher = getTeacher(record.teacherId);
                 const remaining = record.totalAmount - record.paidAmount;
+                const actualStatus = remaining <= 0 ? 'paid' : record.paidAmount > 0 ? 'partial' : 'pending';
+                
                 return (
                   <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-4">
@@ -132,16 +143,19 @@ export const TeacherPayroll: React.FC = () => {
                     </td>
                     <td className="px-5 py-4 text-center font-medium text-slate-700 dark:text-slate-300">{record.lessonsCount}</td>
                     <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{record.totalAmount.toLocaleString()}</td>
-                    <td className="px-5 py-4 text-emerald-600 dark:text-emerald-400 font-semibold">{record.paidAmount.toLocaleString()}</td>
+                    <td className="px-5 py-4 text-emerald-600 dark:text-emerald-400 font-semibold">{record.paidAmount > 0 ? record.paidAmount.toLocaleString() : '0'}</td>
                     <td className="px-5 py-4 text-red-500 font-semibold">{remaining > 0 ? remaining.toLocaleString() : '—'}</td>
-                    <td className="px-5 py-4">{statusBadge(record.status)}</td>
+                    <td className="px-5 py-4">{statusBadge(actualStatus)}</td>
                     <td className="px-5 py-4">
-                      {record.status !== 'paid' && (
-                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-700">
-                          To'lash
+                      {remaining > 0 ? (
+                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-500/30 transition-all flex items-center gap-1">
+                          <DollarSign className="w-3.5 h-3.5" /> To'lash
                         </button>
+                      ) : (
+                        <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" /> {record.paidDate || 'To\'landi'}
+                        </span>
                       )}
-                      {record.status === 'paid' && <span className="text-xs text-slate-400">{record.paidDate}</span>}
                     </td>
                   </tr>
                 );
@@ -157,7 +171,7 @@ export const TeacherPayroll: React.FC = () => {
       <Modal open={!!payOpen} onClose={() => setPayOpen(null)} title="Maosh to'lash" size="sm">
         {payOpen && (() => {
           const teacher = getTeacher(payOpen.teacherId);
-          const remaining = payOpen.totalAmount - payOpen.paidAmount;
+          const remaining = (payOpen.totalAmount + Number(penaltyAmount)) - payOpen.paidAmount;
           return (
             <div className="space-y-4">
               <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 space-y-2 text-sm">
@@ -166,11 +180,13 @@ export const TeacherPayroll: React.FC = () => {
                 <div className="flex justify-between"><span className="text-slate-500">To'langan:</span><span className="font-semibold text-emerald-600">{payOpen.paidAmount.toLocaleString()} so'm</span></div>
                 <div className="flex justify-between border-t border-slate-200 dark:border-dark-border pt-2"><span className="text-slate-700 dark:text-slate-300 font-semibold">Qoldiq:</span><span className="font-black text-red-500">{remaining.toLocaleString()} so'm</span></div>
               </div>
-              <button onClick={() => handlePayFull(payOpen)} className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">To'liq to'lash ({remaining.toLocaleString()} so'm)</button>
-              <div className="flex gap-2">
-                <input type="number" value={partialAmount} onChange={(e) => setPartialAmount(e.target.value)} placeholder="Qisman summa..." min={1} max={remaining}
-                  className="flex-1 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button onClick={() => handlePayPartial(payOpen)} className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold whitespace-nowrap">Qisman</button>
+              <button onClick={() => handlePayFull(payOpen)} className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all">To'liq to'lash ({remaining.toLocaleString()} so'm)</button>
+              <div className="flex gap-2 items-center">
+                <input type="number" value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)} placeholder="Izoh (so'm)" min={0}
+                  className="w-32 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold" />
+                <input type="number" value={partialAmount} onChange={(e) => setPartialAmount(e.target.value)} placeholder="Qisman summa kiriting..." min={1} max={remaining}
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold" />
+                <button onClick={() => handlePayPartial(payOpen)} className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold whitespace-nowrap shadow-lg shadow-indigo-500/30 transition-all">Avans / Qisman</button>
               </div>
             </div>
           );

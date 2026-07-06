@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  api:
+    image: ghcr.io/engineer-man/piston
+    container_name: piston_api
+    restart: always
+    ports:
+      - "2000:2000"
+    environment:
+      # Memory limits (256MB)
+      - PISTON_COMPILE_MEMORY_LIMIT=268435456
+      - PISTON_RUN_MEMORY_LIMIT=268435456
+      # Timeouts (5 seconds)
+      - PISTON_COMPILE_TIMEOUT=5000
+      - PISTON_RUN_TIMEOUT=5000
+      # Maximum output size (64KB)
+      - PISTON_OUTPUT_MAX_SIZE=65536
+    volumes:
+      # Mount packages directory so installed runtimes persist
+      - piston_packages:/piston/packages
+
+volumes:
+  piston_packages:
