@@ -41,11 +41,19 @@ export const TeacherHomework: React.FC = () => {
   const [gradeScore, setGradeScore] = useState<number>(0);
   const [gradeFeedback, setGradeFeedback] = useState<string>('');
 
+  // Isolation
+  const teacherGroupIds = groups.filter(g => g.teacherId === currentUser?.id).map(g => g.id);
+  const visibleAssignments = assignments.filter(a => teacherGroupIds.includes(a.groupId));
+  const visibleSubmissions = submissions.filter(s => {
+    const assignment = assignments.find(a => a.id === s.assignmentId);
+    return assignment && teacherGroupIds.includes(assignment.groupId);
+  });
+
   // Stats
-  const totalSubs = submissions.length;
-  const gradedSubs = submissions.filter(s => s.status === 'graded').length;
-  const pendingSubs = submissions.filter(s => s.status === 'submitted').length;
-  const orphanedSubs = submissions.filter(s => !s.assignmentId);
+  const totalSubs = visibleSubmissions.length;
+  const gradedSubs = visibleSubmissions.filter(s => s.status === 'graded').length;
+  const pendingSubs = visibleSubmissions.filter(s => s.status === 'submitted').length;
+  const orphanedSubs = visibleSubmissions.filter(s => !s.assignmentId);
 
   const getStudentBySid = (sid: string) => {
     return (
@@ -433,7 +441,7 @@ export const TeacherHomework: React.FC = () => {
         {/* Stats row */}
         <div className="relative flex flex-wrap gap-4 mt-6">
           {[
-            { label: 'Jami vazifalar', value: assignments.length, icon: BookOpen },
+            { label: 'Jami vazifalar', value: visibleAssignments.length, icon: BookOpen },
             { label: 'Topshirilgan', value: totalSubs, icon: TrendingUp },
             { label: 'Tekshirilmoqda', value: pendingSubs, icon: Clock },
             { label: 'Baholangan', value: gradedSubs, icon: Award },
@@ -464,7 +472,7 @@ export const TeacherHomework: React.FC = () => {
       )}
 
       {/* ─── Assignment Cards ─── */}
-      {assignments.length === 0 ? (
+      {visibleAssignments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4">
             <BookOpen className="h-10 w-10 text-indigo-400" />
@@ -477,11 +485,11 @@ export const TeacherHomework: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {assignments.map(a => {
+          {visibleAssignments.map(a => {
             const groupData = groups.find(g => g.id === a.groupId);
             const course = groupData ? courses.find(c => c.id === groupData.courseId) : null;
             const groupStudentsCount = groupData?.studentIds.length || 0;
-            const assignmentSubs = submissions.filter(s => s.assignmentId === a.id);
+            const assignmentSubs = visibleSubmissions.filter(s => s.assignmentId === a.id);
             const subsCount = assignmentSubs.length;
             const gradedCount = assignmentSubs.filter(s => s.status === 'graded').length;
             const pendingCount = assignmentSubs.filter(s => s.status === 'submitted').length;

@@ -25,53 +25,46 @@ interface ClassroomState {
   getLessonsByGroup: (groupId: string) => LessonRecord[];
 }
 
+const generateLessons = (): LessonRecord[] => {
+  const list: LessonRecord[] = [];
+  const topics = [
+    { topic: 'Kirish dars va asosiy tushunchalar', desc: 'Ushbu darsda texnologiya haqida umumiy tushuncha va muhitni sozlash ko\'rib chiqildi.' },
+    { topic: 'O\'zgaruvchilar va ma\'lumot turlari', desc: 'Ma\'lumotlar turlari, o\'zgaruvchilar bilan ishlash va sintaksis ko\'rib chiqildi.' },
+  ];
+
+  for (let gNum = 1; gNum <= 10; gNum++) {
+    const groupId = `g${gNum}`;
+    const teacherId = gNum <= 5 ? 'tr1' : 'tr2';
+    const teacherName = gNum <= 5 ? 'Bobur Akbarov' : 'Jasur Shodiev';
+    
+    for (let lNum = 1; lNum <= 2; lNum++) {
+      list.push({
+        id: `ls-${groupId}-${lNum}`,
+        teacherId,
+        teacherName,
+        groupId,
+        date: `2026-07-0${4 + lNum}`,
+        lessonNumber: lNum,
+        topic: gNum <= 5 
+          ? `Frontend dars #${lNum}: ${topics[lNum - 1].topic}`
+          : `Backend dars #${lNum}: ${topics[lNum - 1].topic}`,
+        description: topics[lNum - 1].desc,
+        videoUrl: 'https://www.youtube.com/embed/Ke90Tje7VS0',
+        videoType: 'youtube',
+        viewedBy: [],
+        createdAt: new Date(`2026-07-0${4 + lNum}T10:00:00Z`).toISOString(),
+      });
+    }
+  }
+  return list;
+};
+
+const initialLessons = generateLessons();
+
 export const useClassroomStore = create<ClassroomState>()(
   persist(
     (set, get) => ({
-      lessons: [
-        {
-          id: 'demo-1',
-          teacherId: 't1',
-          teacherName: 'Sardor Usmonov',
-          groupId: 'g1',
-          date: '2026-07-05',
-          lessonNumber: 1,
-          topic: 'React Asoslari — JSX va Komponentlar',
-          description: "Bugungi darsda React kutubxonasining asosiy tushunchalari: JSX sintaksisi, funksional komponentlar, props orqali ma'lumot uzatish va birinchi komponent yaratish o'rgatildi.",
-          videoUrl: 'https://www.youtube.com/embed/Ke90Tje7VS0',
-          videoType: 'youtube',
-          viewedBy: ['s1', 's2'],
-          createdAt: '2026-07-05T10:00:00Z',
-        },
-        {
-          id: 'demo-2',
-          teacherId: 't1',
-          teacherName: 'Sardor Usmonov',
-          groupId: 'g1',
-          date: '2026-07-06',
-          lessonNumber: 2,
-          topic: 'React Hooks — useState va useEffect',
-          description: "useState bilan holat boshqarish, useEffect bilan side-effect'lar ishlash, dependency array tushunchasi va amaliy misollar ko'rsatildi.",
-          videoUrl: 'https://www.youtube.com/embed/O6P86uwfdR0',
-          videoType: 'youtube',
-          viewedBy: ['s1'],
-          createdAt: '2026-07-06T10:00:00Z',
-        },
-        {
-          id: 'demo-3',
-          teacherId: 't2',
-          teacherName: 'Dilshod Karimov',
-          groupId: 'g2',
-          date: '2026-07-06',
-          lessonNumber: 1,
-          topic: 'Python OOP — Klasslar va Obyektlar',
-          description: "Python'da OOP paradigmasi, class yaratish, __init__ konstruktor, self kalit so'zi, attributlar va metodlar bilan ishlash o'rgatildi.",
-          videoUrl: 'https://www.youtube.com/embed/ZDa-Z5JzLYM',
-          videoType: 'youtube',
-          viewedBy: [],
-          createdAt: '2026-07-06T14:00:00Z',
-        },
-      ],
+      lessons: initialLessons,
 
       addLesson: (lesson) => {
         const newLesson: LessonRecord = {

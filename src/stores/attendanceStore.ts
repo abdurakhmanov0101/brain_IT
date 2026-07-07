@@ -6,15 +6,17 @@ export interface AttendanceRecord {
   studentId: string;
   groupId: string;
   date: string;
-  status: 'present' | 'absent' | 'late' | 'excused';
+  status: 'present' | 'absent' | 'late' | 'excused' | 'first_lesson';
   checkedBy: 'manual' | 'qr' | 'face_id';
   deductionApplied: boolean;
+  grade?: number;
 }
 
 interface AttendanceState {
   records: AttendanceRecord[];
   markAttendance: (r: Omit<AttendanceRecord, 'id'>) => string;
   updateRecord: (id: string, patch: Partial<AttendanceRecord>) => void;
+  deleteRecord: (studentId: string, groupId: string, date: string) => void;
   getByGroup: (groupId: string, date?: string) => AttendanceRecord[];
   getByStudent: (studentId: string) => AttendanceRecord[];
   getStudentMonthlyRate: (studentId: string, month: string) => number;
@@ -65,6 +67,9 @@ export const useAttendanceStore = create<AttendanceState>()(
       },
       updateRecord: (id, patch) => set((s) => ({
         records: s.records.map((r) => r.id === id ? { ...r, ...patch } : r)
+      })),
+      deleteRecord: (studentId, groupId, date) => set((s) => ({
+        records: s.records.filter((r) => !(r.studentId === studentId && r.groupId === groupId && r.date === date))
       })),
       getByGroup: (groupId, date) => {
         const all = get().records.filter((r) => r.groupId === groupId);

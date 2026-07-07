@@ -34,8 +34,26 @@ const SettingsPage   = lazy(() => import('./features/settings/Settings').then((m
 const RolesPage      = lazy(() => import('./features/roles/RolesPage').then((m) => ({ default: m.RolesPage })));
 
 const Spinner = () => (
-  <div className="flex items-center justify-center h-full w-full min-h-[50vh]">
-    <div className="h-12 w-12 rounded-full border-4 border-cyan-500 border-t-transparent animate-spin shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
+  <div className="flex flex-col items-center justify-center h-full w-full min-h-[50vh] gap-4">
+    <div className="relative w-16 h-16">
+      {/* Outer spinning ring */}
+      <div className="absolute inset-0 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin" />
+      {/* Inner neuron SVG */}
+      <div className="absolute inset-2 flex items-center justify-center">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-brand-500">
+          <line x1="12" y1="16" x2="28" y2="12" stroke="currentColor" strokeWidth="2" strokeOpacity="0.4" />
+          <line x1="12" y1="16" x2="20" y2="36" stroke="currentColor" strokeWidth="2" strokeOpacity="0.4" />
+          <line x1="28" y1="12" x2="38" y2="28" stroke="currentColor" strokeWidth="2" strokeOpacity="0.4" />
+          <line x1="20" y1="36" x2="38" y2="28" stroke="currentColor" strokeWidth="2" strokeOpacity="0.4" />
+          
+          <circle cx="12" cy="16" r="4" fill="currentColor" className="animate-pulse" />
+          <circle cx="28" cy="12" r="4.5" fill="currentColor" style={{ animationDelay: '0.2s' }} className="animate-pulse animate-duration-1000" />
+          <circle cx="20" cy="36" r="3.5" fill="currentColor" style={{ animationDelay: '0.4s' }} className="animate-pulse animate-duration-1000" />
+          <circle cx="38" cy="28" r="5" fill="currentColor" style={{ animationDelay: '0.6s' }} className="animate-pulse animate-duration-1000" />
+        </svg>
+      </div>
+    </div>
+    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">Yuklanmoqda...</span>
   </div>
 );
 

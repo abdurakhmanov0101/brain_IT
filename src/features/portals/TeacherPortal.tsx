@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useCoinStore } from '../../stores/coinStore';
@@ -7,7 +8,36 @@ import { useUIStore } from '../../stores/uiStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useCourseStore } from '../../stores/courseStore';
 import { useGroupStore } from '../../stores/groupStore';
-import { Users, Video, Coins, Award, BookOpen, Code, FileCode, CheckCircle, TrendingUp, DollarSign, AlertCircle } from 'lucide-react';
+import { useAttendanceStore } from '../../stores/attendanceStore';
+import { Users, Video, Coins, Award, BookOpen, Code, FileCode, CheckCircle, TrendingUp, DollarSign, AlertCircle, CalendarCheck, Trash2, Download, Search, Check, Info } from 'lucide-react';
+
+const getMonthDatesForSchedule = (year: number, monthIndex: number, scheduleDays: string[]) => {
+  const dayMap: Record<string, number> = {
+    'Dushanba': 1, 'Monday': 1,
+    'Seshanba': 2, 'Tuesday': 2,
+    'Chorshanba': 3, 'Wednesday': 3,
+    'Payshanba': 4, 'Thursday': 4,
+    'Juma': 5, 'Friday': 5,
+    'Shanba': 6, 'Saturday': 6,
+    'Yakshanba': 0, 'Sunday': 0
+  };
+
+  const targetDayNums = scheduleDays.map(d => dayMap[d] ?? 1);
+  const dates: { dateStr: string; label: string; dayIndex: number }[] = [];
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+  let lessonCount = 1;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, monthIndex, day);
+    const dayOfWeek = d.getDay();
+    if (targetDayNums.includes(dayOfWeek)) {
+      const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const label = `${String(day).padStart(2, '0')}.${String(monthIndex + 1).padStart(2, '0')}`;
+      dates.push({ dateStr, label, dayIndex: lessonCount++ });
+    }
+  }
+  return dates;
+};
 
 export const TeacherPortal: React.FC = () => {
   const { teachers } = useTeacherStore();
@@ -15,9 +45,16 @@ export const TeacherPortal: React.FC = () => {
   const { addTransaction } = useCoinStore();
   const { currentUser } = useAuthStore();
   const { addToast } = useUIStore();
-  const { submissions, gradeSubmission } = useHomeworkStore();
+  const navigate = useNavigate();
+  const { assignments, submissions, gradeSubmission } = useHomeworkStore();
   const { courses } = useCourseStore();
   const { groups } = useGroupStore();
+  const { records, markAttendance } = useAttendanceStore();
+
+  const myProfile = teachers.find(t => t.id === currentUser?.id || t.username === currentUser?.name?.toLowerCase() || t.fullName === currentUser?.name);
+  const myStudents = students.filter(s => myProfile?.groupIds.some(g => s.groupIds.includes(g)));
+  const myHomeworks = assignments.filter(h => myProfile?.groupIds.includes(h.groupId));
+  const myGroups = groups.filter(g => myProfile?.groupIds.includes(g.id));
 
   const [activeTab, setActiveTab] = useState<'students' | 'lms' | 'homework' | 'finance'>('students');
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
@@ -25,10 +62,6 @@ export const TeacherPortal: React.FC = () => {
   const [hwFeedback, setHwFeedback] = useState<string>('');
   const [lmsUrl, setLmsUrl] = useState('');
   const [selectedHw, setSelectedHw] = useState<string | null>(null);
-
-  const myProfile = teachers.find(t => t.username === currentUser?.name?.toLowerCase() || t.fullName === currentUser?.name);
-  const myStudents = students.filter(s => myProfile?.groupIds.some(g => s.groupIds.includes(g)));
-  const myHomeworks = homeworks.filter(h => h.teacherId === myProfile?.id);
 
   if (!myProfile) return <div className="p-8 text-center text-slate-500">Ustoz profili topilmadi.</div>;
 
@@ -157,6 +190,10 @@ export const TeacherPortal: React.FC = () => {
             <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500">Tanga Balansi</span>
             <span className="font-black text-xl text-amber-600 dark:text-amber-500 flex items-center gap-1"><Coins className="h-4 w-4" /> {myProfile.coins || 0}</span>
           </div>
+          <div className="bg-emerald-500/10 border border-emerald-500/20 px-5 py-3 rounded-2xl flex flex-col items-center">
+            <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-500">Joriy Maosh</span>
+            <span className="font-black text-xl text-emerald-600 dark:text-emerald-500 flex items-center gap-1"><DollarSign className="h-4 w-4" /> {received.toLocaleString()} so'm</span>
+          </div>
         </div>
       </div>
 
@@ -165,6 +202,7 @@ export const TeacherPortal: React.FC = () => {
         <button onClick={() => setActiveTab('students')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
           <Users className="h-4 w-4" /> O'quvchilar
         </button>
+
         <button onClick={() => setActiveTab('homework')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'homework' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
           <BookOpen className="h-4 w-4" /> Vazifalar & Kod tekshirish
         </button>
@@ -382,38 +420,90 @@ export const TeacherPortal: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6">
-            <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-4">O'quvchilar To'lov Holati (Joriy Oy)</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 font-semibold uppercase text-xs">
-                  <tr>
-                    <th className="px-4 py-3 rounded-l-xl">O'quvchi</th>
-                    <th className="px-4 py-3">Guruhlar</th>
-                    <th className="px-4 py-3">To'lov holati</th>
-                    <th className="px-4 py-3 text-right rounded-r-xl">Sizning Ulushingiz</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {myStudents.map(s => {
-                    const sGroups = groups.filter(g => s.groupIds.includes(g.id));
-                    const sCourse = courses.find(c => sGroups.some(g => g.courseId === c.id));
-                    const share = sCourse ? (sCourse.monthlyPrice * (myProfile.salaryPercentage || 35)) / 100 : 0;
-                    return (
-                      <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                        <td className="px-4 py-3 font-semibold text-slate-800 dark:text-white">{s.fullName}</td>
-                        <td className="px-4 py-3 text-slate-500">{sGroups.map(g => g.name).join(', ')}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-md text-xs font-bold ${s.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                            {s.paymentStatus === 'paid' ? 'To\'lagan' : 'Qarzdor'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-black text-indigo-600">{share.toLocaleString()} so'm</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* O'quvchilar ro'yxati */}
+            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-4">O'quvchilar To'lov Holati (Joriy Oy)</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 font-semibold uppercase text-xs">
+                    <tr>
+                      <th className="px-4 py-3 rounded-l-xl">O'quvchi</th>
+                      <th className="px-4 py-3">Guruhlar</th>
+                      <th className="px-4 py-3">To'lov holati</th>
+                      <th className="px-4 py-3 text-right rounded-r-xl">Sizning Ulushingiz</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {myStudents.map(s => {
+                      const sGroups = groups.filter(g => s.groupIds.includes(g.id));
+                      const sCourse = courses.find(c => sGroups.some(g => g.courseId === c.id));
+                      const share = sCourse ? (sCourse.monthlyPrice * (myProfile.salaryPercentage || 35)) / 100 : 0;
+                      return (
+                        <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-white">{s.fullName}</td>
+                          <td className="px-4 py-3 text-slate-500">{sGroups.map(g => g.name).join(', ')}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-md text-xs font-bold ${s.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                              {s.paymentStatus === 'paid' ? 'To\'lagan' : 'Qarzdor'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-black text-indigo-600">{share.toLocaleString()} so'm</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Guruhlar bo'yicha daromad */}
+            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-4">Guruhlar Bo'yicha Daromad va Oylik</h3>
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {myGroups.map(g => {
+                  const groupCourse = courses.find(c => c.id === g.courseId);
+                  const groupStudentsList = students.filter(s => s.groupIds.includes(g.id));
+                  const paidCount = groupStudentsList.filter(s => s.paymentStatus === 'paid').length;
+                  const price = groupCourse?.monthlyPrice || 0;
+                  const percent = myProfile.salaryPercentage || 35;
+                  
+                  const totalGroupExpected = price * groupStudentsList.length * percent / 100;
+                  const actualGroupEarned = price * paidCount * percent / 100;
+
+                  return (
+                    <div key={g.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-800 dark:text-white">{g.name}</h4>
+                          <p className="text-[10px] text-slate-500">{groupCourse?.name || 'Kurs'}</p>
+                        </div>
+                        <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded">
+                          {percent}% ulush
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <div>
+                          <span className="text-slate-400">O'quvchilar: </span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{groupStudentsList.length} ta ({paidCount} ta to'lagan)</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">Kurs narxi: </span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{price.toLocaleString()} so'm</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">Kutilayotgan: </span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{totalGroupExpected.toLocaleString()} so'm</span>
+                        </div>
+                        <div>
+                          <span className="text-emerald-500">Olingan: </span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">{actualGroupEarned.toLocaleString()} so'm</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

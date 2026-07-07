@@ -400,6 +400,30 @@ export const Overview: React.FC = () => {
   // ── TEACHER DASHBOARD ──────────────────────────────────────────
   if (currentUser.role === 'Teacher') {
     const myCoins = balances[currentUser.id] || 0;
+
+    // Calculate teacher profile details dynamically
+    const myProfile = teachers.find(t => t.username === currentUser?.name?.toLowerCase() || t.fullName === currentUser?.name);
+    const myStudents = students.filter(s => myProfile?.groupIds.some(g => s.groupIds.includes(g)));
+    const myGroups = groups.filter(g => myProfile?.groupIds.includes(g.id));
+    const pendingHWCount = submissions.filter(s => 
+      s.status === 'submitted' && 
+      myStudents.some(st => st.id === s.studentId)
+    ).length;
+
+    // Salary computations
+    let totalExpected = 0;
+    let received = 0;
+
+    myStudents.forEach(s => {
+      const sGroups = groups.filter(g => s.groupIds.includes(g.id));
+      const sCourse = courses.find(c => sGroups.some(g => g.courseId === c.id));
+      if (sCourse && myProfile) {
+        const share = (sCourse.monthlyPrice * (myProfile.salaryPercentage || 35)) / 100;
+        totalExpected += share;
+        if (s.paymentStatus === 'paid') received += share;
+      }
+    });
+
     return (
       <div className="space-y-6 page-enter">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-8 text-white shadow-2xl shadow-emerald-600/20">
@@ -409,7 +433,7 @@ export const Overview: React.FC = () => {
                 <Zap className="h-3 w-3" /> Ustoz Boshqaruv Paneli
               </span>
               <h1 className="font-heading font-black text-3xl lg:text-4xl">Assalomu alaykum, {currentUser.name}!</h1>
-              <p className="text-white/70 mt-2 text-sm">Talabalarning uy vazifalarini tekshirishingiz mumkin.</p>
+              <p className="text-white/70 mt-2 text-sm">Talabalarning uy vazifalarini va darslarni boshqarishingiz mumkin.</p>
             </div>
             <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-5 py-4">
               <div className="bg-amber-400/20 p-3 rounded-xl">
@@ -425,10 +449,10 @@ export const Overview: React.FC = () => {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { name: 'Guruhlarim', value: 3, suffix: ' ta faol', icon: Users, bg: 'bg-brand-50 dark:bg-brand-500/10', iconColor: 'text-brand-600 dark:text-brand-400' },
-            { name: "Jami O'quvchilarim", value: 48, suffix: ' ta', icon: Users, bg: 'bg-emerald-50 dark:bg-emerald-500/10', iconColor: 'text-emerald-600 dark:text-emerald-400' },
-            { name: 'Kutilayotgan Vazifalar', value: 5, suffix: ' ta', icon: AlertCircle, bg: 'bg-amber-50 dark:bg-amber-500/10', iconColor: 'text-amber-600 dark:text-amber-400' },
-            { name: "O'zlashtirish", value: 78, suffix: '%', icon: TrendingUp, bg: 'bg-violet-50 dark:bg-violet-500/10', iconColor: 'text-violet-600 dark:text-violet-400' },
+            { name: 'Guruhlarim', value: myGroups.length, suffix: ' ta faol', icon: Users, bg: 'bg-brand-50 dark:bg-brand-500/10', iconColor: 'text-brand-600 dark:text-brand-400' },
+            { name: "Jami O'quvchilarim", value: myStudents.length, suffix: ' ta', icon: Users, bg: 'bg-emerald-50 dark:bg-emerald-500/10', iconColor: 'text-emerald-600 dark:text-emerald-400' },
+            { name: 'Kutilayotgan Vazifalar', value: pendingHWCount, suffix: ' ta', icon: AlertCircle, bg: 'bg-amber-50 dark:bg-amber-500/10', iconColor: 'text-amber-600 dark:text-amber-400' },
+            { name: 'Maosh Hissasi (Haqiqiy)', value: received, prefix: '', suffix: ' so\'m', icon: DollarSign, bg: 'bg-indigo-50 dark:bg-indigo-500/10', iconColor: 'text-indigo-600 dark:text-indigo-400' },
           ].map((s, i) => (
             <div key={i} className="card card-hover p-5 stat-card">
               <div className={`inline-flex p-2.5 rounded-xl ${s.bg} mb-4`}>
@@ -436,47 +460,103 @@ export const Overview: React.FC = () => {
               </div>
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{s.name}</p>
               <h3 className="font-heading font-black text-2xl text-slate-900 dark:text-white mt-1">
-                <AnimatedCount value={s.value} suffix={s.suffix} />
+                <AnimatedCount value={s.value} prefix={(s as any).prefix || ''} suffix={s.suffix} />
               </h3>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="card p-6">
-            <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-4">Tekshirilishi kutilayotgan uy vazifalari</h3>
-            <div className="divide-y divide-slate-100 dark:divide-dark-border">
-              {[
-                { name: 'Davron Rustamov', course: 'Python Full Stack | OOP Vorislik' },
-                { name: 'Jahongir Olimov', course: 'React.js TypeScript | State & Interface' },
-                { name: 'Zulfiya Karimova', course: 'JavaScript ES6+ | Async/Await' },
-              ].map((hw) => (
-                <div key={hw.name} className="py-3.5 flex justify-between items-center gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-slate-700 dark:text-slate-200">{hw.name}</p>
-                    <p className="text-[11px] text-slate-400 truncate">{hw.course}</p>
-                  </div>
-                  <button onClick={() => go('academy')} className="shrink-0 text-[11px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-500/20 px-3 py-1.5 rounded-lg transition-colors">
-                    Ko'rish
-                  </button>
-                </div>
-              ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-5">
+            {/* Pending Homework */}
+            <div className="card p-6">
+              <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-4">Tekshirilishi kutilayotgan uy vazifalari</h3>
+              <div className="divide-y divide-slate-100 dark:divide-dark-border">
+                {submissions.filter(s => s.status === 'submitted' && myStudents.some(st => st.id === s.studentId)).slice(0, 5).map((hw) => {
+                  const st = students.find(s => s.id === hw.studentId);
+                  const group = groups.find(g => st?.groupIds.includes(g.id));
+                  const course = courses.find(c => c.id === group?.courseId);
+                  return (
+                    <div key={hw.id} className="py-3.5 flex justify-between items-center gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-slate-700 dark:text-slate-200">{st?.fullName}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{course?.name || 'Vazifa'}</p>
+                      </div>
+                      <button onClick={() => go('teacher-portal')} className="shrink-0 text-[11px] font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-500/20 px-3 py-1.5 rounded-lg transition-colors">
+                        Ko'rish
+                      </button>
+                    </div>
+                  );
+                })}
+                {submissions.filter(s => s.status === 'submitted' && myStudents.some(st => st.id === s.studentId)).length === 0 && (
+                  <p className="text-sm text-slate-400 text-center py-6">Kutilayotgan vazifalar yo'q</p>
+                )}
+              </div>
+            </div>
+
+            {/* Group salary breakdown table */}
+            <div className="card p-6">
+              <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-emerald-500" /> Guruhlar Bo'yicha Oylik Taqsimoti
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 font-semibold uppercase text-[10px]">
+                    <tr>
+                      <th className="px-4 py-2.5 rounded-l-lg">Guruh</th>
+                      <th className="px-4 py-2.5">Kurs</th>
+                      <th className="px-4 py-2.5 text-center">Talabalar</th>
+                      <th className="px-4 py-2.5 text-right rounded-r-lg">Maosh Hissasi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {myGroups.map(group => {
+                      const course = courses.find(c => c.id === group.courseId);
+                      const groupStudents = students.filter(s => s.groupIds.includes(group.id));
+                      const groupPaidStudents = groupStudents.filter(s => s.paymentStatus === 'paid');
+                      
+                      const groupSalaryShare = course 
+                        ? groupPaidStudents.length * ((course.monthlyPrice * (myProfile?.salaryPercentage || 35)) / 100)
+                        : 0;
+
+                      return (
+                        <tr key={group.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-white">{group.name}</td>
+                          <td className="px-4 py-3 text-slate-500">{course?.name || '—'}</td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-600 dark:text-slate-400">
+                            {groupPaidStudents.length} / {groupStudents.length} <span className="text-[10px] text-emerald-500">(To'lagan)</span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-black text-emerald-600">{groupSalaryShare.toLocaleString()} so'm</td>
+                        </tr>
+                      );
+                    })}
+                    {myGroups.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6 text-slate-400 text-sm">Guruhlar topilmadi</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-          <div className="card p-6">
-            <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-4">Tezkor amallar</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Davomat belgilash', icon: CheckCircle2, path: 'attendance', color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-                { label: 'Coin berish', icon: Coins, path: 'coins', color: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' },
-                { label: 'Dars videosi', icon: Play, path: 'academy', color: 'bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400' },
-                { label: 'Mening paneliim', icon: BarChart2, path: 'teacher-portal', color: 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400' },
-              ].map((a) => (
-                <button key={a.label} onClick={() => go(a.path)} className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl ${a.color} hover:scale-105 transition-all border border-current/10`}>
-                  <a.icon className="h-6 w-6" />
-                  <span className="text-[11px] font-bold text-center leading-tight">{a.label}</span>
-                </button>
-              ))}
+
+          <div className="lg:col-span-1 space-y-5">
+            <div className="card p-6">
+              <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-4">Tezkor amallar</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Davomat belgilash', icon: CheckCircle2, path: 'attendance', color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+                  { label: 'Coin berish', icon: Coins, path: 'coins', color: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+                  { label: 'Dars videosi', icon: Play, path: 'teacher-portal', color: 'bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400' },
+                  { label: 'Mening panelim', icon: BarChart2, path: 'teacher-portal', color: 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400' },
+                ].map((a) => (
+                  <button key={a.label} onClick={() => go(a.path)} className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl ${a.color} hover:scale-105 transition-all border border-current/10`}>
+                    <a.icon className="h-6 w-6" />
+                    <span className="text-[11px] font-bold text-center leading-tight">{a.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

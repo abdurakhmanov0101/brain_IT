@@ -25,8 +25,9 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.25, darkMode
     const INTERVAL = 1000 / FPS;
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const parent = canvas.parentElement;
+      canvas.width = parent ? parent.clientWidth : window.innerWidth;
+      canvas.height = parent ? parent.clientHeight : window.innerHeight;
     };
     resize();
 
@@ -100,7 +101,7 @@ export const MatrixRain: React.FC<MatrixRainProps> = ({ opacity = 0.25, darkMode
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="fixed inset-0 pointer-events-none transition-opacity duration-500 matrix-canvas"
+      className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-500 matrix-canvas"
       style={{ zIndex: 0, opacity: darkMode ? opacity : opacity * 1.5 }}
     />
   );

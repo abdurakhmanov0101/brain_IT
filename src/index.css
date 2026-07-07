@@ -32,24 +32,24 @@
   --color-violet-800: #5b21b6;
   --color-violet-900: #4c1d95;
 
-  /* Brand Palette (Mapped to Violet/Indigo for automatic clean look across 24 inner pages) */
-  --color-brand-50:  #f5f3ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-400: #a78bfa;
-  --color-brand-500: #8b5cf6;
-  --color-brand-600: #7c3aed;
-  --color-brand-700: #6d28d9;
-  --color-brand-800: #5b21b6;
-  --color-brand-900: #4c1d95;
+  /* Brand Palette (Mapped to Premium Indigo for high-end SaaS feel) */
+  --color-brand-50:  #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
 
-  /* Accent mapping */
-  --color-accent-400: #a78bfa;
-  --color-accent-500: #8b5cf6;
-  --color-accent-600: #7c3aed;
+  /* Accent mapping (Cyan for focal points / CTAs) */
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
 
   /* Amber (Coin/reward) */
-  --color-coin-400: #fbbf24;
+  --color-coin-400: #fcd34d;
   --color-coin-500: #f59e0b;
   --color-coin-600: #d97706;
 
@@ -60,21 +60,29 @@
   --color-warning-text: #d97706;
   --color-error-bg: rgba(239, 68, 68, 0.1);
   --color-error-text: #dc2626;
-  --color-info-bg: rgba(124, 58, 237, 0.1);
-  --color-info-text: #7c3aed;
+  --color-info-bg: rgba(99, 102, 241, 0.1);
+  --color-info-text: #6366f1;
 
-  /* Dark mode surfaces - Clean Zinc Studio (No messy purple/black tints) */
+  /* Dark mode surfaces - Premium Slate & Zinc Studio */
   --color-dark-bg:     #09090b;
-  --color-dark-surface: #121215;
-  --color-dark-card:   #18181b;
-  --color-dark-border: #27272a;
-  --color-dark-muted:  #27272a;
+  --color-dark-surface: #14141d;
+  --color-dark-card:   #14141d;
+  --color-dark-border: rgba(255, 255, 255, 0.08);
+  --color-dark-muted:  #252533;
 
-  /* Light mode surfaces - Clean Zinc Studio */
-  --color-light-bg:     #f4f4f5;
+  /* Overwrite Tailwind default colors to match our dark theme design system */
+  --color-slate-700: #222230;
+  --color-slate-800: #14141d;
+  --color-slate-900: #0d0d12;
+  --color-zinc-700:  #222230;
+  --color-zinc-800:  #181822;
+  --color-zinc-900:  #14141d;
+
+  /* Light mode surfaces - Premium Slate Studio */
+  --color-light-bg:     #f8fafc;
   --color-light-surface: #ffffff;
   --color-light-card:   #ffffff;
-  --color-light-border: #e4e4e7;
+  --color-light-border: #e2e8f0;
 
   /* Keyframe animations */
   --animate-float: float 4s ease-in-out infinite;
@@ -233,7 +241,7 @@
 .dark .card {
   background: var(--color-dark-card);
   border-color: var(--color-dark-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .card-hover:hover {
@@ -644,5 +652,23 @@
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+/* ═══════════════════════════════════════════
+   PREMIUM GLOW EFFECTS & DESIGN FINISHES
+   ═══════════════════════════════════════════ */
+.premium-glow-brand {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+.dark .premium-glow-brand {
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+.premium-card-shadow {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 8px 15px -6px rgba(0, 0, 0, 0.03);
+}
+.dark .premium-card-shadow {
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.6), 0 10px 20px -10px rgba(0, 0, 0, 0.4);
 }
 

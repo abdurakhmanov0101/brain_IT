@@ -6,6 +6,8 @@ import { useUIStore } from '../../stores/uiStore';
 import { StatCard } from '../../components/StatCard';
 import { Badge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { useAuthStore } from '../../stores/authStore';
+import { useTeacherStore } from '../../stores/teacherStore';
 
 type FormState = Omit<AcademyCourse, 'id' | 'lessonPrice'>;
 
@@ -21,6 +23,21 @@ export const Courses: React.FC = () => {
   const { courses, addCourse, updateCourse, deleteCourse } = useCourseStore();
   const { groups } = useGroupStore();
   const { addToast } = useUIStore();
+  const { currentUser } = useAuthStore();
+  const { teachers } = useTeacherStore();
+
+  const isTeacher = currentUser?.role === 'Teacher';
+  const isAdmin = ['Super Admin', 'Academy Director'].includes(currentUser?.role || '');
+
+  const filteredCourses = courses.filter((c) => {
+    if (!currentUser) return false;
+    if (['Super Admin', 'Academy Director'].includes(currentUser.role)) return true;
+    if (currentUser.role === 'Teacher') {
+      const teacher = teachers.find(t => t.id === currentUser.id);
+      return teacher?.courseIds.includes(c.id);
+    }
+    return true;
+  });
   const [addOpen, setAddOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -29,7 +46,7 @@ export const Courses: React.FC = () => {
 
   const getGroupCount = (id: string) => groups.filter((g) => g.courseId === id).length;
   const getStudentCount = (id: string) => groups.filter((g) => g.courseId === id).reduce((s, g) => s + g.studentIds.length, 0);
-  const totalStudents = courses.reduce((sum, c) => sum + getStudentCount(c.id), 0);
+  const totalStudents = filteredCourses.reduce((sum, c) => sum + getStudentCount(c.id), 0);
   const previewLessonPrice = form.monthlyPrice > 0 && form.lessonsPerWeek > 0
     ? Math.round(form.monthlyPrice / (form.lessonsPerWeek * 4)) : 0;
 
@@ -69,20 +86,22 @@ export const Courses: React.FC = () => {
           <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Kurslar</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">O'quv kurslar boshqaruvi</p>
         </div>
-        <button onClick={openAdd} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
-          <Plus className="h-4 w-4" /> Yangi kurs
-        </button>
+        {!isTeacher && (
+          <button onClick={openAdd} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
+            <Plus className="h-4 w-4" /> Yangi kurs
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard title="Jami kurslar"    value={courses.length}  icon={BookOpen} />
+        <StatCard title="Jami kurslar"    value={filteredCourses.length}  icon={BookOpen} />
         <StatCard title="Jami o'quvchilar" value={totalStudents}   icon={Users}    iconColor="text-indigo-600 dark:text-indigo-400" />
         <StatCard title="Jami guruhlar"   value={groups.length}   icon={Users}    iconColor="text-purple-600 dark:text-purple-400" />
-        <StatCard title="O'rtacha narx"   value={courses.length > 0 ? `${Math.round(courses.reduce((s, c) => s + c.monthlyPrice, 0) / courses.length / 1000)}K` : '0'} icon={DollarSign} iconColor="text-emerald-600 dark:text-emerald-400" />
+        <StatCard title="O'rtacha narx"   value={filteredCourses.length > 0 ? `${Math.round(filteredCourses.reduce((s, c) => s + c.monthlyPrice, 0) / filteredCourses.length / 1000)}K` : '0'} icon={DollarSign} iconColor="text-emerald-600 dark:text-emerald-400" />
       </div>
 
       <div className="space-y-3">
-        {courses.map((course) => {
+        {filteredCourses.map((course) => {
           const groupCount = getGroupCount(course.id);
           const studentCount = getStudentCount(course.id);
           const isExpanded = expanded === course.id;
@@ -108,8 +127,12 @@ export const Courses: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={() => openEdit(course)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 className="h-4 w-4" /></button>
-                    <button onClick={() => handleDelete(course)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                    {!isTeacher && (
+                      <>
+                        <button onClick={() => openEdit(course)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-600 transition-colors"><Edit2 className="h-4 w-4" /></button>
+                        <button onClick={() => handleDelete(course)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                      </>
+                    )}
                     <button onClick={() => setExpanded(isExpanded ? null : course.id)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors">
                       {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>

@@ -53,7 +53,8 @@ export const mockLogin = async (username: string, password: string):Promise<{use
         'director': 'director123',
         'bobur': 'bobur123',
         'avaazbek': 'hello1212',
-        'student1': 'stud123',
+        'student1': '123',
+        'teacher1': '123',
       };
       
       if (validLogins[username] && (validLogins[username] === password || password === 'bobur123' || password === 'stud123' || password === 'Bobur@2025')) {
@@ -63,10 +64,11 @@ export const mockLogin = async (username: string, password: string):Promise<{use
         if (username === 'director') role = 'Academy Director';
         if (username === 'avaazbek') role = 'Super Admin';
         if (username === 'student1') { role = 'Student'; studentId = 'st1'; }
+        if (username === 'teacher1') role = 'Teacher';
         
         const user: AuthUserType = {
-          id: `u_${username}`,
-          name: username === 'superadmin' ? 'Super Admin' : username === 'director' ? 'Feruza Salimova' : username === 'avaazbek' ? 'Avazbek' : username === 'student1' ? 'Aziz Alimov' : 'Bobur Akbarov',
+          id: username === 'teacher1' ? 'tr1' : `u_${username}`,
+          name: username === 'superadmin' ? 'Super Admin' : username === 'director' ? 'Feruza Salimova' : username === 'avaazbek' ? 'Avazbek' : username === 'student1' ? 'Aziz Alimov' : username === 'teacher1' ? 'Bobur Akbarov' : 'Bobur Akbarov',
           role: role,
           avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
           ...(studentId ? { studentId } : {}),

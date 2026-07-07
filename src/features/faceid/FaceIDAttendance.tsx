@@ -205,8 +205,12 @@ export const FaceIDAttendance: React.FC = () => {
               </div>
             </div>
 
-            {/* Video */}
             <div className="relative flex-1 bg-slate-950 overflow-hidden" style={{ minHeight: 280 }}>
+              {/* Simulation Mode Badge */}
+              <div className="absolute top-3 left-3 bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm z-10">
+                SIMULYATSIYA REJIMI
+              </div>
+
               <video ref={videoRef} autoPlay playsInline muted
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${cameraOn ? 'opacity-100' : 'opacity-0'}`} />
 
@@ -224,36 +228,33 @@ export const FaceIDAttendance: React.FC = () => {
 
               {cameraOn && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={`relative w-44 h-44 transition-all duration-300 ${phase === 'detected' ? statusColor + ' rounded-xl border-2' : ''}`}>
-                    <div className={`absolute top-0 left-0 h-6 w-6 border-t-2 border-l-2 ${cornerColor} rounded-tl transition-colors duration-300`} />
-                    <div className={`absolute top-0 right-0 h-6 w-6 border-t-2 border-r-2 ${cornerColor} rounded-tr transition-colors duration-300`} />
-                    <div className={`absolute bottom-0 left-0 h-6 w-6 border-b-2 border-l-2 ${cornerColor} rounded-bl transition-colors duration-300`} />
-                    <div className={`absolute bottom-0 right-0 h-6 w-6 border-b-2 border-r-2 ${cornerColor} rounded-br transition-colors duration-300`} />
-
+                  {/* Circular Frame */}
+                  <div className={`relative w-48 h-48 rounded-full border-4 transition-all duration-500 flex items-center justify-center ${
+                    phase === 'scanning' ? 'border-amber-400 border-dashed animate-[spin_12s_linear_infinite]'
+                    : phase === 'detected' ? (detectedStatus === 'absent' ? 'border-red-500 bg-red-500/10' : 'border-emerald-500 bg-emerald-500/10')
+                    : 'border-brand-500/30 border-dashed'
+                  }`}>
                     {phase === 'scanning' && (
-                      <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent shadow-[0_0_8px_2px_rgba(99,102,241,0.6)] transition-none"
-                        style={{ top: `${scanY}%` }} />
+                      <div className="absolute inset-2 rounded-full border-2 border-amber-400/30 animate-pulse" />
                     )}
 
                     {phase === 'detected' && detected && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                        {detectedStatus === 'present' ? <UserCheck className="h-10 w-10 text-emerald-400 drop-shadow-lg" />
-                          : detectedStatus === 'late' ? <Clock className="h-10 w-10 text-amber-400 drop-shadow-lg" />
-                          : <UserX className="h-10 w-10 text-red-400 drop-shadow-lg" />}
+                        {detectedStatus === 'present' ? <UserCheck className="h-12 w-12 text-emerald-400 drop-shadow-lg" />
+                          : detectedStatus === 'late' ? <Clock className="h-12 w-12 text-amber-400 drop-shadow-lg" />
+                          : <UserX className="h-12 w-12 text-red-400 drop-shadow-lg" />}
                       </div>
                     )}
 
                     {phase === 'idle' && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Scan className="h-10 w-10 text-indigo-500/40" />
+                        <Scan className="h-12 w-12 text-brand-500/40 animate-pulse" />
                       </div>
                     )}
                   </div>
 
-                  {boxVisible && phase !== 'detected' && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-44 h-44 border-2 border-yellow-400/80 rounded-lg animate-pulse" />
-                    </div>
+                  {phase === 'scanning' && (
+                    <div className="absolute w-44 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_2px_rgba(245,158,11,0.6)] animate-pulse" />
                   )}
                 </div>
               )}

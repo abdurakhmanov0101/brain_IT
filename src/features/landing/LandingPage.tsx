@@ -13,6 +13,7 @@ import { courses, projects, type Course, type Project } from '../../data/mockDat
 import { Navbar } from '../../components/landing/Navbar';
 import { Hero } from '../../components/landing/Hero';
 import { Footer } from '../../components/landing/Footer';
+import { ChatWidget } from '../../components/ChatWidget';
 
 /* ─────────── TYPES ─────────── */
 interface LandingPageProps {
@@ -42,14 +43,11 @@ const staggerFast = { hidden: {}, show: { transition: { staggerChildren: 0.05 } 
 const Reveal: React.FC<{ children: React.ReactNode; className?: string; delay?: number }> = ({
   children, className = '', delay = 0,
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
   return (
     <motion.div
-      ref={ref}
       variants={stagger}
       initial="hidden"
-      animate={inView ? 'show' : 'hidden'}
+      animate="show"
       transition={{ delay }}
       className={className}
     >
@@ -77,8 +75,8 @@ const Counter: React.FC<{ to: number; suffix?: string; prefix?: string }> = ({ t
 
 /* ─────────── SECTION BADGE ─────────── */
 const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#2563EB' }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-bold"
-    style={{ borderColor: `${color}44`, background: `${color}14`, color }}>
+  <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-bold text-white shadow-sm"
+    style={{ borderColor: `${color}60`, background: `${color}25` }}>
     {children}
   </span>
 );
@@ -140,23 +138,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       navPortal: "LMS Portaliga Kirish",
       heroBadge: "Brain IT Ecosystem", heroEyebrow: "Kelajak faqat IT bilan!",
       heroTitle: "0 dan dasturchi bo'lib chiqing!", heroTitleAccent: " Professional darajada.",
-      heroText: "Kompyuter, telefon va biznesni avtomatlashtirishga tegishli dasturlar yaratamiz. Farzandingizni ham dasturchi bo'lishiga professional yondashamiz.",
+      heroText: "Kompyuter va mobil ilovalar, shuningdek biznesni avtomatlashtirish tizimlarini ishlab chiqamiz. Farzandingizning zamonaviy dasturchi bo'lib yetishishiga professional yondashamiz.",
       btnCourses: "Kurslarni ko'rish", btnContact: "Konsultatsiya olish", btnPortal: "LMS Portaliga kirish",
       statsGraduates: "Bitiruvchilar", statsPlacement: "Ishga joylashish", statsPartners: "Hamkorlar", statsCourses: "Kurslar",
       trustedBy: "Ishonch bildirgan kompaniyalar",
-      coursesTitle: "IT yo'nalishlar", coursesDesc: "O'quv yo'nalishlarimiz 0 dan boshlovchilar uchun amaliy mashg'ulotlar, sertifikatlar va ishga yo'naltirishni o'z ichiga oladi.",
+      coursesTitle: "IT yo'nalishlar", coursesDesc: "O'quv yo'nalishlarimiz noldan boshlovchilar uchun amaliy mashg'ulotlar, xalqaro sertifikatlar va ishga joylashtirish kafolatini o'z ichiga oladi.",
       servicesTitle: "Enterprise yechimlar", servicesDesc: "Brain IT shunchaki akademiya emas — bu biznes jarayonlarini avtomatlashtiradigan professional jamoa.",
       servicesBadge: "IT Kompaniya",
-      aiTitle: "AI Kuchli Platforma", aiDesc: "Sun'iy intellekt texnologiyalar bilan ta'lim va biznesingizni yangi darajaga olib chiqing.",
+      aiTitle: "AI bilan kuchaytirilgan platforma", aiDesc: "Sun'iy intellekt texnologiyalari yordamida ta'lim va biznesingizni yangi bosqichga olib chiqing.",
       aiBadge: "AI Platform",
       numberTitle: "Raqamlarda Brain IT", numberDesc: "Natijalar o'zi gapiradi.",
-      portfolioTitle: "Real Loyihalar", portfolioDesc: "Hayotga tadbiq etilgan ishlanmalarimiz va case study lar.",
-      internTitle: "Stajirovka Dasturi", internDesc: "Eng yaxshi o'quvchilarimiz Brain IT kompaniyasida real loyihalarda ishlash imkoniyatiga ega bo'ladi.",
+      portfolioTitle: "Real Loyihalar", portfolioDesc: "Hayotga tatbiq etilgan ishlanmalarimiz va muvaffaqiyatli case study-lar.",
+      internTitle: "Stajirovka Dasturi", internDesc: "Eng yaxshi o'quvchilarimiz Brain IT kompaniyasida real loyihalar ustida ishlash va tajriba orttirish imkoniyatiga ega bo'ladilar.",
       internBadge: "Internship",
       teamHeader: "Bizning Jamoa", teamSub: "Har bir a'zo o'z sohasida tajribali va real enterprise loyihalarni yetaklashga tayyor.",
       testimonialTitle: "Muvaffaqiyat hikoyalari", testimonialDesc: "O'quvchilarimizning hayotini o'zgartirib yuborgan tajribalar.",
       contactHeader: "Kursga yoki konsultatsiyaga yoziling",
-      contactSub: "Arizangizni qoldiring — tez orada administratorlar siz bilan bog'lanishadi.",
+      contactSub: "Arizangizni qoldiring — tez orada menejerlarimiz siz bilan bog'lanishadi.",
       formName: "Ismingiz", formPhone: "Telefon raqamingiz", formEmail: "Elektron pochta (ixtiyoriy)",
       formService: "Kurs yoki xizmat", submitButton: "Yuborish",
       thankYouTitle: "Rahmat! Arizangiz qabul qilindi.",
@@ -374,7 +372,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   ══════════════════════════════════════ */
   return (
     <div
-      className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth overflow-x-hidden text-white"
+      className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth overflow-x-hidden text-white dark"
     >
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#09090b]">
         {/* Fallback poster image or color if video loads slowly */}
@@ -412,27 +410,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* ──────────────── COURSES / DIRECTIONS ──────────────── */}
-      <section id="courses" className="py-24 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10">
-        <Reveal className="space-y-16">
+      <section id="courses" className="py-14 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10">
+        <Reveal className="space-y-8">
           <div className="text-center space-y-4">
             <motion.div variants={fadeIn}><Badge color="#2563EB"><BookOpen className="h-3.5 w-3.5" />IT Academy</Badge></motion.div>
             <h2 className="text-3xl md:text-4xl font-heading font-black text-white drop-shadow-md">{t.coursesTitle}</h2>
             <p className="text-white/80 max-w-2xl mx-auto font-medium drop-shadow-sm">{t.coursesDesc}</p>
           </div>
-          <motion.div variants={staggerFast} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <motion.div variants={staggerFast} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
             {directions.map((dir, i) => {
               const Icon = dir.icon;
               return (
                 <motion.button key={i} variants={fadeUp}
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileHover={{ 
+                    scale: 1.05, 
+                    y: -6,
+                    borderColor: `${dir.color}aa`,
+                    boxShadow: `0 12px 30px -10px ${dir.color}50`
+                  }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => openCourseByKey(dir.title)}
-                  className="group flex flex-col items-center justify-center gap-4 p-6 text-center glass-card"
+                  className="group flex flex-col items-center justify-center gap-4.5 p-6.5 text-center transition-all duration-350 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px -5px rgba(0,0,0,0.3)',
+                  }}
                 >
-                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300 glass-icon-wrapper">
-                    <Icon className="h-6 w-6 text-white group-hover:text-violet-400 transition-colors" />
+                  {/* Subtle background glow representing the theme color */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"
+                    style={{ background: `radial-gradient(circle at center, ${dir.color} 0%, transparent 70%)` }}
+                  />
+
+                  {/* Icon Wrapper with Custom Color theme */}
+                  <div 
+                    className="h-13 w-13 rounded-2xl flex items-center justify-center transition-all duration-300"
+                    style={{ 
+                      background: `${dir.color}15`, 
+                      border: `1.5px solid ${dir.color}35`,
+                      boxShadow: `0 0 15px -3px ${dir.color}25`
+                    }}
+                  >
+                    <Icon className="h-6.5 w-6.5 transition-transform duration-300 group-hover:scale-110" style={{ color: dir.color }} />
                   </div>
-                  <p className="text-[14px] font-semibold leading-snug text-white transition-colors group-hover:text-violet-300">{dir.title}</p>
+
+                  <div className="space-y-1 relative z-10">
+                    <p className="text-[13.5px] font-bold leading-snug text-white/90 transition-colors group-hover:text-white">{dir.title}</p>
+                    <span className="text-[9.5px] font-bold uppercase tracking-widest opacity-40 group-hover:opacity-75 transition-opacity" style={{ color: dir.color }}>
+                      0 dan boshlash
+                    </span>
+                  </div>
+
+                  {/* Tiny glowing dot at the bottom of the card on hover */}
+                  <div 
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: dir.color, boxShadow: `0 0 8px ${dir.color}` }}
+                  />
                 </motion.button>
               );
             })}
@@ -441,9 +473,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── SERVICES ──────────────── */}
-      <section id="services" className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section id="services" className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="max-w-7xl mx-auto">
-          <Reveal className="space-y-16">
+          <Reveal className="space-y-8">
             <div className="space-y-4">
               <motion.div variants={fadeIn}><Badge color="#7C3AED"><Rocket className="h-3.5 w-3.5" />{t.servicesBadge}</Badge></motion.div>
               <SectionHead title={t.servicesTitle} sub={t.servicesDesc} center={false} />
@@ -474,7 +506,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── AI PLATFORM ──────────────── */}
-      <section className="py-24 px-6 lg:px-16 relative overflow-hidden">
+      <section className="py-14 px-6 lg:px-16 relative overflow-hidden">
         {/* background glow */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="w-[800px] h-[400px] rounded-full opacity-20"
@@ -482,7 +514,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
         <div className="max-w-7xl mx-auto relative z-10">
           <Reveal>
-            <div className="text-center space-y-4 mb-16">
+            <div className="text-center space-y-4 mb-8">
               <motion.div variants={fadeIn}><Badge color="#7C3AED"><Brain className="h-3.5 w-3.5" />{t.aiBadge}</Badge></motion.div>
               <SectionHead title={t.aiTitle} sub={t.aiDesc} />
             </div>
@@ -506,10 +538,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── NUMBERS ──────────────── */}
-      <section className="py-20 px-6 border-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section className="py-12 px-6 border-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="max-w-6xl mx-auto">
           <Reveal>
-            <div className="text-center mb-14 space-y-4">
+            <div className="text-center mb-8 space-y-4">
               <motion.div variants={fadeIn}><Badge color="#06B6D4"><Star className="h-3.5 w-3.5" />{t.numberTitle}</Badge></motion.div>
               <motion.p variants={fadeUp} className="text-slate-400 text-sm">{t.numberDesc}</motion.p>
             </div>
@@ -534,10 +566,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── PORTFOLIO ──────────────── */}
-      <section id="projects" className="py-24 px-6 lg:px-16">
+      <section id="projects" className="py-14 px-6 lg:px-16">
         <div className="max-w-7xl mx-auto">
           <Reveal>
-            <div className="text-center space-y-4 mb-14">
+            <div className="text-center space-y-4 mb-8">
               <motion.div variants={fadeIn}><Badge color="#06B6D4"><Layers className="h-3.5 w-3.5" />Portfolio</Badge></motion.div>
               <SectionHead title={t.portfolioTitle} sub={t.portfolioDesc} />
             </div>
@@ -571,10 +603,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── INTERNSHIP ──────────────── */}
-      <section className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="max-w-5xl mx-auto">
           <Reveal>
-            <div className="text-center space-y-4 mb-16">
+            <div className="text-center space-y-4 mb-8">
               <motion.div variants={fadeIn}><Badge color="#10B981"><Rocket className="h-3.5 w-3.5" />{t.internBadge}</Badge></motion.div>
               <SectionHead title={t.internTitle} sub={t.internDesc} />
             </div>
@@ -605,8 +637,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── TEAM FILMSTRIP ──────────────── */}
-      <section id="team" className="py-24 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="max-w-6xl mx-auto px-6 lg:px-16 mb-12">
+      <section id="team" className="py-14 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-16 mb-6">
           <Reveal>
             <div className="text-center space-y-4">
               <motion.div variants={fadeIn}><Badge color="#F59E0B"><Users className="h-3.5 w-3.5" />{t.teamHeader}</Badge></motion.div>
@@ -693,10 +725,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── TESTIMONIALS ──────────────── */}
-      <section className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="max-w-6xl mx-auto">
           <Reveal>
-            <div className="text-center space-y-4 mb-14">
+            <div className="text-center space-y-4 mb-8">
               <motion.div variants={fadeIn}><Badge color="#F59E0B"><Star className="h-3.5 w-3.5" />{t.testimonialTitle}</Badge></motion.div>
               <SectionHead title={t.testimonialTitle} sub={t.testimonialDesc} />
             </div>
@@ -725,10 +757,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── CONTACT ──────────────── */}
-      <section id="contact" className="py-24 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section id="contact" className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="max-w-6xl mx-auto">
           <Reveal>
-            <div className="text-center space-y-4 mb-14">
+            <div className="text-center space-y-4 mb-8">
               <motion.div variants={fadeIn}><Badge color="#2563EB"><Send className="h-3.5 w-3.5" />{t.contactHeader}</Badge></motion.div>
               <SectionHead title={t.contactHeader} sub={t.contactSub} />
             </div>
@@ -998,7 +1030,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             transition={{ duration: 0.25, ease: 'easeOut' }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             aria-label="Yuqoriga"
-            className="fixed bottom-8 right-8 z-[60] p-3.5 rounded-2xl text-white"
+            className="fixed bottom-24 right-8 z-[60] p-3.5 rounded-2xl text-white"
             style={{
               background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
               boxShadow: '0 8px 32px rgba(37,99,235,0.5)',
@@ -1011,6 +1043,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* ──────────────── MODULAR FOOTER ──────────────── */}
       <Footer onEnterPortal={onEnterPortal} t={t} />
+
+      {/* ──────────────── CHATBOT WIDGET ──────────────── */}
+      <ChatWidget />
     </div>
   );
 };

@@ -120,7 +120,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] xl:max-w-[1650px] mx-auto">
       
       {/* ──────────────── HEADER CARD ──────────────── */}
       <motion.div 

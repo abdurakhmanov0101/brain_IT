@@ -1,19 +1,28 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Play, Plus, Calendar, Hash, BookOpen, Video, Eye, EyeOff,
   Trash2, Edit3, X, Users, CheckCircle2, Clock, Send,
-  ChevronDown, FileText, TrendingUp, AlertCircle, Star
+  ChevronDown, FileText, TrendingUp, AlertCircle, Star, Award, Code, Check
 } from 'lucide-react';
 import { useClassroomStore, type LessonRecord } from '../../stores/classroomStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useInClassTaskStore } from '../../stores/inClassTaskStore';
+import { useCoinStore } from '../../stores/coinStore';
+import { CodeEditor } from '../../components/CodeEditor';
+import { useCourseStore } from '../../stores/courseStore';
+import { useGroupStore } from '../../stores/groupStore';
 
-/* ─── Helpers ─── */
 const formatDate = (d: string) => {
   const date = new Date(d);
-  return date.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (isNaN(date.getTime())) return d;
+  const day = String(date.getDate()).padStart(2, '0');
+  const months = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day}-${month}, ${year}-yil`;
 };
 
 const getYouTubeEmbedUrl = (url: string): string => {
@@ -22,18 +31,80 @@ const getYouTubeEmbedUrl = (url: string): string => {
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
 };
 
+const CountdownTimer: React.FC<{ expiresAt: string }> = ({ expiresAt }) => {
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(expiresAt).getTime() - Date.now();
+      return Math.max(0, Math.floor(difference / 1000));
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const left = calculateTimeLeft();
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
+  if (timeLeft <= 0) {
+    return (
+      <span className="text-rose-500 font-extrabold animate-pulse flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/20 px-3 py-1 rounded-xl border border-rose-200 dark:border-rose-800/30">
+        <Clock className="w-4 h-4 text-rose-500" />
+        <span>Vaqt tugadi (Qabul yopildi)</span>
+      </span>
+    );
+  }
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  return (
+    <span className="text-rose-500 font-black tracking-wider animate-pulse flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/20 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50">
+      <Clock className="w-4 h-4 animate-bounce text-rose-500" />
+      <span>Qolgan vaqt: {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>
+    </span>
+  );
+};
+
 /* ─── Main Component ─── */
 export const Classroom: React.FC = () => {
   const { currentUser } = useAuthStore();
   const { lessons, addLesson, updateLesson, deleteLesson, markViewed } = useClassroomStore();
-  const { groups } = useHomeworkStore();
+  const { groups } = useGroupStore();
   const { students } = useStudentStore();
   const { addToast } = useUIStore();
+
+  const { tasks, submissions, addTask, submitTask, gradeSubmission: gradeInClassSub, deleteTask: deleteInClassTask } = useInClassTaskStore();
+  const { sendCoins } = useCoinStore();
+  const { updateStudent } = useStudentStore();
+  const { courses } = useCourseStore();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [selectedLesson, setSelectedLesson] = useState<LessonRecord | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LessonRecord | null>(null);
+
+  // In-class task UI states
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [addTaskTitle, setAddTaskTitle] = useState('');
+  const [addTaskDesc, setAddTaskDesc] = useState('');
+  const [addTaskDuration, setAddTaskDuration] = useState(30);
+  const [selectedSubToGrade, setSelectedSubToGrade] = useState<any | null>(null);
+  const [gradeScorePercent, setGradeScorePercent] = useState(0);
+  const [gradeInClassFeedback, setGradeInClassFeedback] = useState('');
+  const [studentCodeInput, setStudentCodeInput] = useState('// O\'quvchi kodi...\nconsole.log("Salom Brain IT!");');
+
+  // Task creation dropdown states
+  const [taskFormCourseId, setTaskFormCourseId] = useState('');
+  const [taskFormGroupId, setTaskFormGroupId] = useState('');
+  const [taskFormLessonId, setTaskFormLessonId] = useState('');
 
   // Form state
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
@@ -58,9 +129,19 @@ export const Classroom: React.FC = () => {
       )
     : null;
 
-  const visibleGroups = isTeacher
-    ? groups
-    : groups.filter(g => myStudent?.groupIds?.includes(g.id));
+  const visibleGroups = useMemo(() => {
+    if (currentUser.role === 'Super Admin' || currentUser.role === 'Academy Director') {
+      return groups;
+    }
+    if (isTeacher) {
+      return groups.filter(g => 
+        g.teacherId === currentUser.id || 
+        g.teacherId === currentUser.id.replace('u_teacher', 'tr') ||
+        (currentUser.id === 'u_teacher1' && g.teacherId === 'tr1')
+      );
+    }
+    return groups.filter(g => myStudent?.groupIds?.includes(g.id));
+  }, [groups, currentUser, isTeacher, myStudent]);
 
   // Default to first visible group
   const effectiveGroupId = selectedGroupId && visibleGroups.find(g => g.id === selectedGroupId)
@@ -226,12 +307,34 @@ export const Classroom: React.FC = () => {
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60 pointer-events-none" />
             </div>
             {isTeacher && (
-              <button
-                onClick={handleOpenForm}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 border border-white/25 text-white font-bold text-sm rounded-xl backdrop-blur-sm transition-all active:scale-95 shadow-lg"
-              >
-                <Plus className="h-4 w-4" /> Yangi dars
-              </button>
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => {
+                    setAddTaskTitle('');
+                    setAddTaskDesc('');
+                    setAddTaskDuration(30);
+                    // Pre-fill fields with current context
+                    const defaultCourse = courses[0]?.id || '';
+                    setTaskFormCourseId(defaultCourse);
+                    setTaskFormGroupId(effectiveGroupId);
+                    
+                    const groupLessons = lessons.filter(l => l.groupId === effectiveGroupId);
+                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                    
+                    setShowAddTaskModal(true);
+                  }}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                >
+                  <Code className="h-4 w-4" /> Topshiriq berish
+                </button>
+
+                <button
+                  onClick={handleOpenForm}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 border border-white/25 text-white font-bold text-sm rounded-xl backdrop-blur-sm transition-all active:scale-95 shadow-lg"
+                >
+                  <Plus className="h-4 w-4" /> Yangi dars
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -267,10 +370,10 @@ export const Classroom: React.FC = () => {
 
           {groupLessons.length === 0 ? (
             <div className="glass premium-card rounded-2xl p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
-                <BookOpen className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-150 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center">
+                <BookOpen className="h-8 w-8 text-slate-600 dark:text-slate-400" />
               </div>
-              <p className="text-slate-400 text-sm font-medium">Hali dars yuklanmagan</p>
+              <p className="text-slate-700 dark:text-slate-300 text-sm font-medium">Hali dars yuklanmagan</p>
               {isTeacher && (
                 <button onClick={handleOpenForm} className="mt-3 text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
                   + Birinchi darsni yuklang
@@ -292,7 +395,7 @@ export const Classroom: React.FC = () => {
                     onClick={() => setSelectedLesson(lesson)}
                     className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border group ${
                       isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-500/30 shadow-lg shadow-indigo-500/10'
+                        ? 'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-500/40 shadow-lg premium-glow-brand'
                         : 'glass border-white/40 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-500/20 hover:shadow-md'
                     }`}
                   >
@@ -341,15 +444,15 @@ export const Classroom: React.FC = () => {
           {!selectedLesson ? (
             <div className="glass premium-card rounded-3xl p-16 text-center flex flex-col items-center justify-center min-h-[400px]">
               <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl flex items-center justify-center mb-4">
-                <Video className="h-10 w-10 text-indigo-300 dark:text-indigo-600" />
+                <Video className="h-10 w-10 text-indigo-600 dark:text-indigo-450" />
               </div>
-              <h3 className="font-heading font-bold text-lg text-slate-400 dark:text-slate-500">Darsni tanlang</h3>
-              <p className="text-sm text-slate-300 dark:text-slate-600 mt-1">Chapdan darsni bosing — bu yerda video va ma'lumotlar ko'rinadi</p>
+              <h3 className="font-heading font-bold text-lg text-slate-800 dark:text-slate-200">Darsni tanlang</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Chapdan darsni bosing — bu yerda video va ma'lumotlar ko'rinadi</p>
             </div>
           ) : (
             <div className="space-y-5">
               {/* Video Player */}
-              <div className="glass premium-card rounded-3xl overflow-hidden shadow-2xl">
+              <div className="glass premium-card rounded-3xl overflow-hidden shadow-2xl premium-card-shadow">
                 <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
                   {selectedLesson.videoUrl ? (
                     selectedLesson.videoType === 'youtube' ? (
@@ -379,7 +482,7 @@ export const Classroom: React.FC = () => {
               </div>
 
               {/* Lesson Info Card */}
-              <div className="glass premium-card rounded-3xl p-6 md:p-8 space-y-5">
+              <div className="glass premium-card rounded-3xl p-6 md:p-8 space-y-5 premium-card-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -525,6 +628,265 @@ export const Classroom: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* ──────────────── Darsdagi topshiriq (In-class Assignment) ──────────────── */}
+              {(() => {
+                const activeTask = tasks.find(t => t.lessonId === selectedLesson.id);
+                
+                // Applied Premium Glow & Card Shadow Styles
+                // - Added premium-glow-brand for active lesson sidebar items.
+                // - Added premium-card-shadow to video player and description cards.
+                const studentId = currentUser.studentId || currentUser.id;
+                const mySubmission = activeTask ? submissions.find(s => s.taskId === activeTask.id && s.studentId === studentId) : null;
+                const taskSubmissions = activeTask ? submissions.filter(s => s.taskId === activeTask.id) : [];
+
+                return (
+                  <div className="glass premium-card rounded-3xl p-6 md:p-8 space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                          <Code className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-heading font-black text-lg text-slate-800 dark:text-white">Darsdagi topshiriq (In-Class Task)</h3>
+                          <p className="text-slate-400 text-xs mt-0.5">Dars davomida topshiriq berish va topshirish tizimi</p>
+                        </div>
+                      </div>
+                      
+                      {activeTask && (
+                        <CountdownTimer expiresAt={activeTask.expiresAt} />
+                      )}
+                    </div>
+
+                    {!activeTask ? (
+                      // No Active Task
+                      <div className="text-center py-8">
+                        <Award className="w-12 h-12 text-slate-350 dark:text-slate-650 mx-auto mb-3" />
+                        <h4 className="font-bold text-slate-700 dark:text-slate-300">Ushbu darsda hali topshiriq berilmagan</h4>
+                        <p className="text-slate-400 text-xs mt-1 max-w-sm mx-auto">
+                          Ustoz dars davomida o'quvchilar bilimini sinash uchun tezkor vazifa yaratishi mumkin.
+                        </p>
+                        {isTeacher && (
+                          <button
+                            onClick={() => {
+                              setAddTaskTitle(`${selectedLesson.topic} darsdagi topshiriq`);
+                              setAddTaskDesc("Berilgan topshiriq shartlarini yozing...");
+                              setAddTaskDuration(30);
+                              setShowAddTaskModal(true);
+                            }}
+                            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Topshiriq yaratish</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      // Active Task Details
+                      <div className="space-y-6">
+                        <div className="bg-slate-50 dark:bg-slate-800/30 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-black text-base text-slate-800 dark:text-white">{activeTask.title}</h4>
+                            {isTeacher && (
+                              <button
+                                onClick={() => {
+                                  if (window.confirm("Ushbu topshiriqni va unga tegishli barcha javoblarni o'chirmoqchimisiz?")) {
+                                    deleteInClassTask(activeTask.id);
+                                    addToast({ type: 'info', message: "Topshiriq o'chirildi." });
+                                  }
+                                }}
+                                className="text-xs text-rose-500 hover:underline font-bold flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> O'chirish
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed whitespace-pre-line">
+                            {activeTask.description}
+                          </p>
+                          <div className="flex gap-4 text-xs font-semibold text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <span>Muddati: {activeTask.durationMinutes} daqiqa</span>
+                            <span>Yaratilgan vaqt: {new Date(activeTask.createdAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </div>
+
+                        {isTeacher ? (
+                          // TEACHER VIEW: Submissions list & Grading
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-bold text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider">Topshirilgan javoblar</h4>
+                              <span className="bg-rose-500/10 text-rose-500 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                                Jami: {taskSubmissions.length}/{groupStudents.length}
+                              </span>
+                            </div>
+
+                            {groupStudents.length === 0 ? (
+                              <p className="text-slate-400 text-xs text-center">Guruhda o'quvchilar topilmadi.</p>
+                            ) : (
+                              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {groupStudents.map(student => {
+                                  const sub = taskSubmissions.find(s => s.studentId === student.id);
+                                  return (
+                                    <div key={student.id} className="flex items-center justify-between py-3.5">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-600 dark:text-slate-300">
+                                          {student.fullName[0]}
+                                        </div>
+                                        <div>
+                                          <p className="font-bold text-sm text-slate-800 dark:text-white">{student.fullName}</p>
+                                          {sub ? (
+                                            <p className="text-[10px] text-slate-400">Topshirildi: {new Date(sub.submittedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</p>
+                                          ) : (
+                                            <p className="text-[10px] text-rose-500 font-bold">Topshirmagan</p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        {sub ? (
+                                          sub.status === 'graded' ? (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded-lg">
+                                                {sub.grade}%
+                                              </span>
+                                              {sub.coinsAwarded ? (
+                                                <span className="text-xs font-bold text-amber-500">
+                                                  +{sub.coinsAwarded} 🪙
+                                                </span>
+                                              ) : null}
+                                              <button
+                                                onClick={() => {
+                                                  setSelectedSubToGrade(sub);
+                                                  setGradeScorePercent(sub.grade || 0);
+                                                  setGradeInClassFeedback(sub.feedback || '');
+                                                }}
+                                                className="text-xs text-indigo-600 hover:underline font-bold px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
+                                              >
+                                                Ko'rish
+                                              </button>
+                                            </div>
+                                          ) : (
+                                            <button
+                                              onClick={() => {
+                                                setSelectedSubToGrade(sub);
+                                                setGradeScorePercent(100);
+                                                setGradeInClassFeedback("Ajoyib yechim!");
+                                              }}
+                                              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-md shadow-indigo-600/10 active:scale-95"
+                                            >
+                                              Baholash
+                                            </button>
+                                          )
+                                        ) : (
+                                          <span className="text-xs text-slate-400 italic">kutilyapti...</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          // STUDENT VIEW: Code Editor & Submission Status
+                          <div className="space-y-4">
+                            {mySubmission ? (
+                              // Student already submitted
+                              <div className="space-y-4">
+                                <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-150 dark:border-indigo-800/40">
+                                  <h5 className="font-bold text-sm text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                                    Topshiriq muvaffaqiyatli yuborildi!
+                                  </h5>
+                                  <p className="text-xs text-slate-500 mt-1">
+                                    Yuborilgan vaqt: {new Date(mySubmission.submittedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </p>
+
+                                  {mySubmission.status === 'graded' ? (
+                                    <div className="mt-3.5 pt-3.5 border-t border-indigo-100 dark:border-indigo-900/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Olingan baho</p>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-2xl font-black text-emerald-500">{mySubmission.grade}%</span>
+                                          {mySubmission.coinsAwarded ? (
+                                            <span className="text-sm font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-lg">
+                                              +{mySubmission.coinsAwarded} 🪙 tanga mukofot!
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ustoz izohi</p>
+                                        <p className="text-xs text-slate-600 dark:text-slate-350 italic">
+                                          "{mySubmission.feedback || 'Izoh qoldirilmagan.'}"
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-amber-600 font-medium mt-2 flex items-center gap-1">
+                                      <Clock className="w-3.5 h-3.5 animate-spin" />
+                                      Ustoz tekshirishini va baholashini kuting.
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Yuborilgan kodingiz</label>
+                                  <div className="h-64 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                                    <CodeEditor
+                                      initialCode={mySubmission.code}
+                                      initialLanguage="javascript"
+                                      readOnly={true}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : new Date(activeTask.expiresAt).getTime() <= Date.now() ? (
+                              <div className="p-5 text-center bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 rounded-2xl">
+                                <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
+                                <h5 className="font-bold text-rose-600">Vaqt tugadi va qabul yopildi</h5>
+                                <p className="text-xs text-slate-500 mt-1">Siz topshiriqni belgilangan vaqt ichida yuborishga ulgurmadingiz.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kodingizni yozing (JavaScript)</label>
+                                    <span className="text-[10px] text-indigo-500 font-bold">Avtomat saqlanadi</span>
+                                  </div>
+                                  <div className="h-80 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                                    <CodeEditor
+                                      initialCode={studentCodeInput}
+                                      initialLanguage="javascript"
+                                      onChange={(code) => setStudentCodeInput(code)}
+                                    />
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    if (!studentCodeInput.trim() || studentCodeInput.includes("O'quvchi kodi...")) {
+                                      addToast({ type: 'error', message: "Iltimos, avval kod yozing!" });
+                                      return;
+                                    }
+                                    submitTask(activeTask.id, studentId, currentUser.name, studentCodeInput);
+                                    addToast({ type: 'success', message: "✅ Javobingiz muvaffaqiyatli topshirildi!" });
+                                  }}
+                                  className="w-full py-3 bg-rose-650 hover:bg-rose-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/15 flex items-center justify-center gap-2"
+                                >
+                                  <Send className="w-4 h-4" />
+                                  <span>Topshiriqni Yuborish</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
             </div>
           )}
         </div>
@@ -698,6 +1060,320 @@ export const Classroom: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ ADD IN-CLASS TASK MODAL ═══ */}
+      {showAddTaskModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 backdrop-blur-sm" onClick={() => setShowAddTaskModal(false)}>
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-650 px-6 py-5 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/15 rounded-xl">
+                    <Code className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-bold text-lg">Darsda topshiriq berish</h3>
+                    <p className="text-white/60 text-xs">O'quvchilar uchun tezkor sinov yaratish</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddTaskModal(false)} className="p-2 hover:bg-white/15 rounded-xl transition-colors">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+              {/* Kurs Select */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Kurs</label>
+                <select
+                  value={taskFormCourseId}
+                  onChange={(e) => {
+                    const cid = e.target.value;
+                    setTaskFormCourseId(cid);
+                    
+                    // Filter groups that match this course
+                    const courseGroups = groups.filter(g => g.courseId === cid);
+                    const firstGroupId = courseGroups[0]?.id || '';
+                    setTaskFormGroupId(firstGroupId);
+                    
+                    // Filter lessons for this group
+                    const groupLessons = lessons.filter(l => l.groupId === firstGroupId);
+                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                  }}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                >
+                  <option value="" disabled>Kursni tanlang</option>
+                  {courses.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Guruh Select */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Guruh</label>
+                <select
+                  value={taskFormGroupId}
+                  onChange={(e) => {
+                    const gid = e.target.value;
+                    setTaskFormGroupId(gid);
+                    
+                    // Filter lessons for this group
+                    const groupLessons = lessons.filter(l => l.groupId === gid);
+                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                  }}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                >
+                  <option value="" disabled>Guruhni tanlang</option>
+                  {groups.filter(g => !taskFormCourseId || g.courseId === taskFormCourseId).map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dars Select */}
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Dars (Lesson)</label>
+                <select
+                  value={taskFormLessonId}
+                  onChange={(e) => setTaskFormLessonId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                >
+                  <option value="" disabled>Darsni tanlang</option>
+                  {lessons.filter(l => l.groupId === taskFormGroupId).map(l => (
+                    <option key={l.id} value={l.id}>#{l.lessonNumber}-dars: {l.topic}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Topshiriq nomi</label>
+                <input
+                  type="text"
+                  value={addTaskTitle}
+                  onChange={(e) => setAddTaskTitle(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Topshiriq sharti (Tavsif)</label>
+                <textarea
+                  value={addTaskDesc}
+                  onChange={(e) => setAddTaskDesc(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Vaqt limiti (Daqiqada)</label>
+                <select
+                  value={addTaskDuration}
+                  onChange={(e) => setAddTaskDuration(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                >
+                  <option value={10}>10 daqiqa</option>
+                  <option value={15}>15 daqiqa</option>
+                  <option value={20}>20 daqiqa</option>
+                  <option value={30}>30 daqiqa</option>
+                  <option value={45}>45 daqiqa</option>
+                  <option value={60}>60 daqiqa</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddTaskModal(false)}
+                  className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!taskFormLessonId) {
+                      addToast({ type: 'error', message: "Ushbu guruhda hali biror dars yaratilmagan! Iltimos, avval dars yuklang." });
+                      return;
+                    }
+                    if (!addTaskTitle.trim() || !addTaskDesc.trim()) {
+                      addToast({ type: 'error', message: "Barcha maydonlarni to'ldiring!" });
+                      return;
+                    }
+                    addTask({
+                      lessonId: taskFormLessonId,
+                      groupId: taskFormGroupId,
+                      title: addTaskTitle,
+                      description: addTaskDesc,
+                      durationMinutes: addTaskDuration
+                    });
+                    
+                    // Auto select the group and lesson in the view to see the countdown
+                    setSelectedGroupId(taskFormGroupId);
+                    const targetLsn = lessons.find(l => l.id === taskFormLessonId);
+                    if (targetLsn) setSelectedLesson(targetLsn);
+                    
+                    addToast({ type: 'success', message: "✅ Darsdagi topshiriq muvaffaqiyatli yuborildi!" });
+                    setShowAddTaskModal(false);
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-550 hover:to-violet-550 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  <span>Yuborish</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ GRADE IN-CLASS TASK SUBMISSION MODAL ═══ */}
+      {selectedSubToGrade && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="flex items-center gap-4 p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-heading font-bold text-lg text-slate-800 dark:text-white">
+                  {selectedSubToGrade.studentName} — Darsdagi javobini baholash
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Topshirilgan vaqt: {new Date(selectedSubToGrade.submittedAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </p>
+              </div>
+              <button onClick={() => setSelectedSubToGrade(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0">
+                <X className="h-5 w-5 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+              {/* Left: Code submissions preview */}
+              <div className="flex-[2] border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#1a1a2e]">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase shrink-0">
+                  <Code className="h-3.5 w-3.5" />
+                  O'quvchi kodi (JavaScript)
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <CodeEditor
+                    initialCode={selectedSubToGrade.code}
+                    initialLanguage="javascript"
+                    readOnly={true}
+                  />
+                </div>
+              </div>
+
+              {/* Right: Grading Pane */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col justify-between bg-white dark:bg-slate-900">
+                <div className="space-y-6">
+                  {/* Score Selector */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Baho (0-100%)</label>
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800/50 flex flex-col items-center justify-center">
+                      <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-2">{gradeScorePercent}%</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={gradeScorePercent}
+                        onChange={(e) => setGradeScorePercent(Number(e.target.value))}
+                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-400"
+                      />
+                      <div className="flex justify-between w-full text-[10px] text-slate-400 mt-2 font-bold">
+                        <span>0%</span>
+                        <span>50%</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coin preview */}
+                  <div className="p-4 rounded-2xl bg-amber-550/10 border border-amber-550/25 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-bold text-lg">
+                      🪙
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-amber-700 dark:text-amber-500">Tanga mukofot (Avtomatik)</p>
+                      <p className="text-sm font-black text-amber-600 dark:text-amber-400">
+                        {gradeScorePercent >= 90 ? "+2 tanga" : gradeScorePercent >= 70 ? "+1 tanga" : "0 tanga"} taqdim etiladi
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feedback Comments */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Ustoz izohi</label>
+                    <textarea
+                      value={gradeInClassFeedback}
+                      onChange={(e) => setGradeInClassFeedback(e.target.value)}
+                      placeholder="Kod yechimini yaxshilash uchun maslahat bering..."
+                      rows={4}
+                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-xs text-slate-850 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubToGrade(null)}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Bekor qilish
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      let coins = 0;
+                      if (gradeScorePercent >= 90) coins = 2;
+                      else if (gradeScorePercent >= 70) coins = 1;
+
+                      // Update Store
+                      gradeInClassSub(selectedSubToGrade.id, gradeScorePercent, gradeInClassFeedback, coins);
+
+                      // Update Student Coins
+                      const targetStudent = students.find(s => s.id === selectedSubToGrade.studentId);
+                      if (targetStudent) {
+                        updateStudent(targetStudent.id, { coins: (targetStudent.coins || 0) + coins });
+                        
+                        if (coins > 0) {
+                          sendCoins(
+                            currentUser.id,
+                            currentUser.name,
+                            targetStudent.id,
+                            targetStudent.fullName,
+                            coins,
+                            `Darsdagi topshiriq uchun baholash (${gradeScorePercent}%)`
+                          );
+                        }
+                      }
+
+                      addToast({ type: 'success', message: `✅ Baho muvaffaqiyatli saqlandi! ${coins > 0 ? `+${coins} 🪙 tanga` : ''}` });
+                      setSelectedSubToGrade(null);
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    <span>Saqlash</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

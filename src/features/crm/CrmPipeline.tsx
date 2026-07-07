@@ -9,13 +9,11 @@ import { Modal } from '../../components/Modal';
 import type { Lead } from '../../data/mockData';
 
 const STAGES: { key: Lead['status']; label: string; color: string }[] = [
-  { key: 'new',        label: 'Yangi Lead',  color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' },
-  { key: 'contacted',  label: "Bog'lanildi", color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
-  { key: 'interested', label: 'Qiziqish',    color: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' },
-  { key: 'demo',       label: 'Demo',        color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' },
-  { key: 'trial',      label: 'Sinov',       color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
-  { key: 'enrolled',   label: "Ro'yxatdan",  color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
-  { key: 'contract',   label: 'Shartnoma',   color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
+  { key: 'new',        label: '1. Yangi',         color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' },
+  { key: 'contacted',  label: "2. Bog'lanilgan",   color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' },
+  { key: 'trial',      label: '3. Sinov Darsi',    color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' },
+  { key: 'contract',   label: '4. Shartnoma',      color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
+  { key: 'archived',   label: '5. Rad etilgan',    color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' },
 ];
 
 const SOURCES = ['Instagram', 'Telegram', 'Facebook', 'Website', 'Referral', 'YouTube'];

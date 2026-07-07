@@ -39,14 +39,25 @@ app.post('/api/code/execute', executeRateLimit, async (req, res) => {
   console.log(`[${new Date().toISOString()}] EXEC_START | User: ${req.body.userId || 'Guest'} | Lang: ${language}`);
 
   try {
-    // Call our internal Piston API
-    const response = await axios.post(`${PISTON_API_URL}/api/v2/execute`, {
-      language,
-      version,
-      files
-    }, {
-      timeout: 10000 // 10 seconds timeout for safety
-    });
+    let response;
+    try {
+      response = await axios.post(`${PISTON_API_URL}/api/v2/execute`, {
+        language,
+        version,
+        files
+      }, {
+        timeout: 3000
+      });
+    } catch (err) {
+      console.warn(`Local Piston at ${PISTON_API_URL} failed (${err.message}). Falling back to public EMKC Piston API...`);
+      response = await axios.post('https://emkc.org/api/v2/piston/execute', {
+        language,
+        version,
+        files
+      }, {
+        timeout: 10000
+      });
+    }
 
     let data = response.data;
     let run = data.run || {};

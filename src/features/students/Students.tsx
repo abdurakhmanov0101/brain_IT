@@ -115,7 +115,7 @@ export const Students: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard title="Jami o'quvchilar" value={students.length} icon={Users} />
+        <StatCard title="Jami o'quvchilar" value={visibleStudents.length} icon={Users} />
         <StatCard title="Aktiv o'quvchilar" value={activeCount} icon={Users} iconColor="text-emerald-600 dark:text-emerald-400" />
         <StatCard title="Qarzli o'quvchilar" value={debtCount} icon={AlertTriangle} iconColor="text-red-500" />
         <StatCard title="Balans kam" value={lowBalCount} icon={CreditCard} iconColor="text-amber-600 dark:text-amber-400" />
