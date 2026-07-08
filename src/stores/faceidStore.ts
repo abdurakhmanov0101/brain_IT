@@ -15,6 +15,6 @@ export const useFaceidStore = create<FaceIDState>()(
       setLogs: (logs) => set({ logs }),
       addLog: (log) => set((state) => ({ logs: [log, ...state.logs] })),
     }),
-    { name: 'brain-it-faceid-logs-prod-v1' }
+    { name: 'brain-it-faceid-logs' }
   )
 );

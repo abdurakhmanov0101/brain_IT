@@ -20,7 +20,7 @@ interface ContractState {
   deleteContract: (id: string) => void;
 }
 
-[];
+const initial: Contract[] = [];
 
 export const useContractStore = create<ContractState>()(
   persist(
@@ -36,6 +36,6 @@ export const useContractStore = create<ContractState>()(
       })),
       deleteContract: (id) => set((s) => ({ contracts: s.contracts.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-contracts-prod-v1' }
+    { name: 'brain-it-contracts-prod-v3' }
   )
 );

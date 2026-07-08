@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useGroupStore } from './groupStore';
 
 export interface AcademyCourse {
   id: string;
@@ -25,7 +24,7 @@ interface CourseState {
 const calcLessonPrice = (monthly: number, lessonsPerWeek: number) =>
   Math.round(monthly / (lessonsPerWeek * 4));
 
-[];
+const initial: AcademyCourse[] = [];
 
 export const useCourseStore = create<CourseState>()(
   persist(
@@ -37,15 +36,8 @@ export const useCourseStore = create<CourseState>()(
       updateCourse: (id, patch) => set((s) => ({
         courses: s.courses.map((c) => c.id === id ? { ...c, ...patch, lessonPrice: calcLessonPrice(patch.monthlyPrice ?? c.monthlyPrice, patch.lessonsPerWeek ?? c.lessonsPerWeek) } : c)
       })),
-      deleteCourse: (id) => {
-        const hasGroups = useGroupStore.getState().groups.some(g => g.courseId === id && g.status !== 'archived');
-        if (hasGroups) {
-          alert("Bu kursga bog'liq faol guruhlar mavjud! Kursni o'chirish mumkin emas.");
-          return;
-        }
-        set((s) => ({ courses: s.courses.filter((c) => c.id !== id) }));
-      },
+      deleteCourse: (id) => set((s) => ({ courses: s.courses.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-courses-clean-v1-prod-v1' }
+    { name: 'brain-it-courses-prod-v3' }
   )
 );

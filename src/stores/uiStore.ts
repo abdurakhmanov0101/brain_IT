@@ -46,13 +46,8 @@ export const useUIStore = create<UIState>()(
       removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     }),
     {
-      name: 'brain-it-ui-prod-v1',
+      name: 'brain-it-ui',
       partialize: (s) => ({ darkMode: s.darkMode, language: s.language }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          document.documentElement.classList.toggle('dark', state.darkMode);
-        }
-      },
     }
   )
 );

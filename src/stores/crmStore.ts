@@ -13,7 +13,7 @@ interface CRMState {
 export const useCrmStore = create<CRMState>()(
   persist(
     (set) => ({
-      leads: [],
+      leads: initialLeads,
       addLead: (data) =>
         set((state) => ({
           leads: [
@@ -36,6 +36,6 @@ export const useCrmStore = create<CRMState>()(
         })),
       setLeads: (leads) => set({ leads }),
     }),
-    { name: 'brain-it-crm-leads-prod-v1' }
+    { name: 'brain-it-crm-leads' }
   )
 );
