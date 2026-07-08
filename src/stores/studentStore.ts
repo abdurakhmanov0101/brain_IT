@@ -151,7 +151,7 @@ const generateStudents = (): InitStudent[] => {
   return list;
 };
 
-const rawStudents: InitStudent[] = () => [];
+const rawStudents: InitStudent[] = [];
 
 const initialStudents: Student[] = rawStudents.map((s, idx) => ({
   ...s,
