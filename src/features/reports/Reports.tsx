@@ -22,14 +22,14 @@ const GROUP_ATTENDANCE = [
 ];
 
 const STUDENT_STATUS = [
-  { name: 'Faol',         value: 892, color: '#6366f1' },
+  { name: 'Faol',         value: 892, color: '#10b981' },
   { name: 'Muzlatilgan',  value: 87,  color: '#f59e0b' },
   { name: "To'xtatilgan", value: 156, color: '#ef4444' },
   { name: 'Bitiruvchi',   value: 412, color: '#10b981' },
 ];
 
 const LEAD_SOURCES = [
-  { name: 'Instagram', value: 38, color: '#6366f1' },
+  { name: 'Instagram', value: 38, color: '#10b981' },
   { name: 'Telegram',  value: 24, color: '#06b6d4' },
   { name: 'Facebook',  value: 15, color: '#3b82f6' },
   { name: 'Referral',  value: 12, color: '#10b981' },
@@ -39,9 +39,9 @@ const LEAD_SOURCES = [
 
 const KPI_CARDS = [
   { label: 'Oylik Daromad',  value: '142.5M', unit: "so'm", change: '+8.2%',  icon: DollarSign, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' },
-  { label: 'Faol Talabalar', value: '1,248',  unit: 'ta',   change: '+12.5%', icon: Users,      color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/20' },
+  { label: 'Faol Talabalar', value: '1,248',  unit: 'ta',   change: '+12.5%', icon: Users,      color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' },
   { label: 'Konversiya',     value: '62',     unit: '%',    change: '+3.1%',  icon: TrendingUp, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/20' },
-  { label: 'Davomat',        value: '88',     unit: '%',    change: '+1.4%',  icon: CheckCircle,color: 'text-violet-500 bg-violet-50 dark:bg-violet-950/20' },
+  { label: 'Davomat',        value: '88',     unit: '%',    change: '+1.4%',  icon: CheckCircle,color: 'text-teal-500 bg-teal-50 dark:bg-teal-950/20' },
 ];
 
 type TabKey = 'finance' | 'attendance' | 'students' | 'leads';
@@ -67,7 +67,7 @@ export const Reports: React.FC = () => {
           <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Hisobotlar</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Tahliliy ko'rsatkichlar va grafiklar</p>
         </div>
-        <button onClick={handleExport} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
+        <button onClick={handleExport} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
           <Download className="h-4 w-4" /> CSV Yuklab olish
         </button>
       </div>
@@ -91,7 +91,7 @@ export const Reports: React.FC = () => {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {([['finance', 'Moliya'], ['attendance', 'Davomat'], ['students', 'Talabalar'], ['leads', 'Leadlar']] as [TabKey, string][]).map(([k, l]) => (
           <button key={k} onClick={() => setActiveTab(k)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === k ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === k ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {l}
           </button>
         ))}
@@ -108,7 +108,7 @@ export const Reports: React.FC = () => {
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v) => [`${v}M so'm`]} />
                 <Legend />
-                <Area type="monotone" dataKey="income"  stroke="#6366f1" fill="#6366f120" name="Daromad" strokeWidth={2} />
+                <Area type="monotone" dataKey="income"  stroke="#10b981" fill="#10b98120" name="Daromad" strokeWidth={2} />
                 <Area type="monotone" dataKey="expense" stroke="#ef4444" fill="#ef444420" name="Xarajat" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>

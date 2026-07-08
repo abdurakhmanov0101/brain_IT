@@ -6,7 +6,7 @@ export interface AttendanceRecord {
   studentId: string;
   groupId: string;
   date: string;
-  status: 'present' | 'absent' | 'late' | 'excused' | 'first_lesson';
+  status: 'present' | 'absent' | 'late' | 'excused' | 'first_lesson' | 'freezed';
   checkedBy: 'manual' | 'qr' | 'face_id';
   deductionApplied: boolean;
   grade?: number;
@@ -27,26 +27,27 @@ const fmt = (d: Date) => d.toISOString().split('T')[0];
 const daysAgo = (n: number) => { const d = new Date(today); d.setDate(d.getDate() - n); return fmt(d); };
 
 const sampleRecords: AttendanceRecord[] = [
-  { id: 'ar1', studentId: 'st1', groupId: 'g1', date: daysAgo(14), status: 'present', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar2', studentId: 'st2', groupId: 'g1', date: daysAgo(14), status: 'absent', checkedBy: 'manual', deductionApplied: false },
-  { id: 'ar3', studentId: 'st9', groupId: 'g1', date: daysAgo(14), status: 'present', checkedBy: 'qr', deductionApplied: true },
-  { id: 'ar4', studentId: 'st16', groupId: 'g1', date: daysAgo(14), status: 'late', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar5', studentId: 'st1', groupId: 'g1', date: daysAgo(12), status: 'present', checkedBy: 'face_id', deductionApplied: true },
-  { id: 'ar6', studentId: 'st2', groupId: 'g1', date: daysAgo(12), status: 'present', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar7', studentId: 'st9', groupId: 'g1', date: daysAgo(12), status: 'excused', checkedBy: 'manual', deductionApplied: false },
-  { id: 'ar8', studentId: 'st16', groupId: 'g1', date: daysAgo(12), status: 'present', checkedBy: 'qr', deductionApplied: true },
-  { id: 'ar9', studentId: 'st1', groupId: 'g1', date: daysAgo(7), status: 'present', checkedBy: 'face_id', deductionApplied: true },
-  { id: 'ar10', studentId: 'st2', groupId: 'g1', date: daysAgo(7), status: 'late', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar11', studentId: 'st3', groupId: 'g2', date: daysAgo(13), status: 'present', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar12', studentId: 'st4', groupId: 'g2', date: daysAgo(13), status: 'present', checkedBy: 'qr', deductionApplied: true },
-  { id: 'ar13', studentId: 'st11', groupId: 'g2', date: daysAgo(13), status: 'absent', checkedBy: 'manual', deductionApplied: false },
-  { id: 'ar14', studentId: 'st18', groupId: 'g2', date: daysAgo(13), status: 'present', checkedBy: 'face_id', deductionApplied: true },
-  { id: 'ar15', studentId: 'st3', groupId: 'g2', date: daysAgo(6), status: 'absent', checkedBy: 'manual', deductionApplied: false },
-  { id: 'ar16', studentId: 'st4', groupId: 'g2', date: daysAgo(6), status: 'present', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar17', studentId: 'st5', groupId: 'g3', date: daysAgo(14), status: 'present', checkedBy: 'qr', deductionApplied: true },
-  { id: 'ar18', studentId: 'st6', groupId: 'g3', date: daysAgo(14), status: 'present', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar19', studentId: 'st5', groupId: 'g3', date: daysAgo(7), status: 'late', checkedBy: 'manual', deductionApplied: true },
-  { id: 'ar20', studentId: 'st6', groupId: 'g3', date: daysAgo(7), status: 'excused', checkedBy: 'manual', deductionApplied: false },
+  // 10 distinct days of attendance across QR, face_id, manual, absent
+  { id: 'ar1', studentId: 'st1', groupId: 'g1', date: daysAgo(10), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar2', studentId: 'st2', groupId: 'g1', date: daysAgo(10), status: 'absent', checkedBy: 'manual', deductionApplied: false },
+  { id: 'ar3', studentId: 'st1', groupId: 'g1', date: daysAgo(9), status: 'present', checkedBy: 'face_id', deductionApplied: true },
+  { id: 'ar4', studentId: 'st2', groupId: 'g1', date: daysAgo(9), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar5', studentId: 'st1', groupId: 'g1', date: daysAgo(8), status: 'late', checkedBy: 'manual', deductionApplied: true },
+  { id: 'ar6', studentId: 'st2', groupId: 'g1', date: daysAgo(8), status: 'excused', checkedBy: 'manual', deductionApplied: false },
+  { id: 'ar7', studentId: 'st1', groupId: 'g1', date: daysAgo(7), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar8', studentId: 'st2', groupId: 'g1', date: daysAgo(7), status: 'present', checkedBy: 'face_id', deductionApplied: true },
+  { id: 'ar9', studentId: 'st1', groupId: 'g1', date: daysAgo(6), status: 'present', checkedBy: 'manual', deductionApplied: true },
+  { id: 'ar10', studentId: 'st2', groupId: 'g1', date: daysAgo(6), status: 'absent', checkedBy: 'manual', deductionApplied: false },
+  { id: 'ar11', studentId: 'st1', groupId: 'g1', date: daysAgo(5), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar12', studentId: 'st2', groupId: 'g1', date: daysAgo(5), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar13', studentId: 'st1', groupId: 'g1', date: daysAgo(4), status: 'present', checkedBy: 'face_id', deductionApplied: true },
+  { id: 'ar14', studentId: 'st2', groupId: 'g1', date: daysAgo(4), status: 'late', checkedBy: 'manual', deductionApplied: true },
+  { id: 'ar15', studentId: 'st1', groupId: 'g1', date: daysAgo(3), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar16', studentId: 'st2', groupId: 'g1', date: daysAgo(3), status: 'present', checkedBy: 'face_id', deductionApplied: true },
+  { id: 'ar17', studentId: 'st1', groupId: 'g1', date: daysAgo(2), status: 'present', checkedBy: 'qr', deductionApplied: true },
+  { id: 'ar18', studentId: 'st2', groupId: 'g1', date: daysAgo(2), status: 'excused', checkedBy: 'manual', deductionApplied: false },
+  { id: 'ar19', studentId: 'st1', groupId: 'g1', date: daysAgo(1), status: 'present', checkedBy: 'face_id', deductionApplied: true },
+  { id: 'ar20', studentId: 'st2', groupId: 'g1', date: daysAgo(1), status: 'present', checkedBy: 'manual', deductionApplied: true },
 ];
 
 export const useAttendanceStore = create<AttendanceState>()(

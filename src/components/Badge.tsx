@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Color = 'green' | 'red' | 'yellow' | 'blue' | 'violet' | 'zinc' | 'amber' | 'emerald' | 'rose';
+type Color = 'green' | 'red' | 'yellow' | 'blue' | 'teal' | 'zinc' | 'amber' | 'emerald' | 'rose';
 
 interface BadgeProps {
   label: string;
@@ -16,8 +16,8 @@ const colorMap: Record<Color, string> = {
   rose: 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20',
   yellow: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20',
   amber: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20',
-  blue: 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20',
-  violet: 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20',
+  blue: 'bg-blue-50 dark:bg-emerald-500/10 text-blue-700 dark:text-emerald-400 border-blue-200 dark:border-emerald-500/20',
+  teal: 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20',
   zinc: 'bg-zinc-100 dark:bg-zinc-500/10 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-500/20',
 };
 
@@ -28,8 +28,8 @@ const dotColorMap: Record<Color, string> = {
   rose: 'bg-rose-500 dark:bg-rose-400', 
   yellow: 'bg-amber-500 dark:bg-amber-400', 
   amber: 'bg-amber-500 dark:bg-amber-400', 
-  blue: 'bg-blue-500 dark:bg-blue-400',
-  violet: 'bg-violet-500 dark:bg-violet-400', 
+  blue: 'bg-emerald-500 dark:bg-emerald-400',
+  teal: 'bg-teal-500 dark:bg-teal-400', 
   zinc: 'bg-zinc-500 dark:bg-zinc-400',
 };
 
@@ -55,8 +55,8 @@ export const statusBadge = (status: string): React.ReactElement => {
     late: { label: 'Kech qoldi', color: 'amber' },
     excused: { label: 'Sababli', color: 'blue' },
     new: { label: 'Yangi', color: 'blue' },
-    contacted: { label: "Aloqa o'rnatildi", color: 'violet' },
-    qualified: { label: 'Malakali', color: 'violet' },
+    contacted: { label: "Aloqa o'rnatildi", color: 'teal' },
+    qualified: { label: 'Malakali', color: 'teal' },
     won: { label: "O'quvchi", color: 'emerald' },
     lost: { label: "Yo'qolgan", color: 'rose' },
     vacation: { label: 'Tatilda', color: 'amber' },

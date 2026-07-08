@@ -30,7 +30,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
           className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white" />
         <div className="space-y-2 max-h-[60vh] overflow-y-auto">
           {filtered.map(s => (
-            <button key={s.id} onClick={() => setSelectedId(s.id)} className="w-full text-left p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all font-semibold text-slate-800 dark:text-white">
+            <button key={s.id} onClick={() => setSelectedId(s.id)} className="w-full text-left p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all font-semibold text-slate-800 dark:text-white">
               {s.fullName}
             </button>
           ))}
@@ -66,17 +66,17 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
   return (
     <div className="space-y-6">
       {(!defaultStudentId && currentUser?.role !== 'Student') && (
-        <button onClick={() => setSelectedId(null)} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mb-2 inline-block">
+        <button onClick={() => setSelectedId(null)} className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline mb-2 inline-block">
           &larr; Boshqa o'quvchini tanlash
         </button>
       )}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 p-6 text-white">
         <div className="relative z-10 flex items-center gap-4">
           <div className="bg-white/20 p-3 rounded-xl"><Shield className="h-8 w-8 text-white" /></div>
           <div>
-            <p className="text-violet-200 text-sm">Ota-ona kabineti</p>
+            <p className="text-teal-200 text-sm">Ota-ona kabineti</p>
             <h1 className="font-heading font-black text-2xl">{student.fullName}</h1>
-            <p className="text-violet-200 text-sm">O'quvchi · {student.enrolledDate} dan beri o'qiyapti</p>
+            <p className="text-teal-200 text-sm">O'quvchi · {student.enrolledDate} dan beri o'qiyapti</p>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Davomat</p>
         </div>
         <div className="rounded-2xl p-4 text-center border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card">
-          <p className="text-xl font-black text-indigo-600 dark:text-indigo-400">{studentGroups.length}</p>
+          <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{studentGroups.length}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Aktiv guruhlar</p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
       <div className="flex gap-2 border-b border-slate-200 dark:border-dark-border">
         {tabs.map(([tab, label]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab ? 'border-violet-600 text-violet-600 dark:text-violet-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab ? 'border-teal-600 text-teal-600 dark:text-teal-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             {label}
           </button>
         ))}
@@ -116,7 +116,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
                 <div key={g.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-2">
                   <div className="flex justify-between items-start mb-2">
                     <p className="font-semibold text-slate-800 dark:text-white">{g.name}</p>
-                    <span className="text-xs text-indigo-500 font-medium">{course?.monthlyPrice.toLocaleString()} so'm/oy</span>
+                    <span className="text-xs text-emerald-500 font-medium">{course?.monthlyPrice.toLocaleString()} so'm/oy</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-xs text-slate-500 dark:text-slate-400">
                     <span>📅 {g.schedule.days.slice(0, 3).join(', ')}</span>
@@ -129,7 +129,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
             })}
           </div>
           <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-            <h3 className="font-semibold text-slate-800 dark:text-white mb-3 flex items-center gap-2"><MessageCircle className="h-5 w-5 text-indigo-500" /> Ustoz mulohazalari</h3>
+            <h3 className="font-semibold text-slate-800 dark:text-white mb-3 flex items-center gap-2"><MessageCircle className="h-5 w-5 text-emerald-500" /> Ustoz mulohazalari</h3>
             <div className="space-y-3">
               {teacherFeedbacks.map((fb, i) => (
                 <div key={i} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4">
@@ -138,7 +138,7 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">{fb.teacher}</p>
                       <p className="text-xs text-slate-400">{fb.date}</p>
                     </div>
-                    <span className={`font-black text-lg ${fb.grade.includes('+') ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}`}>{fb.grade}</span>
+                    <span className={`font-black text-lg ${fb.grade.includes('+') ? 'text-emerald-600 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{fb.grade}</span>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{fb.feedback}</p>
                 </div>
@@ -173,11 +173,11 @@ export const ParentPortal: React.FC<Props> = ({ studentId: defaultStudentId }) =
                     {r.status === 'present' && <CheckCircle className="h-5 w-5 text-emerald-500" />}
                     {r.status === 'absent' && <XCircle className="h-5 w-5 text-red-400" />}
                     {r.status === 'late' && <Clock className="h-5 w-5 text-amber-400" />}
-                    {r.status === 'excused' && <Calendar className="h-5 w-5 text-blue-400" />}
+                    {r.status === 'excused' && <Calendar className="h-5 w-5 text-emerald-400" />}
                     <span className="text-sm text-slate-700 dark:text-slate-300">{r.date}</span>
                   </div>
                   <div className="text-right">
-                    <span className={`text-xs font-semibold ${r.status === 'present' ? 'text-emerald-600 dark:text-emerald-400' : r.status === 'absent' ? 'text-red-500' : r.status === 'late' ? 'text-amber-500' : 'text-blue-500'}`}>
+                    <span className={`text-xs font-semibold ${r.status === 'present' ? 'text-emerald-600 dark:text-emerald-400' : r.status === 'absent' ? 'text-red-500' : r.status === 'late' ? 'text-amber-500' : 'text-emerald-500'}`}>
                       {r.status === 'present' ? 'Keldi' : r.status === 'absent' ? 'Kelmadi' : r.status === 'late' ? 'Kech qoldi' : 'Sababli'}
                     </span>
                     {r.deductionApplied && <p className="text-[10px] text-slate-400">Dars hisobdan yechildi</p>}

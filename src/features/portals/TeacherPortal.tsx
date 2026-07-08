@@ -10,6 +10,7 @@ import { useCourseStore } from '../../stores/courseStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useAttendanceStore } from '../../stores/attendanceStore';
 import { Users, Video, Coins, Award, BookOpen, Code, FileCode, CheckCircle, TrendingUp, DollarSign, AlertCircle, CalendarCheck, Trash2, Download, Search, Check, Info } from 'lucide-react';
+import { CodeEditor } from '../../components/CodeEditor';
 
 const getMonthDatesForSchedule = (year: number, monthIndex: number, scheduleDays: string[]) => {
   const dayMap: Record<string, number> = {
@@ -82,22 +83,28 @@ export const TeacherPortal: React.FC = () => {
   });
 
   const getHwCodeUrl = (content: string) => {
+    if (!content) return '';
     try {
       const data = JSON.parse(content);
       const html = `
         <!DOCTYPE html>
         <html>
         <head>
-          <style>${data.css}</style>
+          <style>${data.css || ''}</style>
         </head>
         <body>
-          ${data.html}
-          <script>${data.js}<\/script>
+          ${data.html || ''}
+          <script>${data.js || ''}<\/script>
         </body>
         </html>
       `;
       return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-    } catch { return ''; }
+    } catch {
+      if (content.trim().startsWith('<')) {
+        return 'data:text/html;charset=utf-8,' + encodeURIComponent(content);
+      }
+      return '';
+    }
   };
 
   const handleGradeHw = (hwId: string) => {
@@ -171,10 +178,10 @@ export const TeacherPortal: React.FC = () => {
       {/* Header Profile */}
       <div className="glass premium-inner-glow p-6 rounded-3xl flex flex-col md:flex-row gap-6 items-center md:items-start justify-between">
         <div className="flex items-center gap-6">
-          <img src={myProfile.photo} alt={myProfile.fullName} className="h-24 w-24 rounded-full object-cover shadow-xl border-4 border-indigo-500/20" />
+          <img src={myProfile.photo} alt={myProfile.fullName} className="h-24 w-24 rounded-full object-cover shadow-xl border-4 border-emerald-500/20" />
           <div>
             <h1 className="font-heading font-black text-2xl text-slate-800 dark:text-white mb-1">{myProfile.fullName}</h1>
-            <p className="text-sm text-indigo-600 dark:text-indigo-400 font-bold tracking-widest uppercase">{myProfile.specialization} Ustozi</p>
+            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold tracking-widest uppercase">{myProfile.specialization} Ustozi</p>
           </div>
         </div>
         <div className="flex gap-4">
@@ -199,7 +206,7 @@ export const TeacherPortal: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => setActiveTab('students')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+        <button onClick={() => setActiveTab('students')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
           <Users className="h-4 w-4" /> O'quvchilar
         </button>
 
@@ -209,7 +216,7 @@ export const TeacherPortal: React.FC = () => {
         <button onClick={() => setActiveTab('finance')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'finance' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
           <DollarSign className="h-4 w-4" /> Oylik Statistika
         </button>
-        <button onClick={() => setActiveTab('lms')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'lms' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+        <button onClick={() => setActiveTab('lms')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'lms' ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/30' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
           <Video className="h-4 w-4" /> Dars Yuklash
         </button>
       </div>
@@ -220,7 +227,7 @@ export const TeacherPortal: React.FC = () => {
             <h2 className="font-bold text-lg text-slate-800 dark:text-white mb-4">Mening O'quvchilarim</h2>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               {myStudents.map(student => (
-                <div key={student.id} onClick={() => setSelectedStudent(student.id)} className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${selectedStudent === student.id ? 'bg-indigo-500/10 border border-indigo-500/30' : 'glass hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'}`}>
+                <div key={student.id} onClick={() => setSelectedStudent(student.id)} className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${selectedStudent === student.id ? 'bg-emerald-500/10 border border-emerald-500/30' : 'glass hover:bg-slate-50 dark:hover:bg-white/5 border border-transparent'}`}>
                   <div className="flex items-center gap-3">
                     <img src={student.photo || 'https://via.placeholder.com/40'} alt={student.fullName} className="h-10 w-10 rounded-full object-cover" />
                     <div>
@@ -248,7 +255,7 @@ export const TeacherPortal: React.FC = () => {
                 
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Baho (0-100%)</label>
-                  <input type="number" min="0" max="100" required value={grade || ''} onChange={(e) => setGrade(Number(e.target.value))} className="w-full text-2xl font-black text-center bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-2xl py-4 focus:outline-none focus:border-indigo-500 text-indigo-600 dark:text-indigo-400" />
+                  <input type="number" min="0" max="100" required value={grade || ''} onChange={(e) => setGrade(Number(e.target.value))} className="w-full text-2xl font-black text-center bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-2xl py-4 focus:outline-none focus:border-emerald-500 text-emerald-600 dark:text-emerald-400" />
                 </div>
 
                 <div className="space-y-2 pt-2">
@@ -266,7 +273,7 @@ export const TeacherPortal: React.FC = () => {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25 mt-4">
+                <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-500/25 mt-4">
                   Baholash va Tanga berish
                 </button>
               </form>
@@ -282,8 +289,8 @@ export const TeacherPortal: React.FC = () => {
 
       {activeTab === 'lms' && (
         <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-8 max-w-2xl mx-auto text-center">
-          <div className="h-16 w-16 bg-violet-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Video className="h-8 w-8 text-violet-500" />
+          <div className="h-16 w-16 bg-teal-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Video className="h-8 w-8 text-teal-500" />
           </div>
           <h2 className="font-heading font-black text-2xl text-slate-800 dark:text-white mb-2">LMS uchun Dars Videosini Yuklash</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
@@ -292,9 +299,9 @@ export const TeacherPortal: React.FC = () => {
           <form onSubmit={handleUploadLms} className="space-y-4 text-left">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Video URL (YouTube, Vimeo, mp4)</label>
-              <input type="url" required placeholder="https://..." value={lmsUrl} onChange={(e) => setLmsUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+              <input type="url" required placeholder="https://..." value={lmsUrl} onChange={(e) => setLmsUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500" />
             </div>
-            <button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-violet-500/25">
+            <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-teal-500/25">
               Videoni Yuklash
             </button>
           </form>
@@ -341,18 +348,28 @@ export const TeacherPortal: React.FC = () => {
                   </div>
 
                   {hw.type === 'code' ? (
-                    <div className="flex-1 border-2 border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white relative mb-6">
-                      <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
-                        <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400"/><div className="w-3 h-3 rounded-full bg-amber-400"/><div className="w-3 h-3 rounded-full bg-emerald-400"/></div>
-                        <span className="text-xs font-mono text-slate-500 ml-2">Live Preview (W3Schools style)</span>
+                    hw.language && hw.language !== 'web' ? (
+                      <div className="flex-1 rounded-2xl overflow-hidden relative mb-6">
+                        <CodeEditor 
+                          initialCode={hw.code || (hw as any).content || ''}
+                          initialLanguage={hw.language || 'javascript'}
+                          readOnly={true}
+                        />
                       </div>
-                      <iframe src={getHwCodeUrl(hw.content)} className="w-full h-[calc(100%-40px)] border-none" title="Live Preview" />
-                    </div>
+                    ) : (
+                      <div className="flex-1 border-2 border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white relative mb-6">
+                        <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                          <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400"/><div className="w-3 h-3 rounded-full bg-amber-400"/><div className="w-3 h-3 rounded-full bg-emerald-400"/></div>
+                          <span className="text-xs font-mono text-slate-500 ml-2">Live Preview (Web HTML/CSS/JS)</span>
+                        </div>
+                        <iframe src={getHwCodeUrl(hw.code || (hw as any).content || '')} className="w-full h-[calc(100%-40px)] border-none" title="Live Preview" />
+                      </div>
+                    )
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl mb-6 bg-slate-50 dark:bg-slate-800/20">
                       <FileCode className="w-16 h-16 text-emerald-300 mb-3" />
-                      <p className="text-slate-600 dark:text-slate-300 font-bold">{hw.originalFileName}</p>
-                      <a href={hw.content} download={hw.originalFileName} className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-lg">Faylni Yuklab Olish</a>
+                      <p className="text-slate-600 dark:text-slate-300 font-bold">{hw.fileName || (hw as any).originalFileName || 'Yuklangan fayl'}</p>
+                      <a href={hw.fileUrl || (hw as any).content || '#'} download={hw.fileName || (hw as any).originalFileName || 'fayl'} className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-lg">Faylni Yuklab Olish</a>
                     </div>
                   )}
 
@@ -411,12 +428,12 @@ export const TeacherPortal: React.FC = () => {
               <p className="text-xs text-rose-500 font-bold mt-2 flex items-center gap-1">To'lansa balansingizga qo'shiladi</p>
             </div>
 
-            <div className="bg-white dark:bg-dark-card border border-indigo-200 dark:border-indigo-900/50 rounded-3xl p-6 relative overflow-hidden group hover:border-indigo-500 transition-colors">
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
-              <DollarSign className="w-8 h-8 text-indigo-500 mb-4" />
+            <div className="bg-white dark:bg-dark-card border border-emerald-200 dark:border-emerald-900/50 rounded-3xl p-6 relative overflow-hidden group hover:border-emerald-500 transition-colors">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+              <DollarSign className="w-8 h-8 text-emerald-500 mb-4" />
               <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Jami Kutilayotgan Oylik</p>
-              <p className="text-3xl font-black text-indigo-600">{totalExpected.toLocaleString()} so'm</p>
-              <p className="text-xs text-indigo-500 font-bold mt-2 flex items-center gap-1">100% to'lov bo'lgandagi holat</p>
+              <p className="text-3xl font-black text-emerald-600">{totalExpected.toLocaleString()} so'm</p>
+              <p className="text-xs text-emerald-500 font-bold mt-2 flex items-center gap-1">100% to'lov bo'lgandagi holat</p>
             </div>
           </div>
 
@@ -448,7 +465,7 @@ export const TeacherPortal: React.FC = () => {
                               {s.paymentStatus === 'paid' ? 'To\'lagan' : 'Qarzdor'}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-right font-black text-indigo-600">{share.toLocaleString()} so'm</td>
+                          <td className="px-4 py-3 text-right font-black text-emerald-600">{share.toLocaleString()} so'm</td>
                         </tr>
                       );
                     })}
@@ -478,7 +495,7 @@ export const TeacherPortal: React.FC = () => {
                           <h4 className="font-bold text-sm text-slate-800 dark:text-white">{g.name}</h4>
                           <p className="text-[10px] text-slate-500">{groupCourse?.name || 'Kurs'}</p>
                         </div>
-                        <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded">
+                        <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded">
                           {percent}% ulush
                         </span>
                       </div>

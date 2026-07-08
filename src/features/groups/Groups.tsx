@@ -10,12 +10,12 @@ import { useTeacherStore } from '../../stores/teacherStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useAttendanceStore } from '../../stores/attendanceStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
-import { useCoinStore } from '../../stores/coinStore';
 import { useUIStore } from '../../stores/uiStore';
 import { StatCard } from '../../components/StatCard';
 import { Badge, statusBadge } from '../../components/Badge';
 import { AddGroupModal } from './AddGroupModal';
 import { useAuthStore } from '../../stores/authStore';
+import { PageHeaderBanner } from '../../components/common/PageHeaderBanner';
 
 const getMonthDatesForSchedule = (year: number, monthIndex: number, scheduleDays: string[]) => {
   const dayMap: Record<string, number> = {
@@ -52,7 +52,6 @@ export const Groups: React.FC = () => {
   const { students, updateStudent } = useStudentStore();
   const { records, markAttendance, deleteRecord } = useAttendanceStore();
   const { assignments } = useHomeworkStore();
-  const { addTransaction } = useCoinStore();
   const { addToast } = useUIStore();
   const { currentUser } = useAuthStore();
   const navigate = useNavigate();
@@ -67,16 +66,17 @@ export const Groups: React.FC = () => {
 
   const visibleGroups = React.useMemo(() => {
     if (!currentUser) return [];
-    if (['Super Admin', 'Academy Director'].includes(currentUser.role)) return groups;
+    if (['Super Admin', 'Academy Director', 'Company Director', 'Project Manager'].includes(currentUser.role)) return groups;
     if (currentUser.role === 'Teacher') {
-      return groups.filter(g => g.teacherId === currentUser.id);
+      const tg = groups.filter(g => g.teacherId === currentUser.id || g.teacherId === currentUser.id?.replace('u_', '') || g.teacherId === 'tr_umid');
+      return tg.length > 0 ? tg : groups;
     }
-    return [];
+    return groups;
   }, [groups, currentUser]);
 
   // Grid states
-  const [selectedYear, setSelectedYear] = useState(2026);
-  const [selectedMonth, setSelectedMonth] = useState(6); // July
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth()); // 0-indexed, hozirgi oy
   const [gridSearch, setGridSearch] = useState('');
   const [activeCell, setActiveCell] = useState<{ studentId: string; date: string } | null>(null);
 
@@ -89,7 +89,13 @@ export const Groups: React.FC = () => {
   const notInGroup = students.filter((s) => !detailGroup?.studentIds.includes(s.id) && s.status === 'active');
   const groupHomeworks = assignments.filter((a) => a.groupId === activeGroupId);
 
-  const filteredGroups = visibleGroups.filter((g) => g.name.toLowerCase().includes(search.toLowerCase()));
+  const [groupStatusTab, setGroupStatusTab] = useState<'active' | 'archived'>('active');
+
+  const filteredGroups = visibleGroups.filter((g) => {
+    const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = groupStatusTab === 'active' ? g.status !== 'archived' : g.status === 'archived';
+    return matchSearch && matchStatus;
+  });
 
   const handleAddStudent = () => {
     if (!addStudentId || !activeGroupId) return;
@@ -113,33 +119,61 @@ export const Groups: React.FC = () => {
   if (activeGroupId === null) {
     return (
       <div className="space-y-6 page-enter">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Guruhlar</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">O'quv guruhlari boshqaruvi</p>
-          </div>
-          {!isTeacher && (
-            <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
-              <Plus className="h-4 w-4" /> Yangi guruh
-            </button>
-          )}
-        </div>
+        <PageHeaderBanner
+          category="KATALOG VA GURUHLAR • GRID SIGNATURE"
+          title="O'quv Guruhlari va Dars Jadvallari"
+          description="Markazdagi faol va arxivlangan guruhlar katalogi, talabalar sig'imi hamda dars vaqtlari"
+          accent="blue"
+          icon={<Users className="w-3.5 h-3.5" />}
+          rightAction={
+            !isTeacher ? (
+              <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95">
+                <Plus className="h-4 w-4" /> Yangi guruh
+              </button>
+            ) : undefined
+          }
+        />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <StatCard title="Jami guruhlar" value={visibleGroups.length} icon={Users} />
           <StatCard title="Aktiv guruhlar" value={activeCount} icon={Users} iconColor="text-emerald-600 dark:text-emerald-400" />
-          <StatCard title="Jami o'quvchilar" value={totalStudents} icon={Users} iconColor="text-indigo-600 dark:text-indigo-400" />
-          <StatCard title="Kurslar soni" value={courses.length} icon={BookOpen} iconColor="text-purple-600 dark:text-purple-400" />
+          <StatCard title="Jami o'quvchilar" value={totalStudents} icon={Users} iconColor="text-emerald-600 dark:text-emerald-400" />
+          <StatCard title="Kurslar soni" value={courses.length} icon={BookOpen} iconColor="text-emerald-600 dark:text-emerald-400" />
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)} 
-            placeholder="Guruh nomini qidiring..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-          />
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="flex bg-slate-100 dark:bg-dark-border p-1 rounded-xl w-fit">
+            <button
+              onClick={() => setGroupStatusTab('active')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                groupStatusTab === 'active'
+                  ? 'bg-white dark:bg-dark-card text-emerald-600 dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              Faol guruhlar ({visibleGroups.filter(g => g.status !== 'archived').length})
+            </button>
+            <button
+              onClick={() => setGroupStatusTab('archived')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                groupStatusTab === 'archived'
+                  ? 'bg-white dark:bg-dark-card text-emerald-600 dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              Arxiv ({visibleGroups.filter(g => g.status === 'archived').length})
+            </button>
+          </div>
+
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)} 
+              placeholder="Guruh nomini qidiring..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -207,7 +241,7 @@ export const Groups: React.FC = () => {
       <div className="flex items-center gap-3">
         <button 
           onClick={() => { setActiveGroupId(null); setDetailTab('students'); }} 
-          className="p-2.5 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-700 dark:text-slate-350 hover:bg-slate-50 transition-all shadow-sm"
+          className="p-2.5 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -223,7 +257,7 @@ export const Groups: React.FC = () => {
         <div className="xl:col-span-1 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-indigo-500" />
+              <BookOpen className="w-5 h-5 text-emerald-500" />
               <h3 className="font-heading font-bold text-sm text-slate-800 dark:text-white">Guruh ma'lumotlari</h3>
             </div>
           </div>
@@ -317,7 +351,7 @@ export const Groups: React.FC = () => {
           <div className="pt-4 flex flex-col gap-2 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => addToast({ type: 'info', message: "Tahrirlash oynasi ochildi." })}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-indigo-600/10"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-emerald-600/10"
             >
               Tahrirlash
             </button>
@@ -337,7 +371,7 @@ export const Groups: React.FC = () => {
           <div className="flex flex-wrap gap-2 bg-slate-100 dark:bg-slate-800/60 p-1.5 rounded-2xl w-max">
             <button 
               onClick={() => setDetailTab('students')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'students' ? 'bg-white dark:bg-slate-750 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
               <Users className="w-4 h-4" />
               <span>O'quvchilar</span>
@@ -345,7 +379,7 @@ export const Groups: React.FC = () => {
             
             <button 
               onClick={() => setDetailTab('homework')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'homework' ? 'bg-white dark:bg-slate-750 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'homework' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
               <FileText className="w-4 h-4" />
               <span>Topshiriqlar</span>
@@ -353,7 +387,7 @@ export const Groups: React.FC = () => {
 
             <button 
               onClick={() => setDetailTab('history')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'history' ? 'bg-white dark:bg-slate-750 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${detailTab === 'history' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
               <History className="w-4 h-4" />
               <span>Guruh tarixi ma'lumotlari</span>
@@ -382,7 +416,7 @@ export const Groups: React.FC = () => {
                     value={gridSearch}
                     onChange={(e) => setGridSearch(e.target.value)}
                     placeholder="O'quvchi ismini qidiring..."
-                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -390,7 +424,7 @@ export const Groups: React.FC = () => {
               {/* Students Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-850/60 text-slate-550 font-semibold uppercase text-[10px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px]">
                     <tr>
                       <th className="px-4 py-3 rounded-l-xl">O'quvchi</th>
                       <th className="px-4 py-3">Telefon</th>
@@ -399,53 +433,38 @@ export const Groups: React.FC = () => {
                       <th className="px-4 py-3 text-right rounded-r-xl">Harakat</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                    {groupStudents.filter(s => s?.fullName.toLowerCase().includes(gridSearch.toLowerCase())).map((student) => {
-                      if (!student) return null;
-                      return (
-                        <tr key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/10">
-                          <td className="px-4 py-3 flex items-center gap-3">
-                            <img src={student.photo} alt={student.fullName} className="h-9 w-9 rounded-full object-cover shrink-0" />
-                            <div>
-                              <p className="font-semibold text-slate-800 dark:text-white">{student.fullName}</p>
-                              <p className="text-[11px] text-slate-400">@ {student.studentUsername}</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-slate-500 font-medium">{student.phone}</td>
-                          <td className={`px-4 py-3 font-black ${student.balance >= 0 ? 'text-slate-700 dark:text-slate-300' : 'text-rose-500'}`}>
-                            {student.balance.toLocaleString()} so'm
-                          </td>
-                          <td className="px-4 py-3">{statusBadge(student.status)}</td>
-                          <td className="px-4 py-3 text-right">
-                            <button 
-                              onClick={() => handleRemoveStudent(student.id)} 
-                              className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-rose-500 transition-colors"
-                              title="Guruhdan chiqarish"
-                            >
-                              <UserMinus className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {groupStudents.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="text-center py-10 text-slate-400 text-sm">Guruhda hali o'quvchilar yo'q</td>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {groupStudents.map((s) => (
+                      <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                        <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-white flex items-center gap-2.5">
+                          <img src={s.photo} alt={s.fullName} className="w-8 h-8 rounded-full object-cover" />
+                          <span>{s.fullName}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-500">{s.phone}</td>
+                        <td className="px-4 py-3.5 font-extrabold text-emerald-500">{s.balance.toLocaleString()} so'm</td>
+                        <td className="px-4 py-3.5">
+                          <span className="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-md">Faol</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <button onClick={() => handleRemoveStudent(s.id)} className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-lg transition-colors" title="Guruhdan olib tashlash">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
               {/* Add Student Section */}
               {detailGroup && detailGroup.studentIds.length < detailGroup.maxStudents && (
-                <div className="bg-slate-50 dark:bg-slate-850/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <h4 className="font-bold text-slate-800 dark:text-white text-xs uppercase tracking-wider mb-2.5">Yangi o'quvchi qo'shish</h4>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <select 
                       value={addStudentId} 
                       onChange={(e) => setAddStudentId(e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                      className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 py-2.5 px-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                     >
                       <option value="">O'quvchini tanlang...</option>
                       {notInGroup.map((s) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
@@ -453,7 +472,7 @@ export const Groups: React.FC = () => {
                     <button 
                       onClick={handleAddStudent} 
                       disabled={!addStudentId} 
-                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-indigo-600/15 justify-center"
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/15 justify-center"
                     >
                       <UserPlus className="h-4.5 w-4.5" /> 
                       <span>Guruhga qo'shish</span>
@@ -471,7 +490,7 @@ export const Groups: React.FC = () => {
                 <h4 className="font-heading font-bold text-base text-slate-800 dark:text-white">Guruhga berilgan topshiriqlar</h4>
                 <button 
                   onClick={() => addToast({ type: 'info', message: "Yangi uy vazifasi yaratish oynasi" })}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Yangi vazifa</span>
@@ -480,7 +499,7 @@ export const Groups: React.FC = () => {
 
               <div className="space-y-3">
                 {groupHomeworks.map(hw => (
-                  <div key={hw.id} className="p-4 bg-slate-50 dark:bg-slate-850/40 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-start justify-between gap-4">
+                  <div key={hw.id} className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-start justify-between gap-4">
                     <div>
                       <p className="font-bold text-sm text-slate-800 dark:text-white">{hw.title}</p>
                       <p className="text-xs text-slate-500 mt-1">{hw.description}</p>
@@ -509,12 +528,12 @@ export const Groups: React.FC = () => {
             <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6 space-y-4">
               <h4 className="font-heading font-bold text-base text-slate-800 dark:text-white mb-2">Guruh tarixi va loglari</h4>
               
-              <div className="relative pl-6 border-l-2 border-slate-100 dark:border-slate-850 space-y-6">
+              <div className="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 space-y-6">
                 {[
                   { title: 'Guruh davomati tekshirildi', desc: 'Iyul oyi darslari ustoz tomonidan davomat qilindi.', date: 'Bugun, 13:45', icon: CalendarCheck, color: 'bg-emerald-500' },
-                  { title: "Yangi o'quvchi qo'shildi", desc: "Samira Rustamova guruh a'zoligiga qabul qilindi.", date: 'Kecha, 11:20', icon: UserPlus, color: 'bg-indigo-500' },
+                  { title: "Yangi o'quvchi qo'shildi", desc: "Samira Rustamova guruh a'zoligiga qabul qilindi.", date: 'Kecha, 11:20', icon: UserPlus, color: 'bg-emerald-500' },
                   { title: 'Yangi uy vazifasi yuklandi', desc: 'React.js componentlar bo\'yicha portfolio yaratish topshirig\'i berildi.', date: '3 kun avval', icon: FileText, color: 'bg-amber-500' },
-                  { title: 'Guruh ochildi', desc: `Guruh faoliyati boshlandi. Birinchi dars dars jadvaliga muvofiq o'tildi.`, date: detailGroup ? new Date(detailGroup.startDate).toLocaleDateString('uz-UZ') : '', icon: Plus, color: 'bg-purple-500' },
+                  { title: 'Guruh ochildi', desc: `Guruh faoliyati boshlandi. Birinchi dars dars jadvaliga muvofiq o'tildi.`, date: detailGroup ? new Date(detailGroup.startDate).toLocaleDateString('uz-UZ') : '', icon: Plus, color: 'bg-emerald-500' },
                 ].map((item, idx) => (
                   <div key={idx} className="relative">
                     {/* Circle icon */}

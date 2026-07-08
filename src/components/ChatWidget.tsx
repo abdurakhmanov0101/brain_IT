@@ -173,7 +173,7 @@ export const ChatWidget: React.FC = () => {
             className="w-[360px] sm:w-[380px] h-[520px] bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md rounded-3xl border border-white/10 shadow-2xl flex flex-col overflow-hidden mb-4"
           >
             {/* Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-brand-600 flex items-center justify-between text-white">
+            <div className="px-5 py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-brand-600 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-inner">
                   <Bot className="h-5 w-5 text-white animate-pulse" />
@@ -205,8 +205,8 @@ export const ChatWidget: React.FC = () => {
                     {/* Avatar Icon */}
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border ${
                       msg.sender === 'user' 
-                        ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' 
-                        : 'bg-white/5 border-white/10 text-violet-400'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                        : 'bg-white/5 border-white/10 text-teal-400'
                     }`}>
                       {msg.sender === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                     </div>
@@ -214,7 +214,7 @@ export const ChatWidget: React.FC = () => {
                     {/* Bubble */}
                     <div className={`p-3 rounded-2xl text-[13px] leading-relaxed whitespace-pre-line ${
                       msg.sender === 'user'
-                        ? 'bg-indigo-600 text-white rounded-tr-none font-medium'
+                        ? 'bg-emerald-600 text-white rounded-tr-none font-medium'
                         : 'bg-white/5 text-slate-200 border border-white/5 rounded-tl-none'
                     }`}>
                       {msg.text}
@@ -227,8 +227,8 @@ export const ChatWidget: React.FC = () => {
               {isTyping && (
                 <div className="flex justify-start">
                   <div className="flex items-start gap-2.5 max-w-[85%]">
-                    <div className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-violet-400 flex items-center justify-center shrink-0">
-                      <Bot className="w-3.5 h-3.5" />
+                    <div className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 text-teal-400 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 animate-pulse" />
                     </div>
                     <div className="p-3 bg-white/5 text-slate-400 border border-white/5 rounded-2xl rounded-tl-none flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -262,11 +262,11 @@ export const ChatWidget: React.FC = () => {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSend(inputText); }}
                 placeholder="Savolingizni yozing..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
               <button
                 onClick={() => handleSend(inputText)}
-                className="p-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl shadow-lg active:scale-95 transition-all"
+                className="p-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl shadow-lg active:scale-95 transition-all"
               >
                 <Send className="h-3.5 w-3.5" />
               </button>
@@ -280,9 +280,9 @@ export const ChatWidget: React.FC = () => {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-gradient-to-tr from-violet-600 via-indigo-600 to-brand-600 flex items-center justify-center text-white shadow-xl hover:shadow-indigo-500/30 transition-all border border-white/15 relative group"
+        className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-600 to-brand-600 flex items-center justify-center text-white shadow-xl hover:shadow-emerald-500/30 transition-all border border-white/15 relative group"
         style={{
-          boxShadow: '0 8px 30px rgba(99, 102, 241, 0.4)'
+          boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)'
         }}
       >
         <AnimatePresence mode="wait">
@@ -307,7 +307,7 @@ export const ChatWidget: React.FC = () => {
             >
               <MessageSquare className="h-6 w-6" />
               {/* Pulsing indicator dot */}
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-indigo-600 animate-pulse" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-emerald-600 animate-pulse" />
             </motion.div>
           )}
         </AnimatePresence>

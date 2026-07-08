@@ -74,9 +74,9 @@ const Counter: React.FC<{ to: number; suffix?: string; prefix?: string }> = ({ t
 };
 
 /* ─────────── SECTION BADGE ─────────── */
-const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#2563EB' }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-bold text-white shadow-sm"
-    style={{ borderColor: `${color}60`, background: `${color}25` }}>
+const Badge: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = '#10B981' }) => (
+  <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-extrabold text-emerald-800 dark:text-emerald-300 shadow-sm"
+    style={{ borderColor: `${color}60`, background: `${color}20` }}>
     {children}
   </span>
 );
@@ -88,10 +88,10 @@ const SectionHead: React.FC<{
   <div className={`space-y-4 ${center ? 'text-center' : ''}`}>
     {badge}
     <motion.h2 variants={fadeUp}
-      className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight dark:text-white text-slate-900">
+      className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-slate-900 dark:text-white drop-shadow-sm">
       {title}
     </motion.h2>
-    {sub && <motion.p variants={fadeUp} className="max-w-2xl leading-relaxed text-sm sm:text-base mx-auto dark:text-slate-400 text-slate-600">{sub}</motion.p>}
+    {sub && <motion.p variants={fadeUp} className="max-w-2xl leading-relaxed text-sm sm:text-base mx-auto text-slate-600 dark:text-slate-300 font-medium">{sub}</motion.p>}
   </div>
 );
 
@@ -101,7 +101,7 @@ const SectionHead: React.FC<{
 export const LandingPage: React.FC<LandingPageProps> = ({
   onEnterPortal, onAddLead, darkMode: _appDarkMode, setDarkMode, language, setLanguage,
 }) => {
-  const darkMode = true; // Force Dark Showcase
+  const darkMode = _appDarkMode ?? true;
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [teamModalId, setTeamModalId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -111,6 +111,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [leadService, setLeadService] = useState('IT Foundation');
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 400);
@@ -258,10 +259,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   /* ── DATA ── */
   const directions = [
     { icon: Monitor, title: 'Kompyuter savodxonligi', color: '#2563EB' },
-    { icon: Cpu, title: 'Suniy intellekt', color: '#7C3AED' },
+    { icon: Cpu, title: 'Suniy intellekt', color: '#059669' },
     { icon: BookOpen, title: 'IT Foundation', color: '#06B6D4' },
     { icon: Code, title: 'Frontend dasturlash', color: '#2563EB' },
-    { icon: Server, title: 'Backend dasturlash', color: '#7C3AED' },
+    { icon: Server, title: 'Backend dasturlash', color: '#059669' },
     { icon: ShieldCheck, title: 'Kiber xavfsizlik', color: '#06B6D4' },
     { icon: Sparkles, title: 'Roboto-texnika', color: '#2563EB' },
     { icon: Smile, title: 'IT Kids', color: '#F59E0B' },
@@ -281,7 +282,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     {
       id: 't2', name: 'Adham Xoliqov', role: "Backend Yordamchi O'qituvchi",
       bio: "Jahongir Omonovning yordamchisi sifatida Python, Django, Linux va PostgreSQL bo'yicha o'quvchilarga amaliy bilim beradi. Server infratuzilmalari va REST API ishlab chiqishda mustaqil tajribaga ega, har bir o'quvchiga individual yondashuvi bilan ajralib turadi.",
-      exp: 3, accent: '#6366f1',
+      exp: 3, accent: '#10b981',
       skills: ['Python', 'Django', 'Linux', 'PostgreSQL', 'Docker', 'Nginx', 'REST API', 'CI/CD'],
       avatar: '/adham.jpg',
       photoStyle: { objectPosition: 'center 5%', transform: 'scale(1.08)', transformOrigin: '50% 0%', vignetteY: '35%', filter: 'contrast(1.15) brightness(1.05) saturate(1.1)' },
@@ -336,7 +337,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const services = [
     { icon: Code, title: 'Veb Dasturlash', desc: 'React, Next.js, Django, Node.js bilan enterprise platformalar.', color: '#2563EB' },
-    { icon: Smartphone, title: 'Mobil Ilovalar', desc: 'iOS va Android uchun Flutter asosida premium ilovalar.', color: '#7C3AED' },
+    { icon: Smartphone, title: 'Mobil Ilovalar', desc: 'iOS va Android uchun Flutter asosida premium ilovalar.', color: '#059669' },
     { icon: Brain, title: 'AI Yechimlar', desc: "Biznes jarayonlarini sun'iy intellekt bilan avtomatlashtirish.", color: '#06B6D4' },
     { icon: Shield, title: 'Kiber Xavfsizlik', desc: "Tizimlaringizni himoyalash va zaifliklarni bartaraf etish.", color: '#F59E0B' },
     { icon: Cloud, title: 'Cloud & DevOps', desc: 'Docker, Kubernetes, CI/CD pipeline va cloud deployment.', color: '#10B981' },
@@ -372,22 +373,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   ══════════════════════════════════════ */
   return (
     <div
-      className="relative min-h-screen flex flex-col font-sans select-none scroll-smooth overflow-x-hidden text-white dark"
+      className={`relative min-h-screen flex flex-col font-sans select-none scroll-smooth overflow-x-hidden transition-colors duration-300 ${darkMode ? 'dark text-white bg-[#09090b]' : 'text-slate-900 bg-slate-50'}`}
     >
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#09090b]">
-        {/* Fallback poster image or color if video loads slowly */}
-        <div className="absolute inset-0 bg-[#09090b]" />
-        <iframe
-          src="https://www.youtube.com/embed/FVeDsAdpqTQ?autoplay=1&mute=1&loop=1&playlist=FVeDsAdpqTQ&controls=0&showinfo=0&rel=0&iv_load_policy=3"
-          title="Background Video"
-          className="absolute top-1/2 left-1/2 w-[100vw] h-[100vh] sm:w-[150vw] sm:h-[150vh] min-w-[177.77vh] min-h-[56.25vw] -translate-x-1/2 -translate-y-1/2 object-cover"
-          style={{ border: 'none' }}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        />
-        {/* Premium dark vignette overlay for perfect text contrast */}
-        <div className="hero-video-overlay" />
-      </div>
-
       {/* ──────────────── MODULAR NAV ──────────────── */}
       <Navbar
         onEnterPortal={onEnterPortal}
@@ -398,7 +385,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         t={t}
       />
 
-      {/* ──────────────── MODULAR HERO ──────────────── */}
+      {/* ──────────────── MODULAR HERO (Contains background video) ──────────────── */}
       <Hero
         onEnterPortal={onEnterPortal}
         onScrollToContact={() => {
@@ -408,14 +395,356 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         t={t}
       />
 
+      {/* ──────────────── EDUTIZIM PARTNERS STRIP ("ISHONCHLI HAMKORLARIMIZ") ──────────────── */}
+      <section className="py-12 px-6 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0d14] relative z-10">
+        <div className="max-w-7xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-400/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+            <Shield className="w-3.5 h-3.5" />
+            <span>O'ZBEKISTONDAGI ISHONCHLI HAMKORLARIMIZ</span>
+          </div>
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+            Bugungi kunda har kuni <span className="text-teal-600 dark:text-teal-400 font-bold">200+ ta'lim markazlari</span> dars va davomat jarayonlarini Brain IT CRM orqali nazorat qilmoqda
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-3">
+            {[
+              { name: "Target School", label: "INTERNATIONAL ACADEMY", color: "from-emerald-600 to-cyan-500" },
+              { name: "Imperial Academy", label: "IT & LANGUAGES", color: "from-amber-500 to-orange-500" },
+              { name: "Registon", label: "O'QUV MARKAZI", color: "from-red-600 to-rose-500" },
+              { name: "Grand Edu", label: "BUSINESS SCHOOL", color: "from-emerald-600 to-emerald-500" },
+              { name: "Finlite", label: "FINANCE ACADEMY", color: "from-emerald-600 to-teal-500" },
+              { name: "Nexus School", label: "DIGITAL CAMPUS", color: "from-emerald-600 to-teal-500" },
+            ].map((partner, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -4, scale: 1.03 }}
+                className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex flex-col items-center justify-center gap-1.5 shadow-sm"
+              >
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${partner.color} flex items-center justify-center text-white font-black text-lg shadow-md`}>
+                  {partner.name[0]}
+                </div>
+                <span className="font-heading font-black text-sm text-slate-800 dark:text-white leading-tight">{partner.name}</span>
+                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{partner.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────── EDUTIZIM 2-SIDE ANIMATED FEATURE 1: SUPERAPP (LEFT & RIGHT) ──────────────── */}
+      <section className="py-20 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* LEFT SIDE: TEXT ANIMATING IN FROM LEFT */}
+          <motion.div
+            initial={{ opacity: 0, x: -70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs uppercase tracking-wider">
+              <span>O'QUVCHILAR & OTA-ONALAR • CLIENT SUPERAPP</span>
+            </div>
+            <h2 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-slate-900 dark:text-white">
+              Brendingiz ostida o'quvchi va ota-onalar Superilova tizimi
+            </h2>
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              Biz har bir o'quv markaziga shaxsiy brend (logotip va nom) ostida o'quvchilar kabineti, dars jadvali, uy vazifasi va Click/Payme o'rnatilgan mobil ilovani taqdim etamiz. Bu o'quv markazingiz nufuzini karrasiga oshiradi.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {[
+                { title: "To'liq shaffoflik", desc: "Balans va to'lovlar tarixi shaffof kuzatiladi" },
+                { title: "Virtual o'quv kundaligi", desc: "Baholar va topshiriqlarni yuklash tizimi" },
+                { title: "Onlayn to'lov Click & Payme", desc: "Uyda o'tirib ota-onalar tomonidan tezkor to'lov" },
+                { title: "Kutubxona & Videodarslar", desc: "PDF materiallar va video darslar arxivi" },
+              ].map((feat, i) => (
+                <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10">
+                  <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{feat.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* RIGHT SIDE: MOCKUP ANIMATING IN FROM RIGHT */}
+          <motion.div
+            initial={{ opacity: 0, x: 70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative flex items-center justify-center"
+          >
+            <div className="w-full max-w-md rounded-3xl p-6 bg-gradient-to-br from-teal-600/10 via-emerald-600/10 to-cyan-500/10 border border-teal-500/20 shadow-2xl relative overflow-hidden backdrop-blur-md">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold text-sm">S</div>
+                  <div>
+                    <div className="font-bold text-sm text-slate-900 dark:text-white">Salom, Dostonbek</div>
+                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Balans: +120 Coin</div>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-600 dark:text-teal-300">Superapp</span>
+              </div>
+              <div className="py-5 space-y-4">
+                <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 shadow-sm">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Bugungi Dars</span>
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded">18:00 - 19:30</span>
+                  </div>
+                  <div className="font-heading font-black text-base text-slate-900 dark:text-white">Frontend Dasturlash (React)</div>
+                  <div className="text-xs text-slate-500 mt-1">Ustoz: Jahongir Omonov • 402-xona</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                    <div className="font-black text-lg text-emerald-600 dark:text-emerald-400">95 ball</div>
+                    <div className="text-xs text-slate-500 font-semibold">So'nggi vazifa</div>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
+                    <div className="font-black text-lg text-amber-600 dark:text-amber-400">To'langan</div>
+                    <div className="text-xs text-slate-500 font-semibold">Iyul oyi holati</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ──────────────── EDUTIZIM 2-SIDE ANIMATED FEATURE 2: AI FACE ID DAVOMAT (RIGHT & LEFT) ──────────────── */}
+      <section className="py-20 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10 overflow-hidden border-t border-slate-200 dark:border-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* LEFT SIDE: CAMERA SCANNER MOCKUP ANIMATING IN FROM LEFT */}
+          <motion.div
+            initial={{ opacity: 0, x: -70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative order-2 lg:order-1"
+          >
+            <div className="w-full max-w-md mx-auto rounded-3xl p-6 bg-slate-900 dark:bg-zinc-950 border border-emerald-500/30 shadow-xl relative text-white">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="font-bold text-xs text-emerald-400 uppercase tracking-wider">AI Face ID & QR Scanner</span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse">● LIVE CAMERA</span>
+              </div>
+              <div className="my-5 aspect-video rounded-2xl bg-black relative overflow-hidden flex items-center justify-center border border-white/10 shadow-inner">
+                <div className="absolute inset-4 border-2 border-dashed border-emerald-500/50 rounded-xl flex items-center justify-center">
+                  <Camera className="w-12 h-12 text-emerald-400/80" />
+                </div>
+                <div className="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/15 flex items-center justify-between text-white text-xs">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <span className="font-semibold">Sardor Ahmedov aniqlandi</span>
+                  </div>
+                  <span className="text-emerald-300 font-mono font-bold">14:58:12</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* RIGHT SIDE: TEXT ANIMATING IN FROM RIGHT */}
+          <motion.div
+            initial={{ opacity: 0, x: 70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="space-y-6 order-1 lg:order-2"
+          >
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
+              <span>DAVOMAT & XAVFSIZLIK • AI FACE ID</span>
+            </div>
+            <h2 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-slate-900 dark:text-white">
+              AI Face ID va QR-kod orqali 1 soniyada avtomatik davomat
+            </h2>
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              O'quvchi markazga kirishi bilan uning yuzi yoki QR kodi avtomat aniqlanadi hamda ota-onasining Telegram botiga va mobil ilovasiga rasmli SMS xabarnoma yuboriladi.
+            </p>
+            <div className="grid grid-cols-1 gap-3 pt-2">
+              {[
+                { title: "99.9% aniqlikda yuzni tanish", desc: "Hikvision va AI kameralar orqali aldamasdan aniq qayd etadi" },
+                { title: "Ota-onaga rasmli Telegram SMS", desc: "Farzandi o'quv markazga kelgani va ketgani sekundiga bildiriladi" },
+                { title: "Ustozlar davomati va maosh nazorati", desc: "Ustozlarning darsga kelish vaqti avtomatik maosh hisobiga bog'lanadi" },
+              ].map((feat, i) => (
+                <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10">
+                  <CheckCircle className="w-5 h-5 text-cyan-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{feat.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ──────────────── EDUTIZIM 2-SIDE ANIMATED FEATURE 3: MOLIYA & KASSA (LEFT & RIGHT) ──────────────── */}
+      <section className="py-20 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10 overflow-hidden border-t border-slate-200 dark:border-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* LEFT SIDE: TEXT ANIMATING IN FROM LEFT */}
+          <motion.div
+            initial={{ opacity: 0, x: -70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="space-y-6"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
+              <span>MOLIYA & KASSA • 100% SHAFFOF BOSHQARUV</span>
+            </div>
+            <h2 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl leading-tight text-slate-900 dark:text-white">
+              Oylik to'lovlar, ustoz maoshi va kassa aylanmasini to'liq nazorat qiling
+            </h2>
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              Click, Payme, Uzum va naqd to'lovlar avtomatik yagona hisobotga tushadi. Qarzdor o'quvchilar aniqlanib, ustozlar maoshi (Fix / Foiz / Soatbay) aniq hisoblab beriladi.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {[
+                { title: "Avans & Qarzdorlik hisobi", desc: "Qisman to'lov va avanslar aniq saqlanadi" },
+                { title: "Ustoz maoshi avtomatika", desc: "To'langan va qoldiq maoshlar aniq hisoblanadi" },
+                { title: "Click & Payme integratsiya", desc: "To'lov qilinganda avtomatik status o'zgaradi" },
+                { title: "Bir klik bilan PDF hisobot", desc: "Moliya rahbariyati uchun tezkor analitika" },
+              ].map((feat, i) => (
+                <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10">
+                  <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{feat.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* RIGHT SIDE: FINANCE ANALYTICS MOCKUP ANIMATING IN FROM RIGHT */}
+          <motion.div
+            initial={{ opacity: 0, x: 70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="relative flex items-center justify-center"
+          >
+            <div className="w-full max-w-md rounded-3xl p-6 bg-slate-900 dark:bg-zinc-950 border border-emerald-500/30 shadow-2xl space-y-4 text-white">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="font-bold text-sm text-emerald-400">Moliya Aylanmasi (Iyul)</span>
+                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30">+48.2% o'sish</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 rounded-2xl bg-black/60 border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">JAMI KIRIM</div>
+                  <div className="font-heading font-black text-xl text-emerald-400 mt-1">48,500,000 UZS</div>
+                </div>
+                <div className="p-4 rounded-2xl bg-black/60 border border-white/10">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">USTOZ MAOSH</div>
+                  <div className="font-heading font-black text-xl text-emerald-300 mt-1">18,200,000 UZS</div>
+                </div>
+              </div>
+              {/* So'nggi tranzaksiyalar ro'yxati (B1: jonli mini-preview) */}
+              <div className="pt-2 space-y-2 border-t border-white/10">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">So'nggi to'lovlar</div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs">
+                  <div>
+                    <div className="font-bold text-white">Sardor Alimov • Python</div>
+                    <div className="text-[10px] text-slate-400">Bugun 14:20</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-400">+650,000 UZS</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">To'landi</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/5 text-xs">
+                  <div>
+                    <div className="font-bold text-white">Malika Karimova • IELTS</div>
+                    <div className="text-[10px] text-slate-400">Bugun 11:05</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-400">+500,000 UZS</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Avtomat</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ──────────────── EDUTIZIM TESTIMONIALS STRIP ("MIJOZLARIMIZ FIKRI") ──────────────── */}
+      <section className="py-20 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10 border-t border-slate-200 dark:border-white/10">
+        <div className="text-center space-y-4 mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-bold uppercase tracking-wider">
+            <span>MIJOZLARIMIZ FIKRI</span>
+          </div>
+          <h2 className="font-heading font-black text-3xl sm:text-5xl text-slate-900 dark:text-white">
+            O'zbekistonning eng sara o'quv markazlari bizga ishonishadi
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
+            Biznes tizimlashganida o'sish va sifat yuksalishni boshlaydi
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              stat: "+58% davomat",
+              quote: "Brain IT CRM'ga o'tganimizdan keyin moliya va davomat bitta tizimga jamlandi. Endi filiallarni real vaqtda nazorat qilyapmiz.",
+              author: "Avazbek To'lovov",
+              role: "Rahbar • Registon O'quv Markazi",
+              color: "bg-emerald-600"
+            },
+            {
+              stat: "+48% o'sish",
+              quote: "O'quvchilar davomati va to'lovlar avtomatlashgani tufayli ma'muriyat ishi sezilarli yengillashdi. Qog'ozbozlik 70% ga kamaydi.",
+              author: "Bahodir Mamajonov",
+              role: "Rahbar • Imperial Academy",
+              color: "bg-teal-600"
+            },
+            {
+              stat: "-70% qog'ozbozlik",
+              quote: "Lidlar va sotuv voronkasi orqali har bir mijoz e'tiborda. Yangi o'quvchilar soni keskin o'sishni boshladi.",
+              author: "Nilufar Sotirovo",
+              role: "Direktor • Target School",
+              color: "bg-emerald-600"
+            }
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.15 }}
+              className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-6 shadow-sm"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex text-amber-400">★★★★★</div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">{item.stat}</span>
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">"{item.quote}"</p>
+              </div>
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                <div className={`w-10 h-10 rounded-full ${item.color} text-white font-bold flex items-center justify-center text-sm shadow-md`}>
+                  {item.author[0]}
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">{item.author}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{item.role}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
 
       {/* ──────────────── COURSES / DIRECTIONS ──────────────── */}
       <section id="courses" className="py-14 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10">
         <Reveal className="space-y-8">
           <div className="text-center space-y-4">
-            <motion.div variants={fadeIn}><Badge color="#2563EB"><BookOpen className="h-3.5 w-3.5" />IT Academy</Badge></motion.div>
-            <h2 className="text-3xl md:text-4xl font-heading font-black text-white drop-shadow-md">{t.coursesTitle}</h2>
-            <p className="text-white/80 max-w-2xl mx-auto font-medium drop-shadow-sm">{t.coursesDesc}</p>
+            <motion.div variants={fadeIn}><Badge color="#10B981"><BookOpen className="h-3.5 w-3.5" />IT Academy</Badge></motion.div>
+            <h2 className="text-3xl md:text-4xl font-heading font-black text-slate-900 dark:text-white drop-shadow-sm">{t.coursesTitle}</h2>
+            <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-medium">{t.coursesDesc}</p>
           </div>
           <motion.div variants={staggerFast} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
             {directions.map((dir, i) => {
@@ -430,10 +759,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => openCourseByKey(dir.title)}
-                  className="group flex flex-col items-center justify-center gap-4.5 p-6.5 text-center transition-all duration-350 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 4px 20px -5px rgba(0,0,0,0.3)',
-                  }}
+                  className="group flex flex-col items-center justify-center gap-4.5 p-6.5 text-center transition-all duration-350 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl relative overflow-hidden shadow-sm hover:shadow-md"
                 >
                   {/* Subtle background glow representing the theme color */}
                   <div 
@@ -454,8 +780,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   <div className="space-y-1 relative z-10">
-                    <p className="text-[13.5px] font-bold leading-snug text-white/90 transition-colors group-hover:text-white">{dir.title}</p>
-                    <span className="text-[9.5px] font-bold uppercase tracking-widest opacity-40 group-hover:opacity-75 transition-opacity" style={{ color: dir.color }}>
+                    <p className="text-[13.5px] font-bold leading-snug text-slate-900 dark:text-white/90 transition-colors group-hover:text-emerald-600 dark:group-hover:text-white">{dir.title}</p>
+                    <span className="text-[9.5px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: dir.color }}>
                       0 dan boshlash
                     </span>
                   </div>
@@ -473,11 +799,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── SERVICES ──────────────── */}
-      <section id="services" className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section id="services" className="py-14 px-6 lg:px-16 border-t border-slate-200 dark:border-white/10">
         <div className="max-w-7xl mx-auto">
           <Reveal className="space-y-8">
             <div className="space-y-4">
-              <motion.div variants={fadeIn}><Badge color="#7C3AED"><Rocket className="h-3.5 w-3.5" />{t.servicesBadge}</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Rocket className="h-3.5 w-3.5" />{t.servicesBadge}</Badge></motion.div>
               <SectionHead title={t.servicesTitle} sub={t.servicesDesc} center={false} />
             </div>
             <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -486,14 +812,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 return (
                   <motion.div key={i} variants={fadeUp}
                     onClick={() => onEnterPortal()}
-                    className="group rounded-2xl p-8 cursor-pointer transition-all duration-300 glass-card"
+                    className="group rounded-2xl p-8 cursor-pointer transition-all duration-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-lg"
                   >
                     <div className="h-12 w-12 rounded-2xl flex items-center justify-center mb-5"
                       style={{ background: `${srv.color}18` }}>
                       <Icon className="h-6 w-6" style={{ color: srv.color }} />
                     </div>
-                    <h4 className={`font-bold text-lg mb-2 transition-colors ${darkMode ? 'text-white group-hover:text-blue-300' : 'text-slate-800 group-hover:text-indigo-600'}`}>{srv.title}</h4>
-                    <p className="text-sm text-slate-400 leading-relaxed">{srv.desc}</p>
+                    <h4 className="font-bold text-lg mb-2 text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{srv.title}</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{srv.desc}</p>
                     <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: srv.color }}>
                       {t.detailButton} <ChevronRight className="h-3.5 w-3.5" />
                     </div>
@@ -510,25 +836,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* background glow */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="w-[800px] h-[400px] rounded-full opacity-20"
-            style={{ background: 'radial-gradient(ellipse, #7C3AED, transparent 70%)', filter: 'blur(80px)' }} />
+            style={{ background: 'radial-gradient(ellipse, #059669, transparent 70%)', filter: 'blur(80px)' }} />
         </div>
         <div className="max-w-7xl mx-auto relative z-10">
           <Reveal>
             <div className="text-center space-y-4 mb-8">
-              <motion.div variants={fadeIn}><Badge color="#7C3AED"><Brain className="h-3.5 w-3.5" />{t.aiBadge}</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#059669"><Brain className="h-3.5 w-3.5" />{t.aiBadge}</Badge></motion.div>
               <SectionHead title={t.aiTitle} sub={t.aiDesc} />
             </div>
             <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {aiFeatures.map((feat, i) => {
                 const Icon = feat.icon;
                 return (
-                  <motion.div key={i} variants={fadeUp} onClick={() => onEnterPortal()} className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-2 glass-card">
+                  <motion.div key={i} variants={fadeUp} onClick={() => onEnterPortal()} className="rounded-2xl p-6 text-center transition-all duration-300 hover:-translate-y-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-lg cursor-pointer">
                     <div className="h-12 w-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                      style={{ background: 'rgba(124,58,237,0.18)' }}>
-                      <Icon className="h-6 w-6" style={{ color: '#a855f7' }} />
+                      style={{ background: 'rgba(16,185,129,0.15)' }}>
+                      <Icon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <h4 className={`font-extrabold text-lg mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`}>{feat.title}</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">{feat.desc}</p>
+                    <h4 className="font-extrabold text-lg mb-2 text-slate-900 dark:text-white">{feat.title}</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{feat.desc}</p>
                   </motion.div>
                 );
               })}
@@ -538,26 +864,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── NUMBERS ──────────────── */}
-      <section className="py-12 px-6 border-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section className="py-12 px-6 border-y border-slate-200 dark:border-white/10">
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center mb-8 space-y-4">
-              <motion.div variants={fadeIn}><Badge color="#06B6D4"><Star className="h-3.5 w-3.5" />{t.numberTitle}</Badge></motion.div>
-              <motion.p variants={fadeUp} className="text-slate-400 text-sm">{t.numberDesc}</motion.p>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Star className="h-3.5 w-3.5" />{t.numberTitle}</Badge></motion.div>
+              <motion.p variants={fadeUp} className="text-slate-600 dark:text-slate-300 text-sm font-medium">{t.numberDesc}</motion.p>
             </div>
             <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
               {[
-                { label: "Talabalar", to: 1200, suffix: '+', color: '#2563EB' },
-                { label: "Kurslar", to: 10, suffix: '+', color: '#7C3AED' },
-                { label: "O'qituvchilar", to: 8, suffix: '', color: '#06B6D4' },
-                { label: "Loyihalar", to: projects.length, suffix: '+', color: '#F59E0B' },
+                { label: "Talabalar", to: 1200, suffix: '+', color: '#10B981' },
+                { label: "Kurslar", to: 10, suffix: '+', color: '#10B981' },
+                { label: "O'qituvchilar", to: 8, suffix: '', color: '#10B981' },
+                { label: "Loyihalar", to: projects.length, suffix: '+', color: '#10B981' },
               ].map((s, i) => (
                 <motion.div key={i} variants={fadeUp}
-                  className="rounded-2xl py-8 px-4 glass-card">
+                  className="rounded-2xl py-8 px-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
                   <p className="text-4xl font-black mb-2" style={{ color: s.color }}>
                     <Counter to={s.to} suffix={s.suffix} />
                   </p>
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400 font-semibold">{s.label}</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300 font-bold">{s.label}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -570,28 +896,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <div className="text-center space-y-4 mb-8">
-              <motion.div variants={fadeIn}><Badge color="#06B6D4"><Layers className="h-3.5 w-3.5" />Portfolio</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Layers className="h-3.5 w-3.5" />Portfolio</Badge></motion.div>
               <SectionHead title={t.portfolioTitle} sub={t.portfolioDesc} />
             </div>
             <motion.div variants={stagger} className="flex flex-wrap justify-center gap-5">
               {projects.slice(0, 6).map((project: Project) => (
-                <div key={project.id} className="group rounded-2xl p-6 transition-all duration-300 cursor-default w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] hover:-translate-y-2 glass-card">
+                <div key={project.id} className="group rounded-2xl p-6 transition-all duration-300 cursor-default w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] hover:-translate-y-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-[10px] uppercase tracking-[0.18em] font-bold"
                       style={{ color: project.status === 'completed' ? '#10B981' : project.status === 'in_progress' ? '#2563EB' : '#F59E0B' }}>
                       {project.status.replace('_', ' ')}
                     </span>
-                    <span className="text-[10px] text-slate-500">{project.progress}%</span>
+                    <span className="text-[10px] text-slate-500 font-bold">{project.progress}%</span>
                   </div>
-                  <h4 className={`font-extrabold text-lg mb-1 transition-colors ${darkMode ? 'text-white group-hover:text-blue-400' : 'text-slate-800 group-hover:text-indigo-600'}`}>{project.name}</h4>
-                  <p className="text-xs text-slate-500 mb-4">{project.client}</p>
-                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${project.progress}%`, background: 'linear-gradient(90deg, #2563EB, #7C3AED)' }} />
+                  <h4 className="font-extrabold text-lg mb-1 text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{project.name}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mb-4">{project.client}</p>
+                  <div className="h-1 rounded-full overflow-hidden bg-slate-100 dark:bg-white/10">
+                    <div className="h-full rounded-full transition-all duration-700 bg-emerald-500"
+                      style={{ width: `${project.progress}%` }} />
                   </div>
-                  <div className="mt-4 flex items-center justify-between text-[10px] text-slate-500">
+                  <div className="mt-4 flex items-center justify-between text-[10px] text-slate-600 dark:text-slate-300 font-medium">
                     <span>{project.tasks.length} ta vazifa</span>
-                    <span className="px-2 py-0.5 rounded-full" style={{ background: 'rgba(37,99,235,0.12)', color: '#60a5fa' }}>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
                       {project.progress}% tayyor
                     </span>
                   </div>
@@ -603,7 +929,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ──────────────── INTERNSHIP ──────────────── */}
-      <section className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section className="py-14 px-6 lg:px-16 border-t border-slate-200 dark:border-white/10">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center space-y-4 mb-8">
@@ -615,7 +941,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 const Icon = step.icon;
                 return (
                   <motion.div key={i} variants={fadeUp}
-                    className="relative rounded-2xl p-8 text-center hover:-translate-y-2 transition-all glass-card">
+                    className="relative rounded-2xl p-8 text-center hover:-translate-y-2 transition-all bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
                     {i < internSteps.length - 1 && (
                       <div className="hidden md:block absolute top-1/2 -right-3 z-10 transform -translate-y-1/2 text-slate-400">
                         <ChevronRight className="h-5 w-5" />
@@ -641,7 +967,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto px-6 lg:px-16 mb-6">
           <Reveal>
             <div className="text-center space-y-4">
-              <motion.div variants={fadeIn}><Badge color="#F59E0B"><Users className="h-3.5 w-3.5" />{t.teamHeader}</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Users className="h-3.5 w-3.5" />{t.teamHeader}</Badge></motion.div>
               <SectionHead title={t.teamHeader} sub={t.teamSub} />
             </div>
           </Reveal>
@@ -652,7 +978,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="filmstrip-track">
             {[...team, ...team].map((member, i) => (
               <div key={i} className="shrink-0 w-80 mx-3 group/card" style={{ height: '560px' }}>
-                <div className="rounded-2xl overflow-hidden h-full flex flex-col glass-card" style={{
+                <div className="rounded-2xl overflow-hidden h-full flex flex-col bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm" style={{
                   border: `1.5px solid ${member.accent}44`,
                 }}>
                   <div className="h-1.5 shrink-0" style={{ background: `linear-gradient(90deg,${member.accent},${member.accent}33)` }} />
@@ -729,24 +1055,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center space-y-4 mb-8">
-              <motion.div variants={fadeIn}><Badge color="#F59E0B"><Star className="h-3.5 w-3.5" />{t.testimonialTitle}</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Star className="h-3.5 w-3.5" />{t.testimonialTitle}</Badge></motion.div>
               <SectionHead title={t.testimonialTitle} sub={t.testimonialDesc} />
             </div>
             <motion.div variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((t2, i) => (
                 <motion.div key={i} variants={fadeUp} whileHover={{ y: -5 }}
-                  className="rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 glass-card">
+                  className="rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm">
                   <div className="flex gap-0.5">
                     {Array.from({ length: t2.stars }).map((_, s) => (
                       <Star key={s} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <p className={`text-sm leading-relaxed flex-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>"{t2.text}"</p>
-                  <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                  <p className="text-sm leading-relaxed flex-1 text-slate-600 dark:text-slate-300">"{t2.text}"</p>
+                  <div className="flex items-center gap-3 pt-3 border-t border-slate-200 dark:border-white/10">
                     <img src={t2.avatar} alt={t2.name} className="h-9 w-9 rounded-full object-cover" />
                     <div>
-                      <p className="text-sm font-bold text-white">{t2.name}</p>
-                      <p className="text-[11px] text-blue-400">{t2.role}</p>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{t2.name}</p>
+                      <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">{t2.role}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -756,12 +1082,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* ──────────────── FAQ ACCORDION (B6: Ko'p uchraydigan savollar) ──────────────── */}
+      <section className="py-14 px-6 lg:px-16 border-t border-slate-200 dark:border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <Reveal>
+            <div className="text-center space-y-4 mb-10">
+              <motion.div variants={fadeIn}><Badge color="#10B981"><MessageSquare className="h-3.5 w-3.5" />Ko'p uchraydigan savollar</Badge></motion.div>
+              <SectionHead title="Savol va Javoblar (FAQ)" sub="Markazimiz haqida eng ko'p beriladigan savollar va ularning aniq javoblari." />
+            </div>
+
+            <div className="space-y-3">
+              {[
+                {
+                  q: "Darslar qanday formatda va qachon bo'lib o'tadi?",
+                  a: "Darslar haftada 3 kun 2 soatdan oflayn formatda o'tadi. Barcha darslar videoyozuv sifatida LMS tizimiga yuklanadi va 24/7 AI mentor yordami taqdim etiladi."
+                },
+                {
+                  q: "Kursni tugatgach ishga joylashish imkoniyati qanday?",
+                  a: "Eng yaxshi bitiruvchilar Brain IT kompaniyamizda real loyihalarga stajirovka va to'g'ridan-to'g'ri ishga qabul qilinadi. Qolgan o'quvchilarga portfel va rezyume tayyorlashda HR yordam beradi."
+                },
+                {
+                  q: "To'lovni qismlab yoki onlayn to'lash mumkinmi?",
+                  a: "albatta! Shaxsiy LMS kabinet orqali Click, Payme yoki bank kartalari yordamida qulay va avtomatlashtirilgan tarzda to'lov qilishingiz mumkin."
+                },
+                {
+                  q: "Ota-onalar o'quvchi davomatini qanday nazorat qiladi?",
+                  a: "Har bir o'quvchiga ota-ona kabineti va Telegram bot/SMS xabarnoma ulanadi. Darsga kelmagan yoki baholari tushgan o'quvchilar haqida avtomatik ogohlantirish keladi."
+                }
+              ].map((faq, idx) => {
+                const isOpen = openFaq === idx;
+                return (
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden transition-all shadow-sm"
+                  >
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : idx)}
+                      className="w-full px-6 py-4 flex items-center justify-between text-left font-bold text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                    >
+                      <span className="text-base">{faq.q}</span>
+                      <span className={`h-7 w-7 rounded-full flex items-center justify-center transition-transform duration-300 ${isOpen ? 'rotate-180 bg-emerald-500/20 text-emerald-500' : 'bg-slate-100 dark:bg-white/10 text-slate-400'}`}>
+                        ▼
+                      </span>
+                    </button>
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                        >
+                          <div className="px-6 pb-5 pt-1 text-sm text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-white/5 leading-relaxed">
+                            {faq.a}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ──────────────── CONTACT ──────────────── */}
-      <section id="contact" className="py-14 px-6 lg:px-16 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <section id="contact" className="py-14 px-6 lg:px-16 border-t border-slate-200 dark:border-white/10">
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center space-y-4 mb-8">
-              <motion.div variants={fadeIn}><Badge color="#2563EB"><Send className="h-3.5 w-3.5" />{t.contactHeader}</Badge></motion.div>
+              <motion.div variants={fadeIn}><Badge color="#10B981"><Send className="h-3.5 w-3.5" />{t.contactHeader}</Badge></motion.div>
               <SectionHead title={t.contactHeader} sub={t.contactSub} />
             </div>
           </Reveal>
@@ -790,13 +1181,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <div className="space-y-1.5">
                         <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formName}</label>
                         <input type="text" required placeholder="Elyor Karimov" value={leadName} onChange={(e) => setLeadName(e.target.value)}
-                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
+                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                           style={{}} />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formPhone}</label>
                         <input type="tel" required placeholder="+998 90 123 45 67" value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)}
-                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
+                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                           style={{}} />
                       </div>
                     </div>
@@ -804,13 +1195,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <div className="space-y-1.5">
                         <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formEmail}</label>
                         <input type="email" placeholder="email@example.com" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)}
-                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
+                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                           style={{}} />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[11px] uppercase tracking-widest font-bold text-slate-400">{t.formService}</label>
                         <select value={leadService} onChange={(e) => setLeadService(e.target.value)}
-                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                          className={`w-full rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
                           style={{}}>
                           {courses.map(course => (
                             <option key={course.id} value={course.title} style={{ background: '#0d1117' }}>{course.title}</option>
@@ -821,7 +1212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <div className="pt-2">
                       <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 text-white text-sm font-bold py-3 px-8 rounded-xl"
-                        style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', boxShadow: '0 8px 24px rgba(37,99,235,0.35)' }}>
+                        style={{ background: 'linear-gradient(135deg, #2563EB, #059669)', boxShadow: '0 8px 24px rgba(37,99,235,0.35)' }}>
                         {t.submitButton} <Send className="h-4 w-4" />
                       </motion.button>
                     </div>
@@ -840,7 +1231,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="flex items-start gap-3">
                   <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                     style={{ background: 'rgba(37,99,235,0.15)' }}>
-                    <MapPin className="h-4 w-4 text-blue-400" />
+                    <MapPin className="h-4 w-4 text-emerald-400" />
                   </div>
                   <div>
                     <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>Manzil</p>
@@ -850,18 +1241,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="flex items-start gap-3">
                   <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                     style={{ background: 'rgba(37,99,235,0.15)' }}>
-                    <Phone className="h-4 w-4 text-blue-400" />
+                    <Phone className="h-4 w-4 text-emerald-400" />
                   </div>
                   <div>
                     <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>Telefon</p>
-                    <p className="text-xs text-blue-400">+998 99 067 00 66</p>
-                    <p className="text-xs text-blue-400">+998 99 037 00 66</p>
+                    <p className="text-xs text-emerald-400">+998 99 067 00 66</p>
+                    <p className="text-xs text-emerald-400">+998 99 037 00 66</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                     style={{ background: 'rgba(37,99,235,0.15)' }}>
-                    <Mail className="h-4 w-4 text-blue-400" />
+                    <Mail className="h-4 w-4 text-emerald-400" />
                   </div>
                   <div>
                     <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>Telegram / Instagram</p>
@@ -981,7 +1372,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl flex items-center justify-center"
                   style={{ background: 'rgba(37,99,235,0.15)' }}>
-                  <Award className="h-5 w-5 text-blue-400" />
+                  <Award className="h-5 w-5 text-emerald-400" />
                 </div>
                 <h4 className="font-heading font-black text-lg text-white">{selectedCourse.title}</h4>
               </div>
@@ -997,7 +1388,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ul className="space-y-1">
                   {selectedCourse.modules.map(mod => (
                     <li key={mod.id} className="text-xs text-slate-400 flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
                       {mod.title} ({mod.lessons.length} ta dars)
                     </li>
                   ))}
@@ -1011,7 +1402,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <motion.a href="#contact" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => setSelectedCourse(null)}
                   className="inline-flex items-center gap-2 text-white text-xs font-bold py-2.5 px-6 rounded-xl"
-                  style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
+                  style={{ background: 'linear-gradient(135deg, #2563EB, #059669)' }}>
                   {t.btnRegisterNow} <ArrowRight className="h-3.5 w-3.5" />
                 </motion.a>
               </div>
@@ -1032,7 +1423,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             aria-label="Yuqoriga"
             className="fixed bottom-24 right-8 z-[60] p-3.5 rounded-2xl text-white"
             style={{
-              background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
+              background: 'linear-gradient(135deg, #2563EB, #059669)',
               boxShadow: '0 8px 32px rgba(37,99,235,0.5)',
             }}
           >

@@ -208,7 +208,7 @@ export const Settings: React.FC = () => {
                   >
                     {darkMode && <div className="absolute top-2 right-2 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center"><CheckCircle className="h-3 w-3 text-white" /></div>}
                     <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-sm">
-                      <Moon className="h-6 w-6 text-indigo-400" />
+                      <Moon className="h-6 w-6 text-emerald-400" />
                     </div>
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Qorong'i</span>
                   </button>

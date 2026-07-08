@@ -91,12 +91,12 @@ export const TopNav: React.FC<TopNavProps> = ({ activeTab, setActiveTab }) => {
                       isActive ? 'text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'text-slate-400 hover:text-white'
                     }`}>
                     {isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/30 to-violet-500/30 border border-white/20 premium-inner-glow rounded-xl" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 border border-white/20 premium-inner-glow rounded-xl" />
                     )}
                     {!isActive && (
                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                     )}
-                    <Icon className={`h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 relative z-10 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-slate-400 group-hover:text-indigo-400'}`} />
+                    <Icon className={`h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 relative z-10 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-slate-400 group-hover:text-emerald-400'}`} />
                     <span className="relative z-10 tracking-wide">{item.name}</span>
                   </button>
                 );

@@ -8,6 +8,9 @@ import {
 import { useAuthStore } from '../stores/authStore';
 import { useCoinStore } from '../stores/coinStore';
 import { useRoleStore } from '../stores/roleStore';
+import { useStudentStore } from '../stores/studentStore';
+import { useUIStore } from '../stores/uiStore';
+import { getTranslation } from '../utils/translations';
 
 interface SidebarProps {
   activeTab: string;
@@ -95,11 +98,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { currentUser } = useAuthStore();
   const { balances } = useCoinStore();
+  const { language } = useUIStore();
   const toggle = onToggle ?? (() => {});
 
   if (!currentUser) return null;
 
-  const myCoins = balances[currentUser.id] || 0;
+  const myCoins = balances[currentUser.id] || 
+    (currentUser.studentId ? balances[currentUser.studentId] : 0) || 
+    balances[currentUser.id.replace('u_', '')] || 
+    (useStudentStore.getState().students.find(s => s.id === (currentUser.studentId || currentUser.id.replace('u_', '')) || s.id === currentUser.id)?.coins || 0);
+
+  const translateGroupLabel = (lbl: string) => {
+    if (lbl === 'Asosiy') return getTranslation(language, 'groupMain');
+    if (lbl === "Ta'lim") return getTranslation(language, 'groupEducation');
+    if (lbl === 'Moliya') return getTranslation(language, 'groupFinance');
+    if (lbl === 'CRM / PM') return getTranslation(language, 'groupCrmPm');
+    if (lbl === 'Boshqaruv') return getTranslation(language, 'groupManagement');
+    if (lbl === 'Portallar') return getTranslation(language, 'groupPortals');
+    return lbl;
+  };
+
+  const translateItemName = (id: string, defName: string) => {
+    return getTranslation(language, id as any) || defName;
+  };
 
   const handleNavClick = (id: string) => {
     setActiveTab(id);
@@ -108,21 +129,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile Backdrop */}
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={onMobileClose} />
+        <div
+          onClick={onMobileClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+        />
       )}
 
-      <aside className={[
-        'glass-sidebar text-slate-800 dark:text-slate-100 flex flex-col h-screen shrink-0 relative overflow-hidden',
-        'transition-all duration-300 ease-in-out',
-        collapsed ? 'w-[72px]' : 'w-64',
-        'fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 lg:z-auto',
-        'shadow-[1px_0_0_rgba(226,232,240,0.8)] dark:shadow-[1px_0_0_rgba(255,255,255,0.04)]',
-        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-      ].join(' ')}>
-
-        {/* Brand area */}
+      {/* Sidebar Container */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-light-surface dark:bg-dark-surface border-r border-slate-200/60 dark:border-dark-border select-none shadow-xl lg:shadow-none
+        ${collapsed ? 'w-[72px]' : 'w-[260px]'}
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        {/* Brand Header */}
         <div className={`flex items-center shrink-0 border-b border-slate-200/60 dark:border-dark-border transition-all duration-300 ${collapsed ? 'px-3 py-4 justify-center' : 'px-4 py-4 gap-3'}`}>
           {/* Logo */}
           {collapsed ? (
@@ -146,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
           {/* Mobile close */}
-          <button onClick={onMobileClose} className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
+          <button onClick={onMobileClose} className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:white transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -156,31 +178,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-3 space-y-5">
             {menuGroups.map((group) => {
               const visible = group.items.filter(item => {
-                if (currentUser.role === 'Super Admin') return true;
+                if (currentUser.role === 'Super Admin') {
+                  if (['student-portal', 'parent-portal', 'teacher-portal', 'staff-portal'].includes(item.id)) return false;
+                  return true;
+                }
                 return item.roles.includes(currentUser.role) || useRoleStore.getState().hasPermission(currentUser.role, item.id);
               });
               if (visible.length === 0) return null;
+              const groupText = translateGroupLabel(group.label);
               return (
                 <div key={group.label}>
                   {!collapsed && (
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-2 mb-2">
-                      {group.label}
+                      {groupText}
                     </p>
                   )}
                   <div className="space-y-0.5">
                     {visible.map((item) => {
                       const Icon = item.icon;
                       const isActive = activeTab === item.id;
+                      const itemText = translateItemName(item.id, item.name);
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleNavClick(item.id)}
-                          title={collapsed ? item.name : undefined}
+                          title={collapsed ? itemText : undefined}
                           className={`nav-item ${isActive ? 'active' : ''} ${collapsed ? 'justify-center px-2' : ''}`}
                         >
                           <Icon className={`h-[18px] w-[18px] shrink-0 transition-all ${isActive ? 'text-brand-500 dark:text-brand-400' : 'text-slate-400 group-hover:text-brand-500'}`} />
                           {!collapsed && (
-                            <span className="truncate">{item.name}</span>
+                            <span className="truncate">{itemText}</span>
                           )}
                           {!collapsed && item.badge && (
                             <span className="ml-auto text-[10px] font-bold bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded-full">{item.badge}</span>
@@ -202,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Coins className="h-4 w-4 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Coin balansim</p>
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">{getTranslation(language, 'coinBalance')}</p>
               <p className="font-heading font-black text-base text-amber-600 dark:text-amber-400 leading-tight">{myCoins.toLocaleString()}</p>
             </div>
             <Zap className="h-4 w-4 text-amber-400 ml-auto shrink-0 animate-pulse" />

@@ -13,7 +13,7 @@ interface CRMState {
 export const useCrmStore = create<CRMState>()(
   persist(
     (set) => ({
-      leads: initialLeads,
+      leads: [],
       addLead: (data) =>
         set((state) => ({
           leads: [

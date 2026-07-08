@@ -12,6 +12,7 @@ import { useGroupStore } from '../../stores/groupStore';
 import { useCourseStore } from '../../stores/courseStore';
 import { CodeEditor } from '../../components/CodeEditor';
 import { useUIStore } from '../../stores/uiStore';
+import { SubmissionForm, type SubmissionData } from '../../components/SubmissionForm';
 
 const COIN_RULES = [
   { min: 95, coins: 3, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', label: '3 tanga 🪙🪙🪙' },
@@ -62,14 +63,11 @@ export const StudentHomework: React.FC = () => {
   // Find student record from studentStore using currentUser
   const myStudent = useMemo(() => {
     if (!currentUser) return null;
-    return students.find((s) => 
-      s.id === currentUser.studentId || 
-      s.id === currentUser.id || 
-      `u_${s.id}` === currentUser.id ||
-      s.id.replace('st', 's') === currentUser.studentId ||
-      s.fullName === currentUser.name ||
-      s.studentUsername === currentUser.name
-    ) || students[0]; // fallback to Aziz Alimov (st1) so demo always works!
+    return (
+      students.find((s) => s.id === currentUser.studentId || s.id === currentUser.id || `u_${s.id}` === currentUser.id || s.id.replace('st', 's') === currentUser.studentId) ||
+      students.find((s) => s.fullName === currentUser.name || s.studentUsername === currentUser.name) ||
+      students[0]
+    );
   }, [currentUser, students]);
 
   // Get my group IDs from studentStore
@@ -174,7 +172,7 @@ export const StudentHomework: React.FC = () => {
   return (
     <div className="space-y-6 page-enter">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-8 text-white shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 p-8 text-white shadow-2xl">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-4 right-8 w-40 h-40 rounded-full border-4 border-white" />
           <div className="absolute bottom-2 right-24 w-20 h-20 rounded-full border-2 border-white" />
@@ -213,8 +211,8 @@ export const StudentHomework: React.FC = () => {
 
       {myAssignments.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-            <BookOpen className="h-10 w-10 text-indigo-400" />
+          <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+            <BookOpen className="h-10 w-10 text-emerald-400" />
           </div>
           <h3 className="font-bold text-xl text-slate-700 dark:text-slate-300">Hozircha vazifa yo'q</h3>
           <p className="text-slate-500 dark:text-slate-400 max-w-xs">
@@ -240,7 +238,7 @@ export const StudentHomework: React.FC = () => {
                     ? 'border-amber-200 dark:border-amber-900/50'
                     : isOverdue
                     ? 'border-rose-200 dark:border-rose-900/50'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600'
                 }`}
               >
                 {/* Status badge */}
@@ -250,7 +248,7 @@ export const StudentHomework: React.FC = () => {
                       isGraded ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       isSubmitted ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
                       isOverdue ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' :
-                      'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                     }`}>
                       {isGraded ? <Trophy className="h-5 w-5" /> :
                        isSubmitted ? <Clock className="h-5 w-5" /> :
@@ -306,9 +304,9 @@ export const StudentHomework: React.FC = () => {
                       </div>
                     )}
                     {submission.feedback && (
-                      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900/50">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 mb-1.5">Ustoz izohi:</p>
-                        <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed">{submission.feedback}</p>
+                      <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-500 dark:text-emerald-400 mb-1.5">Ustoz izohi:</p>
+                        <p className="text-sm text-emerald-800 dark:text-emerald-300 leading-relaxed">{submission.feedback}</p>
                       </div>
                     )}
                   </div>
@@ -318,7 +316,7 @@ export const StudentHomework: React.FC = () => {
                 {!isSubmitted ? (
                   <button
                     onClick={() => { setSelectedAssignment(assignment); setCode(''); setFileUrl(''); setLinkUrl(''); setUploadedFile(null); setUploadedFileData(''); setSubmitType('code'); }}
-                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 active:scale-95"
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95"
                   >
                     <UploadCloud className="h-4 w-4" />
                     Vazifani topshirish
@@ -341,7 +339,7 @@ export const StudentHomework: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-300">
             {/* Modal header */}
-            <div className="flex items-center gap-4 p-5 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-600 to-violet-600">
+            <div className="flex items-center gap-4 p-5 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-600 to-teal-600">
               <button
                 onClick={() => setSelectedAssignment(null)}
                 className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white"
@@ -361,170 +359,29 @@ export const StudentHomework: React.FC = () => {
             </div>
 
             {/* Assignment description reminder */}
-            <div className="px-6 py-4 bg-indigo-50 dark:bg-indigo-900/20 border-b border-indigo-100 dark:border-indigo-900/50">
-              <p className="text-xs font-bold uppercase text-indigo-500 dark:text-indigo-400 mb-1">Vazifa:</p>
-              <p className="text-sm text-indigo-800 dark:text-indigo-200">{selectedAssignment.description}</p>
+            <div className="px-6 py-4 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-900/50">
+              <p className="text-xs font-bold uppercase text-emerald-500 dark:text-emerald-400 mb-1">Vazifa:</p>
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">{selectedAssignment.description}</p>
             </div>
 
-            {/* Type selector */}
-            <div className="px-6 pt-4">
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl w-fit gap-1">
-                <button
-                  onClick={() => setSubmitType('code')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                    submitType === 'code'
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
-                  }`}
-                >
-                  <FileCode className="h-4 w-4" /> Kod yozish
-                </button>
-                <button
-                  onClick={() => setSubmitType('file')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                    submitType === 'file'
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
-                  }`}
-                >
-                  <UploadCloud className="h-4 w-4" /> Fayl yuklash
-                </button>
-                <button
-                  onClick={() => setSubmitType('link')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                    submitType === 'link'
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
-                  }`}
-                >
-                  <Link className="h-4 w-4" /> Havola
-                </button>
-              </div>
-            </div>
-
-            {/* Content area */}
-            <div className="flex-1 overflow-auto px-6 pb-2 pt-4">
-              {submitType === 'code' ? (
-                <div className="h-[400px] flex flex-col gap-3">
-                  <CodeEditor
-                    initialCode={code}
-                    initialLanguage={language}
-                    onChange={(c, l) => { setCode(c); setLanguage(l); }}
-                  />
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    Topshirishdan oldin "Run" tugmasi orqali kodingizni sinab ko'ring.
-                  </div>
-                </div>
-              ) : submitType === 'file' ? (
-                <div className="space-y-4">
-                  {/* Hidden file input */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.txt,.py,.js,.ts,.html,.css,.java,.cpp,.c,.cs,.json,.md,.png,.jpg,.jpeg,.gif,.mp4,.mov"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
-                  />
-
-                  {/* Drag & Drop Zone */}
-                  {!uploadedFile ? (
-                    <div
-                      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                      onDragLeave={() => setIsDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`p-10 border-2 border-dashed rounded-3xl text-center cursor-pointer transition-all ${
-                        isDragOver
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-[1.01]'
-                          : 'border-slate-300 dark:border-slate-600 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                      }`}
-                    >
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                        <UploadCloud className="h-8 w-8 text-indigo-500" />
-                      </div>
-                      <p className="font-bold text-lg text-slate-700 dark:text-slate-200">Faylni bu yerga tashlang</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">yoki <span className="text-indigo-600 dark:text-indigo-400 font-bold underline">kompyuterdan tanlang</span></p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">PDF, Word, ZIP, Python, JS, rasm, video — maks. 20MB</p>
-                    </div>
-                  ) : (
-                    /* Uploaded file preview */
-                    <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-3xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
-                          {uploadedFile.type.startsWith('image/') ? <Image className="h-7 w-7 text-emerald-600" /> :
-                           uploadedFile.type.startsWith('video/') ? <Film className="h-7 w-7 text-emerald-600" /> :
-                           uploadedFile.name.match(/\.zip$|\.rar$/i) ? <Archive className="h-7 w-7 text-emerald-600" /> :
-                           uploadedFile.name.match(/\.(py|js|ts|html|css|java|cpp|c|cs)$/i) ? <FileCode className="h-7 w-7 text-emerald-600" /> :
-                           <File className="h-7 w-7 text-emerald-600" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-800 dark:text-white truncate">{uploadedFile.name}</p>
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                            {(uploadedFile.size / 1024).toFixed(1)} KB • {uploadedFile.type || 'Fayl'}
-                          </p>
-                          {uploadedFile.type.startsWith('image/') && uploadedFileData && (
-                            <img src={uploadedFileData} alt="preview" className="mt-3 max-h-32 rounded-xl object-contain border border-slate-200 dark:border-slate-700" />
-                          )}
-                        </div>
-                        <button
-                          onClick={() => { setUploadedFile(null); setUploadedFileData(''); setFileUrl(''); }}
-                          className="p-2 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 transition-colors shrink-0"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      </div>
-                      <div className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 font-bold">
-                        <CheckCircle2 className="h-4 w-4" />
-                        Fayl tayyor! "Topshirish" tugmasini bosing.
-                      </div>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="mt-3 text-xs text-slate-500 hover:text-indigo-500 underline"
-                      >
-                        Boshqa fayl tanlash
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Link submission */
-                <div className="space-y-4">
-                  <div className="p-6 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl text-center space-y-4">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Link className="h-8 w-8 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-700 dark:text-slate-300">Havola kiriting</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">GitHub, Google Drive, Dropbox, YouTube va boshqalar</p>
-                    </div>
-                    <input
-                      type="url"
-                      value={linkUrl}
-                      onChange={(e) => setLinkUrl(e.target.value)}
-                      placeholder="https://github.com/username/my-project"
-                      className="w-full max-w-lg mx-auto block rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-5 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
-              <button
-                onClick={() => setSelectedAssignment(null)}
-                className="px-6 py-3 rounded-xl font-bold text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-              >
-                Bekor qilish
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-8 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-500/30 flex items-center gap-2 transition-all active:scale-95"
-              >
-                <Send className="h-4 w-4" />
-                Topshirish
-              </button>
+            {/* Content area with modern SubmissionForm */}
+            <div className="flex-1 overflow-auto px-6 pb-6 pt-4">
+              <SubmissionForm
+                onSubmit={(data) => {
+                  const studentId = myStudent?.id || currentUser?.studentId || currentUser?.id || 'st1';
+                  submitHomework({
+                    assignmentId: selectedAssignment!.id,
+                    studentId,
+                    type: data.type,
+                    code: data.code,
+                    language: data.language,
+                    fileUrl: data.fileUrl,
+                    fileName: data.fileName,
+                  });
+                  addToast({ type: 'success', message: '✅ Vazifa muvaffaqiyatli topshirildi!' });
+                  setSelectedAssignment(null);
+                }}
+              />
             </div>
           </div>
         </div>

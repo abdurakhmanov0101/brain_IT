@@ -92,23 +92,36 @@ const photos = [
 
 type InitStudent = Omit<Student, 'studentUsername' | 'studentPassword' | 'parentUsername' | 'parentPassword' | 'coins'>;
 
-const firstNames = ['Aziz', 'Malika', 'Sherzod', 'Dilnoza', 'Jasur', 'Kamola', 'Bobur', 'Zulfiya', 'Otabek', 'Nilufar', 'Sardor', 'Feruza', 'Humoyun', 'Mohira', 'Ulugbek', 'Shakhnoza', 'Eldor', 'Gulnora', 'Ravshan', 'Barno'];
-const lastNames = ['Alimov', 'Sobirova', 'Umarov', 'Rahimova', 'Toshmatov', 'Yusupova', 'Nazarov', 'Hasanova', 'Qodirov', 'Ismoilova', 'Bekmurodov', 'Razzaqova', 'Valiyev', 'Ergasheva', 'Sobirov', 'Mirova', 'Xolmatov', 'Abdullayeva', 'Normatov', 'Tursunova'];
+const firstNames = [
+  'Aziz', 'Malika', 'Sherzod', 'Dilnoza', 'Jasur', 'Kamola', 'Bobur', 'Zulfiya', 'Otabek', 'Nilufar',
+  'Sardor', 'Feruza', 'Humoyun', 'Mohira', 'Ulugbek', 'Shakhnoza', 'Eldor', 'Gulnora', 'Ravshan', 'Barno',
+  'Jamshid', 'Sevara', 'Bexruz', 'Madina', 'Shavkat', 'Zarina', 'Anvar', 'Shahlo', 'Murod', 'Dildora',
+  'Sanjar', 'Nargiza', 'Islom', 'Rayhon', 'Rustam', 'Umida', 'Farrux', 'Guzal', 'Asadbek', 'Nodira'
+];
+const lastNames = [
+  'Alimov', 'Sobirova', 'Umarov', 'Rahimova', 'Toshmatov', 'Yusupova', 'Nazarov', 'Hasanova', 'Qodirov', 'Ismoilova',
+  'Bekmurodov', 'Razzaqova', 'Valiyev', 'Ergasheva', 'Sobirov', 'Mirova', 'Xolmatov', 'Abdullayeva', 'Normatov', 'Tursunova',
+  'Karimov', 'Jalilova', 'Mirzayev', 'Kamilova', 'Rustamov', 'Azizova', 'Boltaboyev', 'Olimova', 'Tursunov', 'Sultonova',
+  'Qosimova', 'Usmonov', 'Bozorova', 'Davlatov', 'Erkinova', 'Jumayev', 'Gafurova', 'Po\'latov', 'Salimova', 'Zokirov'
+];
 
 const generateStudents = (): InitStudent[] => {
   const list: InitStudent[] = [];
   let studentCount = 1;
   
-  // 10 groups
-  for (let gNum = 1; gNum <= 10; gNum++) {
+  // 4 groups (g1, g2 for Umid/Frontend; g3, g4 for Jahongir/Backend)
+  for (let gNum = 1; gNum <= 4; gNum++) {
     const groupId = `g${gNum}`;
-    const teacherId = gNum <= 5 ? 'tr1' : 'tr2'; // Bobur for first 5, Jasur for next 5
+    const teacherId = gNum <= 2 ? 'tr_umid' : 'tr_jahongir';
+    const isFrontend = gNum <= 2;
+    const coursePrice = isFrontend ? 1200000 : 1400000;
+    const paid50Percent = coursePrice / 2; // Exactly 50% paid! Remaining balance = 50%
     
     // 10 students per group
     for (let sNum = 1; sNum <= 10; sNum++) {
       const id = `st${studentCount}`;
       const fName = firstNames[(studentCount - 1) % firstNames.length];
-      const lName = lastNames[(studentCount * 3) % lastNames.length];
+      const lName = lastNames[(studentCount - 1) % lastNames.length];
       const fullName = `${fName} ${lName}`;
       
       const phoneDigits = (1000000 + studentCount).toString();
@@ -124,10 +137,12 @@ const generateStudents = (): InitStudent[] => {
         photo: photos[(studentCount - 1) % photos.length],
         groupIds: [groupId],
         teacherId,
-        balance: 3000000 - ((studentCount % 4) * 500000),
+        balance: paid50Percent, // Remaining 50% balance
         leadSource: sNum % 3 === 0 ? 'Instagram' : sNum % 3 === 1 ? 'Telegram' : 'Tavsiya',
-        enrolledDate: '2026-02-01',
-        status: 'active'
+        enrolledDate: '2026-06-01',
+        status: 'active',
+        paymentStatus: 'partial',
+        paymentNote: "50% to'lov qilingan"
       });
       
       studentCount++;
@@ -136,62 +151,91 @@ const generateStudents = (): InitStudent[] => {
   return list;
 };
 
-const rawStudents: InitStudent[] = generateStudents();
+const rawStudents: InitStudent[] = () => [];
 
-const initialStudents: Student[] = rawStudents.map((s) => ({
+const initialStudents: Student[] = rawStudents.map((s, idx) => ({
   ...s,
-  studentUsername: genStudentUsername(s.fullName, s.phone),
-  studentPassword: phonePass(s.phone),
+  studentUsername: `student${idx + 1}`,
+  studentPassword: '123',
   parentUsername: genParentUsername(s.fullName, s.parentPhone),
   parentPassword: phonePass(s.parentPhone),
-  coins: 0,
+  coins: 50,
 }));
 
-const initialPayments: Payment[] = [
-  { id: 'pay1', studentId: 'st1', amount: 4000000, type: 'payme', date: '2026-04-01', receivedBy: 'Feruza Salimova', note: "Aprel oyi to'lovi" },
-  { id: 'pay2', studentId: 'st2', amount: 4000000, type: 'cash', date: '2026-04-03', receivedBy: 'Admin', note: "Aprel to'lov" },
-  { id: 'pay3', studentId: 'st3', amount: 4500000, type: 'click', date: '2026-04-05', receivedBy: 'Feruza Salimova', note: 'Aprel oyi' },
-  { id: 'pay4', studentId: 'st4', amount: 4500000, type: 'card', date: '2026-04-10', receivedBy: 'Admin', note: '' },
-  { id: 'pay5', studentId: 'st1', amount: 4000000, type: 'payme', date: '2026-05-01', receivedBy: 'Feruza Salimova', note: "May oyi to'lovi" },
-  { id: 'pay6', studentId: 'st5', amount: 4000000, type: 'cash', date: '2026-05-02', receivedBy: 'Admin', note: "May to'lov" },
-  { id: 'pay7', studentId: 'st6', amount: 4000000, type: 'transfer', date: '2026-05-05', receivedBy: 'Feruza Salimova', note: '' },
-  { id: 'pay8', studentId: 'st9', amount: 8500000, type: 'payme', date: '2026-05-10', receivedBy: 'Admin', note: '2 kurs 2 oy' },
-  { id: 'pay9', studentId: 'st1', amount: 4000000, type: 'click', date: '2026-06-01', receivedBy: 'Feruza Salimova', note: 'Iyun oyi' },
-  { id: 'pay10', studentId: 'st11', amount: 4500000, type: 'cash', date: '2026-06-03', receivedBy: 'Admin', note: "Iyun to'lov" },
-  { id: 'pay11', studentId: 'st12', amount: 3500000, type: 'payme', date: '2026-06-05', receivedBy: 'Feruza Salimova', note: '' },
-  { id: 'pay12', studentId: 'st16', amount: 4000000, type: 'card', date: '2026-06-08', receivedBy: 'Admin', note: "Iyun to'lovi" },
-];
+const initialPayments: Payment[] = rawStudents.map((s, idx) => {
+  const isFrontend = s.groupIds[0] === 'g1' || s.groupIds[0] === 'g2';
+  const amount = isFrontend ? 600000 : 700000; // 50% of course fee
+  return {
+    id: `pay_${idx + 1}`,
+    studentId: s.id,
+    amount,
+    type: idx % 2 === 0 ? 'payme' : 'click',
+    date: '2026-06-02',
+    receivedBy: 'Avazbek Admin',
+    note: "Kurs uchun 50% oldindan to'lov"
+  };
+});
 
 export const useStudentStore = create<StudentState>()(
   persist(
     (set, get) => ({
-      students: initialStudents,
-      payments: initialPayments,
+      students: [],
+      payments: [],
       deductions: [],
       addStudent: (s) => {
+        const phoneClean = s.phone.replace(/\D/g, '');
+        const exists = get().students.some(st => st.phone.replace(/\D/g, '') === phoneClean && st.status !== 'left');
+        if (exists && phoneClean.length >= 7) {
+          alert(`Bu telefon raqam (${s.phone}) bilan o'quvchi allaqachon mavjud!`);
+          return '';
+        }
         const id = `st${Date.now()}`;
         const studentUsername = genStudentUsername(s.fullName, s.phone);
         const studentPassword = phonePass(s.phone) || genRandomPassword();
         const parentUsername = genParentUsername(s.fullName, s.parentPhone);
         const parentPassword = phonePass(s.parentPhone) || genRandomPassword();
-        const newStudent: Student = { ...s, id, balance: 0, studentUsername, studentPassword, parentUsername, parentPassword, coins: 0 };
-        set((state) => ({ students: [...state.students, newStudent] }));
+        set((state) => ({
+          students: [
+            ...state.students,
+            {
+              ...s,
+              id,
+              studentUsername,
+              studentPassword,
+              parentUsername,
+              parentPassword,
+              coins: 0,
+            },
+          ],
+        }));
         return id;
       },
       updateStudent: (id, patch) =>
-        set((s) => ({ students: s.students.map((st) => (st.id === id ? { ...st, ...patch } : st)) })),
-      addPayment: (p) => {
-        const id = `pay${Date.now()}`;
-        set((s) => ({
-          payments: [...s.payments, { ...p, id }],
-          students: s.students.map((st) =>
-            st.id === p.studentId ? { ...st, balance: st.balance + p.amount } : st
-          ),
-        }));
-      },
-      deductLesson: (d) => {
-        const id = `ded${Date.now()}`;
+        set((state) => ({
+          students: state.students.map((st) => (st.id === id ? { ...st, ...patch } : st)),
+        })),
+      deleteStudent: (id) =>
+        set((state) => ({
+          students: state.students.map((st) => (st.id === id ? { ...st, status: 'left' as const } : st)),
+        })),
+      addPayment: (p) =>
         set((s) => {
+          const newPay: Payment = { ...p, id: `pay${Date.now()}` };
+          const target = s.students.find((st) => st.id === p.studentId);
+          let newBalance = 0;
+          if (target) {
+            newBalance = target.balance - p.amount;
+          }
+          return {
+            payments: [newPay, ...s.payments],
+            students: s.students.map((st) =>
+              st.id === p.studentId ? { ...st, balance: newBalance } : st
+            ),
+          };
+        }),
+      deductLesson: (d) =>
+        set((s) => {
+          const id = `ded${Date.now()}`;
           const updatedStudents = s.students.map((st) => {
             if (st.id !== d.studentId) return st;
             const newBalance = st.balance - d.amount;
@@ -204,8 +248,7 @@ export const useStudentStore = create<StudentState>()(
             return { ...st, balance: newBalance };
           });
           return { deductions: [...s.deductions, { ...d, id }], students: updatedStudents };
-        });
-      },
+        }),
       refundLesson: (studentId, amount) =>
         set((s) => ({
           students: s.students.map((st) =>
@@ -214,6 +257,6 @@ export const useStudentStore = create<StudentState>()(
         })),
       getStudentBalance: (id) => get().students.find((s) => s.id === id)?.balance ?? 0,
     }),
-    { name: 'brain-it-students' }
+    { name: 'brain-it-students-clean-v2' }
   )
 );

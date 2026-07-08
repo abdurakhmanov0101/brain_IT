@@ -41,8 +41,10 @@ export const TeacherHomework: React.FC = () => {
   const [gradeScore, setGradeScore] = useState<number>(0);
   const [gradeFeedback, setGradeFeedback] = useState<string>('');
 
-  // Isolation
-  const teacherGroupIds = groups.filter(g => g.teacherId === currentUser?.id).map(g => g.id);
+  // Isolation with fallback
+  const isAdminOrAll = !currentUser || ['Super Admin', 'Academy Director'].includes(currentUser.role);
+  const matchedGroups = groups.filter(g => g.teacherId === currentUser?.id || g.teacherId === currentUser?.id?.replace('u_', '') || g.teacherId === 'tr_umid');
+  const teacherGroupIds = (isAdminOrAll || matchedGroups.length === 0) ? groups.map(g => g.id) : matchedGroups.map(g => g.id);
   const visibleAssignments = assignments.filter(a => teacherGroupIds.includes(a.groupId));
   const visibleSubmissions = submissions.filter(s => {
     const assignment = assignments.find(a => a.id === s.assignmentId);
@@ -89,14 +91,17 @@ export const TeacherHomework: React.FC = () => {
   const handleSaveGrade = () => {
     if (!selectedSubmission || !currentUser) return;
     let coins = 0;
-    if (gradeScore >= 95) coins = 3;
-    else if (gradeScore >= 85) coins = 2;
-    else if (gradeScore >= 65) coins = 1;
+    if (gradeScore >= 90) coins = 2;
+    else if (gradeScore >= 70) coins = 1;
 
-    if (coins > 0 && selectedSubmission.status !== 'graded') {
+    if (coins > 0 && (!selectedSubmission.coinsAwarded || selectedSubmission.coinsAwarded === 0)) {
       const student = getStudentBySid(selectedSubmission.studentId);
       if (student && 'fullName' in student) {
-        sendCoins(currentUser.id, currentUser.name, student.id, student.fullName, coins, `${selectedAssignment?.title} vazifasi uchun baho`);
+        sendCoins(currentUser.id, currentUser.name, student.id, student.fullName, coins, `${selectedAssignment?.title || 'Uy vazifasi'} uchun baho`);
+        const stObj = useStudentStore.getState().students.find(s => s.id === student.id || `u_${s.id}` === student.id || s.id === student.id.replace('u_', ''));
+        if (stObj) {
+          useStudentStore.getState().updateStudent(stObj.id, { coins: (stObj.coins || 0) + coins });
+        }
       }
     }
     gradeSubmission(selectedSubmission.id, gradeScore, gradeFeedback, coins);
@@ -119,7 +124,7 @@ export const TeacherHomework: React.FC = () => {
       <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
         <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in slide-in-from-bottom-6 duration-300">
           {/* Modal Header */}
-          <div className="relative p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shrink-0">
+          <div className="relative p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shrink-0">
             <div className="absolute top-4 right-4">
               <button onClick={() => setSelectedAssignment(null)} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
                 <X className="h-5 w-5" />
@@ -173,8 +178,8 @@ export const TeacherHomework: React.FC = () => {
                       {student.photo ? (
                         <img src={student.photo} alt={student.fullName} className="w-10 h-10 rounded-xl object-cover shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">{student.fullName[0]}</span>
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{student.fullName[0]}</span>
                         </div>
                       )}
 
@@ -207,7 +212,7 @@ export const TeacherHomework: React.FC = () => {
                           sub
                             ? isGraded
                               ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400'
-                              : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400'
+                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-400'
                             : 'bg-slate-100 text-slate-400 dark:bg-slate-700 cursor-not-allowed opacity-50'
                         }`}
                       >
@@ -230,7 +235,7 @@ export const TeacherHomework: React.FC = () => {
     const student = getStudentBySid(selectedSubmission.studentId);
     const isAlreadyGraded = selectedSubmission.status === 'graded';
     const gradeColor = gradeScore >= 85 ? 'text-emerald-500' : gradeScore >= 65 ? 'text-amber-500' : gradeScore > 0 ? 'text-rose-500' : 'text-slate-400';
-    const coinsPreview = gradeScore >= 95 ? 3 : gradeScore >= 85 ? 2 : gradeScore >= 65 ? 1 : 0;
+    const coinsPreview = gradeScore >= 90 ? 2 : gradeScore >= 70 ? 1 : 0;
 
     return (
       <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
@@ -279,11 +284,11 @@ export const TeacherHomework: React.FC = () => {
                 <div className="flex-1 flex flex-col p-5 gap-4 overflow-auto">
                   {/* File info */}
                   <div className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
                       {selectedSubmission.fileUrl?.startsWith('http') ? (
-                        <Link2 className="h-6 w-6 text-indigo-600" />
+                        <Link2 className="h-6 w-6 text-emerald-600" />
                       ) : (
-                        <FileText className="h-6 w-6 text-indigo-600" />
+                        <FileText className="h-6 w-6 text-emerald-600" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -321,7 +326,7 @@ export const TeacherHomework: React.FC = () => {
                       download={selectedSubmission.fileName || 'vazifa-fayli'}
                       target={selectedSubmission.fileUrl.startsWith('data:') ? undefined : '_blank'}
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
+                      className="flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold transition-colors shadow-lg shadow-emerald-500/20"
                     >
                       {selectedSubmission.fileUrl.startsWith('http') ? (
                         <><Link2 className="h-4 w-4" /> Havolani ochish</>
@@ -360,8 +365,8 @@ export const TeacherHomework: React.FC = () => {
                       onClick={() => setGradeScore(v)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                         gradeScore === v
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600'
                       }`}
                     >
                       {v}
@@ -373,10 +378,10 @@ export const TeacherHomework: React.FC = () => {
               {/* Coins preview */}
               {coinsPreview > 0 && (
                 <div className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50">
-                  <span className="text-2xl">{coinsPreview === 3 ? '🏆' : coinsPreview === 2 ? '🥈' : '🥉'}</span>
+                  <span className="text-2xl">{coinsPreview === 2 ? '🏆' : '🥈'}</span>
                   <div>
                     <p className="text-xs font-bold text-amber-700 dark:text-amber-400">O'quvchiga {coinsPreview} 🪙 tanga beriladi</p>
-                    <p className="text-[10px] text-amber-600/70 dark:text-amber-500/70">{gradeScore >= 95 ? 'A\'lo natija!' : gradeScore >= 85 ? 'Yaxshi natija' : 'Qoniqarli'}</p>
+                    <p className="text-[10px] text-amber-600/70 dark:text-amber-500/70">{gradeScore >= 90 ? 'A\'lo natija!' : 'Yaxshi natija'}</p>
                   </div>
                 </div>
               )}
@@ -389,7 +394,7 @@ export const TeacherHomework: React.FC = () => {
                   onChange={e => setGradeFeedback(e.target.value)}
                   rows={5}
                   placeholder="O'quvchiga tavsiyalar, tushuntirishlar..."
-                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none flex-1"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none flex-1"
                 />
               </div>
 
@@ -419,10 +424,10 @@ export const TeacherHomework: React.FC = () => {
   return (
     <div className="space-y-6 page-enter">
       {/* ─── Hero Header ─── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-indigo-700 to-violet-700 p-7 text-white shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-emerald-700 to-teal-700 p-7 text-white shadow-2xl">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-300 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-300 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
         </div>
         <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -432,7 +437,7 @@ export const TeacherHomework: React.FC = () => {
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="shrink-0 inline-flex items-center gap-2 px-5 py-3 bg-white text-indigo-700 font-bold hover:bg-white/90 rounded-2xl transition-all active:scale-95 shadow-xl shadow-black/20"
+            className="shrink-0 inline-flex items-center gap-2 px-5 py-3 bg-white text-emerald-700 font-bold hover:bg-white/90 rounded-2xl transition-all active:scale-95 shadow-xl shadow-black/20"
           >
             <Plus className="h-4 w-4" /> Yangi vazifa
           </button>
@@ -474,12 +479,12 @@ export const TeacherHomework: React.FC = () => {
       {/* ─── Assignment Cards ─── */}
       {visibleAssignments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4">
-            <BookOpen className="h-10 w-10 text-indigo-400" />
+          <div className="w-20 h-20 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4">
+            <BookOpen className="h-10 w-10 text-emerald-400" />
           </div>
           <h3 className="font-bold text-lg text-slate-700 dark:text-slate-300">Vazifalar yo'q</h3>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Birinchi vazifani yarating!</p>
-          <button onClick={() => setShowForm(true)} className="mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-colors">
+          <button onClick={() => setShowForm(true)} className="mt-4 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold transition-colors">
             + Yangi vazifa
           </button>
         </div>
@@ -497,12 +502,12 @@ export const TeacherHomework: React.FC = () => {
             const daysLeft = Math.ceil((new Date(a.dueDate).getTime() - Date.now()) / 86400000);
 
             return (
-              <div key={a.id} className="group bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600/50 hover:shadow-lg hover:shadow-indigo-500/5 transition-all flex flex-col gap-4">
+              <div key={a.id} className="group bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all flex flex-col gap-4">
                 {/* Top row */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 shrink-0 mt-0.5">
-                      <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    <div className="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 shrink-0 mt-0.5">
+                      <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug">{a.title}</h3>
@@ -512,7 +517,7 @@ export const TeacherHomework: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button onClick={() => { setEditing(a); setShowForm(true); }} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                    <button onClick={() => { setEditing(a); setShowForm(true); }} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
                       <Edit3 className="h-4 w-4" />
                     </button>
                     <button onClick={() => deleteAssignment(a.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors">
@@ -532,7 +537,7 @@ export const TeacherHomework: React.FC = () => {
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                      className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-700"
                       style={{ width: `${groupStudentsCount ? (subsCount / groupStudentsCount) * 100 : 0}%` }}
                     />
                   </div>
@@ -560,7 +565,7 @@ export const TeacherHomework: React.FC = () => {
                 {/* Action button */}
                 <button
                   onClick={() => setSelectedAssignment(a)}
-                  className="w-full py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-600 dark:bg-indigo-900/20 dark:hover:bg-indigo-600 text-indigo-600 hover:text-white dark:text-indigo-400 dark:hover:text-white font-bold text-sm transition-all flex items-center justify-center gap-2 group/btn"
+                  className="w-full py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 dark:bg-emerald-900/20 dark:hover:bg-emerald-600 text-emerald-600 hover:text-white dark:text-emerald-400 dark:hover:text-white font-bold text-sm transition-all flex items-center justify-center gap-2 group/btn"
                 >
                   <Users className="h-4 w-4" />
                   Javoblarni tekshirish

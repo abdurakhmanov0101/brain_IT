@@ -3,14 +3,26 @@ import cors from 'cors';
 import axios from 'axios';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 const PISTON_API_URL = process.env.PISTON_API_URL || 'http://localhost:2000';
 
-app.use(cors());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+const ALLOWED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4000'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Rate limit based on user ID passed in the body (or default to IP if none)

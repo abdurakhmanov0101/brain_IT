@@ -9,9 +9,9 @@ import { Modal } from '../../components/Modal';
 import type { Lead } from '../../data/mockData';
 
 const STAGES: { key: Lead['status']; label: string; color: string }[] = [
-  { key: 'new',        label: '1. Yangi',         color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' },
+  { key: 'new',        label: '1. Yangi',         color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
   { key: 'contacted',  label: "2. Bog'lanilgan",   color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' },
-  { key: 'trial',      label: '3. Sinov Darsi',    color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' },
+  { key: 'trial',      label: '3. Sinov Darsi',    color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
   { key: 'contract',   label: '4. Shartnoma',      color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
   { key: 'archived',   label: '5. Rad etilgan',    color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' },
 ];
@@ -72,11 +72,11 @@ export const CrmPipeline: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">CRM Pipeline</h1><p className="text-sm text-slate-500 dark:text-slate-400">Lidlarni boshqarish va konversiya kuzatuvi</p></div>
-        <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold"><Plus className="h-4 w-4" /> Yangi Lead</button>
+        <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold"><Plus className="h-4 w-4" /> Yangi Lead</button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[{ label: 'Jami leadlar', val: leadsList.filter((l) => l.status !== 'archived').length, icon: Users, c: 'text-indigo-500' }, { label: 'Pipeline qiymati', val: `${(totalValue / 1e6).toFixed(1)}M`, icon: DollarSign, c: 'text-emerald-500' }, { label: 'Konversiya', val: `${convRate}%`, icon: TrendingUp, c: 'text-amber-500' }, { label: 'Faol leadlar', val: leadsList.filter((l) => l.status !== 'archived' && l.status !== 'contract').length, icon: Target, c: 'text-purple-500' }].map((s) => (
+        {[{ label: 'Jami leadlar', val: leadsList.filter((l) => l.status !== 'archived').length, icon: Users, c: 'text-emerald-500' }, { label: 'Pipeline qiymati', val: `${(totalValue / 1e6).toFixed(1)}M`, icon: DollarSign, c: 'text-emerald-500' }, { label: 'Konversiya', val: `${convRate}%`, icon: TrendingUp, c: 'text-amber-500' }, { label: 'Faol leadlar', val: leadsList.filter((l) => l.status !== 'archived' && l.status !== 'contract').length, icon: Target, c: 'text-emerald-500' }].map((s) => (
           <div key={s.label} className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-4"><s.icon className={`h-5 w-5 ${s.c} mb-2`} /><p className="font-black text-xl text-slate-900 dark:text-white">{s.val}</p><p className="text-xs text-slate-400 mt-0.5">{s.label}</p></div>
         ))}
       </div>
@@ -123,10 +123,10 @@ export const CrmPipeline: React.FC = () => {
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Yangi Lead" size="md">
         <form onSubmit={handleAdd} className="space-y-4">
           {[{ l: 'Ism familya *', k: 'name', p: 'Jahongir Olimov' }, { l: 'Telefon *', k: 'phone', p: '+998901234567' }, { l: 'Email', k: 'email', p: 'email@mail.uz' }, { l: 'Qiziqish kursi', k: 'courseInterest', p: 'Frontend Development' }, { l: "Qiymat (so'm)", k: 'value', p: '1,200,000' }].map(({ l, k, p }) => (
-            <div key={k}><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{l}</label><input value={form[k as keyof typeof form]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder={p} className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
+            <div key={k}><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{l}</label><input value={form[k as keyof typeof form]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder={p} className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
           ))}
-          <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Manba</label><select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))} className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">{SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
-          <div className="flex gap-3"><button type="button" onClick={() => setAddOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">Bekor</button><button type="submit" className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Qo'shish</button></div>
+          <div><label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Manba</label><select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))} className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">{SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
+          <div className="flex gap-3"><button type="button" onClick={() => setAddOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">Bekor</button><button type="submit" className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Qo'shish</button></div>
         </form>
       </Modal>
 
@@ -152,7 +152,7 @@ export const CrmPipeline: React.FC = () => {
                 )}
                 <div className="flex gap-2">
                   {stageIdx(detailLead.status) > 0 && <button onClick={() => { moveLead(detailLead.id, -1); setDetailLead(null); }} className="flex-1 py-2 rounded-xl border border-slate-200 dark:border-dark-border text-sm text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1"><ChevronLeft className="h-4 w-4" /> Orqaga</button>}
-                  {stageIdx(detailLead.status) < STAGES.length - 1 && <button onClick={() => { moveLead(detailLead.id, 1); setDetailLead(null); }} className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold flex items-center justify-center gap-1">Oldinga <ChevronRight className="h-4 w-4" /></button>}
+                  {stageIdx(detailLead.status) < STAGES.length - 1 && <button onClick={() => { moveLead(detailLead.id, 1); setDetailLead(null); }} className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center gap-1">Oldinga <ChevronRight className="h-4 w-4" /></button>}
                 </div>
                 <button onClick={() => deleteLead(detailLead.id)} className="w-full py-2 rounded-xl border border-red-200 dark:border-red-800 text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20">O'chirish</button>
               </div>

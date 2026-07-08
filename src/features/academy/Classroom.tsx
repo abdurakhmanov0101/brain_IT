@@ -14,6 +14,7 @@ import { useCoinStore } from '../../stores/coinStore';
 import { CodeEditor } from '../../components/CodeEditor';
 import { useCourseStore } from '../../stores/courseStore';
 import { useGroupStore } from '../../stores/groupStore';
+import { SubmissionForm, type SubmissionData } from '../../components/SubmissionForm';
 
 const formatDate = (d: string) => {
   const date = new Date(d);
@@ -121,12 +122,8 @@ export const Classroom: React.FC = () => {
 
   // For students: find their record and filter to their own groups only
   const myStudent = !isTeacher
-    ? students.find(s =>
-        s.id === currentUser.studentId ||
-        s.id === currentUser.id ||
-        `u_${s.id}` === currentUser.id ||
-        s.fullName === currentUser.name
-      )
+    ? (students.find(s => s.id === currentUser.studentId || s.id === currentUser.id || `u_${s.id}` === currentUser.id) ||
+       students.find(s => s.fullName === currentUser.name))
     : null;
 
   const visibleGroups = useMemo(() => {
@@ -199,8 +196,8 @@ export const Classroom: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTopic.trim() || (!formVideoUrl.trim() && !formVideoFile)) {
-      addToast({ type: 'error', message: 'Mavzu va video (URL yoki fayl) kiritilishi shart!' });
+    if (!formTopic.trim()) {
+      addToast({ type: 'error', message: 'Dars mavzusi kiritilishi shart!' });
       return;
     }
 
@@ -263,8 +260,8 @@ export const Classroom: React.FC = () => {
   if (!isTeacher && visibleGroups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-        <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mb-4">
-          <BookOpen className="h-10 w-10 text-indigo-400" />
+        <div className="w-20 h-20 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mb-4">
+          <BookOpen className="h-10 w-10 text-emerald-400" />
         </div>
         <h2 className="font-bold text-xl text-slate-700 dark:text-slate-300">Siz hali biror guruhga biriktirilmagansiz</h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Administrator siz uchun guruh tayinlagandan so'ng darslar ko'rinadi.</p>
@@ -274,22 +271,22 @@ export const Classroom: React.FC = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      {/* ═══ HEADER ═══ */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-8 text-white shadow-2xl">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400/30 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
+      {/* ═══ PREMIUM VIBRANT HEADER ═══ */}
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-teal-600 p-8 sm:p-10 text-white shadow-2xl shadow-emerald-500/20">
+        <div className="absolute inset-0 z-0 opacity-60 pointer-events-none mix-blend-overlay">
+          <div className="absolute -top-[30%] -right-[10%] w-[60%] h-[150%] bg-cyan-400/50 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[0%] -left-[10%] w-[50%] h-[100%] bg-yellow-400/40 blur-[100px] rounded-full" />
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20">
-                <BookOpen className="h-6 w-6" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-3">
+              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-xl border border-white/30 shadow-inner">
+                <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <h1 className="font-heading font-black text-3xl lg:text-4xl tracking-tight">LMS Classroom</h1>
+              <h1 className="font-heading font-black text-4xl lg:text-5xl tracking-tight text-white drop-shadow-md">LMS Classroom</h1>
             </div>
-            <p className="text-white/70 text-sm max-w-md">
-              Dars materiallari, video yozuvlar va o'quvchi progressi — barchasi bir joyda.
+            <p className="text-white/90 text-sm max-w-md font-medium leading-relaxed drop-shadow-sm">
+              Dars materiallari, video yozuvlar va o'quvchi progressi — barchasi yagona zamonaviy muhitda crm orqali birlashtirilgan.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -319,11 +316,11 @@ export const Classroom: React.FC = () => {
                     setTaskFormGroupId(effectiveGroupId);
                     
                     const groupLessons = lessons.filter(l => l.groupId === effectiveGroupId);
-                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                    setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
                     
                     setShowAddTaskModal(true);
                   }}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
                 >
                   <Code className="h-4 w-4" /> Topshiriq berish
                 </button>
@@ -332,26 +329,28 @@ export const Classroom: React.FC = () => {
                   onClick={handleOpenForm}
                   className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 border border-white/25 text-white font-bold text-sm rounded-xl backdrop-blur-sm transition-all active:scale-95 shadow-lg"
                 >
-                  <Plus className="h-4 w-4" /> Yangi dars
+                  <Plus className="h-4 w-4" /> Dars qo'shish
                 </button>
               </div>
             )}
           </div>
         </div>
         {/* Stats row */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
           {[
-            { label: 'Jami darslar', value: groupLessons.length, icon: BookOpen },
-            { label: "O'quvchilar", value: groupStudents.length, icon: Users },
-            { label: "Bugungi dars", value: groupLessons.filter(l => l.date === new Date().toISOString().slice(0, 10)).length, icon: Calendar },
-            { label: "O'rtacha ko'rish", value: groupLessons.length > 0 ? Math.round(groupLessons.reduce((s, l) => s + l.viewedBy.length, 0) / groupLessons.length) : 0, icon: Eye },
+            { label: 'Jami darslar', value: groupLessons.length, icon: BookOpen, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+            { label: "O'quvchilar", value: groupStudents.length, icon: Users, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+            { label: "Bugungi dars", value: groupLessons.filter(l => l.date === new Date().toISOString().slice(0, 10)).length, icon: Calendar, color: 'text-teal-400', bg: 'bg-teal-400/10' },
+            { label: "O'rtacha ko'rish", value: groupLessons.length > 0 ? Math.round(groupLessons.reduce((s, l) => s + l.viewedBy.length, 0) / groupLessons.length) : 0, icon: Eye, color: 'text-amber-400', bg: 'bg-amber-400/10' },
           ].map((stat, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-4 py-3">
-              <div className="flex items-center gap-2 mb-1">
-                <stat.icon className="h-3.5 w-3.5 text-white/60" />
-                <span className="text-[10px] text-white/60 uppercase tracking-widest font-bold">{stat.label}</span>
+            <div key={i} className="flex items-center gap-3">
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${stat.bg} border border-white/5`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
-              <p className="font-heading font-black text-2xl text-white">{stat.value}</p>
+              <div>
+                <p className="text-xl font-black text-white leading-none mb-1">{stat.value}</p>
+                <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">{stat.label}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -370,12 +369,12 @@ export const Classroom: React.FC = () => {
 
           {groupLessons.length === 0 ? (
             <div className="glass premium-card rounded-2xl p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-slate-150 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center">
                 <BookOpen className="h-8 w-8 text-slate-600 dark:text-slate-400" />
               </div>
               <p className="text-slate-700 dark:text-slate-300 text-sm font-medium">Hali dars yuklanmagan</p>
               {isTeacher && (
-                <button onClick={handleOpenForm} className="mt-3 text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                <button onClick={handleOpenForm} className="mt-3 text-sm text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
                   + Birinchi darsni yuklang
                 </button>
               )}
@@ -395,16 +394,16 @@ export const Classroom: React.FC = () => {
                     onClick={() => setSelectedLesson(lesson)}
                     className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border group ${
                       isSelected
-                        ? 'bg-indigo-50/80 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-500/40 shadow-lg premium-glow-brand'
-                        : 'glass border-white/40 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-500/20 hover:shadow-md'
+                        ? 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-500/40 shadow-lg premium-glow-brand'
+                        : 'glass border-white/40 dark:border-white/5 hover:border-emerald-200 dark:hover:border-emerald-500/20 hover:shadow-md'
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Lesson number badge */}
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-heading font-black text-sm ${
                         isSelected
-                          ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
-                          : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                          : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                       }`}>
                         #{lesson.lessonNumber}
                       </div>
@@ -415,7 +414,7 @@ export const Classroom: React.FC = () => {
                           )}
                           <span className="text-[10px] text-slate-400 font-semibold">{formatDate(lesson.date)}</span>
                         </div>
-                        <p className={`text-sm font-bold leading-snug truncate ${isSelected ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-800 dark:text-white'}`}>
+                        <p className={`text-sm font-bold leading-snug truncate ${isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-white'}`}>
                           {lesson.topic}
                         </p>
                         <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 line-clamp-1">{lesson.description}</p>
@@ -443,23 +442,29 @@ export const Classroom: React.FC = () => {
         <div className="flex-1 min-w-0">
           {!selectedLesson ? (
             <div className="glass premium-card rounded-3xl p-16 text-center flex flex-col items-center justify-center min-h-[400px]">
-              <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl flex items-center justify-center mb-4">
-                <Video className="h-10 w-10 text-indigo-600 dark:text-indigo-450" />
+              <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center mb-4">
+                <Video className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h3 className="font-heading font-bold text-lg text-slate-800 dark:text-slate-200">Darsni tanlang</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Chapdan darsni bosing — bu yerda video va ma'lumotlar ko'rinadi</p>
             </div>
           ) : (
             <div className="space-y-5">
-              {/* Video Player */}
-              <div className="glass premium-card rounded-3xl overflow-hidden shadow-2xl premium-card-shadow">
-                <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
-                  {selectedLesson.videoUrl ? (
-                    selectedLesson.videoType === 'youtube' ? (
+              {/* Video Player (Only shown if teacher uploaded a video) */}
+              {selectedLesson.videoUrl ? (
+                <div className="relative group rounded-3xl p-1 bg-gradient-to-r from-emerald-500 via-emerald-500 to-pink-500 shadow-2xl shadow-emerald-500/20 transition-all duration-300">
+                  <div className="relative bg-slate-950 rounded-[22px] overflow-hidden shadow-inner" style={{ aspectRatio: '16/9' }}>
+                    <div className="absolute top-3.5 left-3.5 z-10 bg-black/70 backdrop-blur-md border border-white/15 px-3.5 py-1.5 rounded-full flex items-center gap-2.5 pointer-events-none opacity-90 group-hover:opacity-100 transition-opacity shadow-lg">
+                      <Video className="w-4 h-4 text-emerald-400 animate-pulse" />
+                      <span className="text-xs font-extrabold text-white tracking-wide">
+                        {selectedLesson.videoType === 'youtube' ? 'YouTube Video Dars' : 'Video Yozuv'}
+                      </span>
+                    </div>
+                    {selectedLesson.videoType === 'youtube' ? (
                       <iframe
                         src={getYouTubeEmbedUrl(selectedLesson.videoUrl)}
                         title={selectedLesson.topic}
-                        className="w-full h-full absolute inset-0"
+                        className="w-full h-full absolute inset-0 rounded-[22px]"
                         allowFullScreen
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       />
@@ -467,33 +472,26 @@ export const Classroom: React.FC = () => {
                       <video
                         src={selectedLesson.videoUrl}
                         controls
-                        className="w-full h-full absolute inset-0 object-cover"
+                        className="w-full h-full absolute inset-0 object-cover rounded-[22px]"
                       />
-                    )
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <Play className="h-16 w-16 text-white/30 mx-auto mb-3" />
-                        <p className="text-white/40 text-sm">Video yuklanmagan</p>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               {/* Lesson Info Card */}
               <div className="glass premium-card rounded-3xl p-6 md:p-8 space-y-5 premium-card-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-xs font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-lg">
+                      <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-lg">
                         #{selectedLesson.lessonNumber}-dars
                       </span>
                       <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {formatDate(selectedLesson.date)}
                       </span>
-                      <span className="text-xs font-semibold bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                      <span className="text-xs font-semibold bg-teal-100 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 px-2.5 py-1 rounded-lg flex items-center gap-1">
                         <Users className="h-3 w-3" />
                         {selectedGroupName}
                       </span>
@@ -528,7 +526,7 @@ export const Classroom: React.FC = () => {
                 {/* Description */}
                 <div className="bg-slate-50 dark:bg-slate-800/30 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-4 w-4 text-indigo-500" />
+                    <FileText className="h-4 w-4 text-emerald-500" />
                     <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300">Dars haqida</h4>
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
@@ -536,8 +534,8 @@ export const Classroom: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Student view button */}
-                {!isTeacher && (
+                {/* Student view button (Only shown if video exists) */}
+                {!isTeacher && selectedLesson.videoUrl && (
                   <button
                     onClick={() => handleMarkViewed(selectedLesson.id)}
                     disabled={selectedLesson.viewedBy.includes(currentUser.studentId || currentUser.id)}
@@ -555,12 +553,12 @@ export const Classroom: React.FC = () => {
                   </button>
                 )}
 
-                {/* ─── Student Viewing Stats (Teacher only) ─── */}
-                {isTeacher && groupStudents.length > 0 && (
+                {/* ─── Student Viewing Stats (Teacher only, when video exists) ─── */}
+                {isTeacher && selectedLesson.videoUrl && groupStudents.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-indigo-500" />
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
                         <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300">O'quvchilar monitoringi</h4>
                       </div>
                       <div className="flex items-center gap-3 text-xs">
@@ -631,7 +629,17 @@ export const Classroom: React.FC = () => {
 
               {/* ──────────────── Darsdagi topshiriq (In-class Assignment) ──────────────── */}
               {(() => {
-                const activeTask = tasks.find(t => t.lessonId === selectedLesson.id);
+                const storedTask = tasks.find(t => t.lessonId === selectedLesson.id);
+                const activeTask = storedTask || {
+                  id: `lesson_task_${selectedLesson.id}`,
+                  lessonId: selectedLesson.id,
+                  groupId: selectedLesson.groupId,
+                  title: `${selectedLesson.topic} (Dars vazifasi)`,
+                  description: selectedLesson.description || "Ushbu dars bo'yicha amaliy topshiriqni bajaring va kod (yoki fayl) shaklida tizimga yuklang.",
+                  createdAt: selectedLesson.createdAt || new Date().toISOString(),
+                  durationMinutes: 45,
+                  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                };
                 
                 // Applied Premium Glow & Card Shadow Styles
                 // - Added premium-glow-brand for active lesson sidebar items.
@@ -658,50 +666,42 @@ export const Classroom: React.FC = () => {
                       )}
                     </div>
 
-                    {!activeTask ? (
-                      // No Active Task
-                      <div className="text-center py-8">
-                        <Award className="w-12 h-12 text-slate-350 dark:text-slate-650 mx-auto mb-3" />
-                        <h4 className="font-bold text-slate-700 dark:text-slate-300">Ushbu darsda hali topshiriq berilmagan</h4>
-                        <p className="text-slate-400 text-xs mt-1 max-w-sm mx-auto">
-                          Ustoz dars davomida o'quvchilar bilimini sinash uchun tezkor vazifa yaratishi mumkin.
-                        </p>
-                        {isTeacher && (
-                          <button
-                            onClick={() => {
-                              setAddTaskTitle(`${selectedLesson.topic} darsdagi topshiriq`);
-                              setAddTaskDesc("Berilgan topshiriq shartlarini yozing...");
-                              setAddTaskDuration(30);
-                              setShowAddTaskModal(true);
-                            }}
-                            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
-                          >
-                            <Plus className="w-4 h-4" />
-                            <span>Topshiriq yaratish</span>
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      // Active Task Details
-                      <div className="space-y-6">
-                        <div className="bg-slate-50 dark:bg-slate-800/30 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-black text-base text-slate-800 dark:text-white">{activeTask.title}</h4>
-                            {isTeacher && (
-                              <button
-                                onClick={() => {
-                                  if (window.confirm("Ushbu topshiriqni va unga tegishli barcha javoblarni o'chirmoqchimisiz?")) {
-                                    deleteInClassTask(activeTask.id);
-                                    addToast({ type: 'info', message: "Topshiriq o'chirildi." });
-                                  }
-                                }}
-                                className="text-xs text-rose-500 hover:underline font-bold flex items-center gap-1"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" /> O'chirish
-                              </button>
-                            )}
-                          </div>
-                          <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed whitespace-pre-line">
+                    {/* Active Task Details */}
+                    <div className="space-y-6">
+                      <div className="bg-slate-50 dark:bg-slate-800/30 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-black text-base text-slate-800 dark:text-white">{activeTask.title}</h4>
+                          {isTeacher && (
+                            <div className="flex items-center gap-3">
+                              {!storedTask ? (
+                                <button
+                                  onClick={() => {
+                                    setAddTaskTitle(`${selectedLesson.topic} darsdagi topshiriq`);
+                                    setAddTaskDesc(selectedLesson.description || "Berilgan topshiriq shartlarini yozing...");
+                                    setAddTaskDuration(30);
+                                    setShowAddTaskModal(true);
+                                  }}
+                                  className="text-xs text-emerald-500 hover:underline font-bold flex items-center gap-1"
+                                >
+                                  <Plus className="w-3.5 h-3.5" /> Maxsus vaqt/shart sozlash
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm("Ushbu topshiriqni va unga tegishli barcha javoblarni o'chirmoqchimisiz?")) {
+                                      deleteInClassTask(storedTask.id);
+                                      addToast({ type: 'info', message: "Topshiriq o'chirildi." });
+                                    }
+                                  }}
+                                  className="text-xs text-rose-500 hover:underline font-bold flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> O'chirish
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                             {activeTask.description}
                           </p>
                           <div className="flex gap-4 text-xs font-semibold text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -760,7 +760,7 @@ export const Classroom: React.FC = () => {
                                                   setGradeScorePercent(sub.grade || 0);
                                                   setGradeInClassFeedback(sub.feedback || '');
                                                 }}
-                                                className="text-xs text-indigo-600 hover:underline font-bold px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
+                                                className="text-xs text-emerald-600 hover:underline font-bold px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
                                               >
                                                 Ko'rish
                                               </button>
@@ -772,7 +772,7 @@ export const Classroom: React.FC = () => {
                                                 setGradeScorePercent(100);
                                                 setGradeInClassFeedback("Ajoyib yechim!");
                                               }}
-                                              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-md shadow-indigo-600/10 active:scale-95"
+                                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-md shadow-emerald-600/10 active:scale-95"
                                             >
                                               Baholash
                                             </button>
@@ -793,9 +793,9 @@ export const Classroom: React.FC = () => {
                             {mySubmission ? (
                               // Student already submitted
                               <div className="space-y-4">
-                                <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-150 dark:border-indigo-800/40">
-                                  <h5 className="font-bold text-sm text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
-                                    <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                                <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40">
+                                  <h5 className="font-bold text-sm text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                     Topshiriq muvaffaqiyatli yuborildi!
                                   </h5>
                                   <p className="text-xs text-slate-500 mt-1">
@@ -803,7 +803,7 @@ export const Classroom: React.FC = () => {
                                   </p>
 
                                   {mySubmission.status === 'graded' ? (
-                                    <div className="mt-3.5 pt-3.5 border-t border-indigo-100 dark:border-indigo-900/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="mt-3.5 pt-3.5 border-t border-emerald-100 dark:border-emerald-900/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                       <div className="space-y-1">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Olingan baho</p>
                                         <div className="flex items-center gap-2">
@@ -817,7 +817,7 @@ export const Classroom: React.FC = () => {
                                       </div>
                                       <div className="space-y-1">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ustoz izohi</p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-350 italic">
+                                        <p className="text-xs text-slate-600 dark:text-slate-300 italic">
                                           "{mySubmission.feedback || 'Izoh qoldirilmagan.'}"
                                         </p>
                                       </div>
@@ -848,42 +848,27 @@ export const Classroom: React.FC = () => {
                                 <p className="text-xs text-slate-500 mt-1">Siz topshiriqni belgilangan vaqt ichida yuborishga ulgurmadingiz.</p>
                               </div>
                             ) : (
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kodingizni yozing (JavaScript)</label>
-                                    <span className="text-[10px] text-indigo-500 font-bold">Avtomat saqlanadi</span>
-                                  </div>
-                                  <div className="h-80 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-                                    <CodeEditor
-                                      initialCode={studentCodeInput}
-                                      initialLanguage="javascript"
-                                      onChange={(code) => setStudentCodeInput(code)}
-                                    />
-                                  </div>
-                                </div>
-
-                                <button
-                                  onClick={() => {
-                                    if (!studentCodeInput.trim() || studentCodeInput.includes("O'quvchi kodi...")) {
-                                      addToast({ type: 'error', message: "Iltimos, avval kod yozing!" });
-                                      return;
-                                    }
-                                    submitTask(activeTask.id, studentId, currentUser.name, studentCodeInput);
+                              <div className="space-y-4 pt-2">
+                                <SubmissionForm
+                                  onSubmit={(data) => {
+                                    submitTask(activeTask.id, {
+                                      studentId,
+                                      studentName: currentUser.name || "O'quvchi",
+                                      type: data.type,
+                                      code: data.code,
+                                      language: data.language,
+                                      fileUrl: data.fileUrl,
+                                      fileName: data.fileName,
+                                    });
                                     addToast({ type: 'success', message: "✅ Javobingiz muvaffaqiyatli topshirildi!" });
                                   }}
-                                  className="w-full py-3 bg-rose-650 hover:bg-rose-700 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/15 flex items-center justify-center gap-2"
-                                >
-                                  <Send className="w-4 h-4" />
-                                  <span>Topshiriqni Yuborish</span>
-                                </button>
+                                />
                               </div>
                             )}
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </div>
                 );
               })()}
 
@@ -900,7 +885,7 @@ export const Classroom: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/15 rounded-xl">
@@ -929,7 +914,7 @@ export const Classroom: React.FC = () => {
                     type="date"
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                     required
                   />
                 </div>
@@ -943,7 +928,7 @@ export const Classroom: React.FC = () => {
                     min={1}
                     value={formLessonNum}
                     onChange={(e) => setFormLessonNum(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                     required
                   />
                 </div>
@@ -957,7 +942,7 @@ export const Classroom: React.FC = () => {
                 <select
                   value={formGroupId}
                   onChange={(e) => setFormGroupId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   required
                 >
                   {groups.map((g) => (
@@ -976,7 +961,7 @@ export const Classroom: React.FC = () => {
                   value={formTopic}
                   onChange={(e) => setFormTopic(e.target.value)}
                   placeholder="Masalan: React Hooks — useState"
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   required
                 />
               </div>
@@ -991,14 +976,14 @@ export const Classroom: React.FC = () => {
                   onChange={(e) => setFormDesc(e.target.value)}
                   placeholder="Darsda nimalar o'rgatildi..."
                   rows={3}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"
                 />
               </div>
 
               {/* Video URL or File */}
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                  <Video className="h-3.5 w-3.5" /> Video yuklash yoki URL
+                  <Video className="h-3.5 w-3.5 text-emerald-500" /> Video yuklash yoki URL <span className="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Ixtiyoriy - shart emas)</span>
                 </label>
                 <div className="space-y-3">
                   <input
@@ -1010,7 +995,7 @@ export const Classroom: React.FC = () => {
                         setFormVideoUrl(''); // clear url if file selected
                       }
                     }}
-                    className="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 dark:hover:file:bg-indigo-900/50 transition-all border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-white dark:bg-slate-800"
+                    className="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-emerald-50 file:text-emerald-600 hover:file:bg-emerald-100 dark:file:bg-emerald-900/30 dark:file:text-emerald-400 dark:hover:file:bg-emerald-900/50 transition-all border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-white dark:bg-slate-800"
                   />
                   <div className="flex items-center gap-2">
                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
@@ -1025,7 +1010,7 @@ export const Classroom: React.FC = () => {
                        if (e.target.value) setFormVideoFile(null); // clear file if url entered
                     }}
                     placeholder="Masalan: https://youtube.com/watch?v=..."
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   />
                 </div>
                 
@@ -1053,7 +1038,7 @@ export const Classroom: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <Send className="h-4 w-4" />
                   {editingLesson ? 'Yangilash' : 'Yuklash'}
@@ -1071,7 +1056,7 @@ export const Classroom: React.FC = () => {
             className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-200 dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-indigo-600 to-violet-650 px-6 py-5 text-white">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/15 rounded-xl">
@@ -1105,9 +1090,9 @@ export const Classroom: React.FC = () => {
                     
                     // Filter lessons for this group
                     const groupLessons = lessons.filter(l => l.groupId === firstGroupId);
-                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                    setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
                   }}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Kursni tanlang</option>
@@ -1128,9 +1113,9 @@ export const Classroom: React.FC = () => {
                     
                     // Filter lessons for this group
                     const groupLessons = lessons.filter(l => l.groupId === gid);
-                    setTaskFormLessonId(groupLessons[0]?.id || '');
+                    setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
                   }}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Guruhni tanlang</option>
@@ -1146,10 +1131,11 @@ export const Classroom: React.FC = () => {
                 <select
                   value={taskFormLessonId}
                   onChange={(e) => setTaskFormLessonId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Darsni tanlang</option>
+                  <option value="live_today">🟢 Jonli amaliy dars (Avtomatik dars yaratish)</option>
                   {lessons.filter(l => l.groupId === taskFormGroupId).map(l => (
                     <option key={l.id} value={l.id}>#{l.lessonNumber}-dars: {l.topic}</option>
                   ))}
@@ -1162,7 +1148,7 @@ export const Classroom: React.FC = () => {
                   type="text"
                   value={addTaskTitle}
                   onChange={(e) => setAddTaskTitle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                   required
                 />
               </div>
@@ -1173,7 +1159,7 @@ export const Classroom: React.FC = () => {
                   value={addTaskDesc}
                   onChange={(e) => setAddTaskDesc(e.target.value)}
                   rows={4}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
                   required
                 />
               </div>
@@ -1183,7 +1169,7 @@ export const Classroom: React.FC = () => {
                 <select
                   value={addTaskDuration}
                   onChange={(e) => setAddTaskDuration(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 >
                   <option value={10}>10 daqiqa</option>
                   <option value={15}>15 daqiqa</option>
@@ -1205,16 +1191,30 @@ export const Classroom: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!taskFormLessonId) {
-                      addToast({ type: 'error', message: "Ushbu guruhda hali biror dars yaratilmagan! Iltimos, avval dars yuklang." });
-                      return;
-                    }
                     if (!addTaskTitle.trim() || !addTaskDesc.trim()) {
                       addToast({ type: 'error', message: "Barcha maydonlarni to'ldiring!" });
                       return;
                     }
+
+                    let targetLessonId = taskFormLessonId || 'live_today';
+                    if (targetLessonId === 'live_today' || !lessons.some(l => l.id === targetLessonId)) {
+                      const newLsnId = crypto.randomUUID();
+                      addLesson({
+                        id: newLsnId,
+                        groupId: taskFormGroupId,
+                        lessonNumber: lessons.filter(l => l.groupId === taskFormGroupId).length + 1,
+                        topic: `${new Date().toLocaleDateString('uz-UZ')} - Jonli dars topshirig'i`,
+                        date: new Date().toISOString().slice(0, 10),
+                        videoUrl: '',
+                        materialUrl: '',
+                        description: addTaskDesc || "Jonli dars davomida berilgan amaliy topshiriq",
+                        viewedBy: []
+                      });
+                      targetLessonId = newLsnId;
+                    }
+
                     addTask({
-                      lessonId: taskFormLessonId,
+                      lessonId: targetLessonId,
                       groupId: taskFormGroupId,
                       title: addTaskTitle,
                       description: addTaskDesc,
@@ -1223,13 +1223,13 @@ export const Classroom: React.FC = () => {
                     
                     // Auto select the group and lesson in the view to see the countdown
                     setSelectedGroupId(taskFormGroupId);
-                    const targetLsn = lessons.find(l => l.id === taskFormLessonId);
+                    const targetLsn = useClassroomStore.getState().lessons.find(l => l.id === targetLessonId);
                     if (targetLsn) setSelectedLesson(targetLsn);
                     
                     addToast({ type: 'success', message: "✅ Darsdagi topshiriq muvaffaqiyatli yuborildi!" });
                     setShowAddTaskModal(false);
                   }}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-550 hover:to-violet-550 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <Send className="h-4 w-4" />
                   <span>Yuborish</span>
@@ -1246,8 +1246,8 @@ export const Classroom: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-300">
             {/* Header */}
             <div className="flex items-center gap-4 p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
-                <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="font-heading font-bold text-lg text-slate-800 dark:text-white">
@@ -1263,18 +1263,32 @@ export const Classroom: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-              {/* Left: Code submissions preview */}
+              {/* Left: Code or File submissions preview */}
               <div className="flex-[2] border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#1a1a2e]">
                 <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase shrink-0">
                   <Code className="h-3.5 w-3.5" />
-                  O'quvchi kodi (JavaScript)
+                  O'quvchi javobi ({selectedSubToGrade.language || selectedSubToGrade.type || 'kod'})
                 </div>
-                <div className="flex-1 overflow-hidden">
-                  <CodeEditor
-                    initialCode={selectedSubToGrade.code}
-                    initialLanguage="javascript"
-                    readOnly={true}
-                  />
+                <div className="flex-1 overflow-hidden p-4">
+                  {selectedSubToGrade.type === 'file' ? (
+                    <div className="flex-1 h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 bg-white dark:bg-slate-900">
+                      <FileText className="w-16 h-16 text-emerald-400 mb-3" />
+                      <p className="text-slate-700 dark:text-slate-200 font-bold text-base">{selectedSubToGrade.fileName || 'Yuklangan fayl'}</p>
+                      <a 
+                        href={selectedSubToGrade.fileUrl || '#'} 
+                        download={selectedSubToGrade.fileName || 'fayl'} 
+                        className="mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg transition-all"
+                      >
+                        Faylni Yuklab Olish
+                      </a>
+                    </div>
+                  ) : (
+                    <CodeEditor
+                      initialCode={selectedSubToGrade.code}
+                      initialLanguage={selectedSubToGrade.language || 'javascript'}
+                      readOnly={true}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -1285,14 +1299,14 @@ export const Classroom: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Baho (0-100%)</label>
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-800/50 flex flex-col items-center justify-center">
-                      <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-2">{gradeScorePercent}%</span>
+                      <span className="text-4xl font-black text-emerald-600 dark:text-emerald-400 mb-2">{gradeScorePercent}%</span>
                       <input
                         type="range"
                         min="0"
                         max="100"
                         value={gradeScorePercent}
                         onChange={(e) => setGradeScorePercent(Number(e.target.value))}
-                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-400"
+                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-600 dark:accent-emerald-400"
                       />
                       <div className="flex justify-between w-full text-[10px] text-slate-400 mt-2 font-bold">
                         <span>0%</span>
@@ -1303,7 +1317,7 @@ export const Classroom: React.FC = () => {
                   </div>
 
                   {/* Coin preview */}
-                  <div className="p-4 rounded-2xl bg-amber-550/10 border border-amber-550/25 flex items-center gap-3">
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-bold text-lg">
                       🪙
                     </div>
@@ -1323,7 +1337,7 @@ export const Classroom: React.FC = () => {
                       onChange={(e) => setGradeInClassFeedback(e.target.value)}
                       placeholder="Kod yechimini yaxshilash uchun maslahat bering..."
                       rows={4}
-                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-xs text-slate-850 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3.5 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
                     />
                   </div>
                 </div>
@@ -1332,7 +1346,7 @@ export const Classroom: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedSubToGrade(null)}
-                    className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                   >
                     Bekor qilish
                   </button>
@@ -1346,12 +1360,11 @@ export const Classroom: React.FC = () => {
                       // Update Store
                       gradeInClassSub(selectedSubToGrade.id, gradeScorePercent, gradeInClassFeedback, coins);
 
-                      // Update Student Coins
-                      const targetStudent = students.find(s => s.id === selectedSubToGrade.studentId);
-                      if (targetStudent) {
-                        updateStudent(targetStudent.id, { coins: (targetStudent.coins || 0) + coins });
-                        
-                        if (coins > 0) {
+                      // Update Student Coins if not awarded previously
+                      if (coins > 0 && (!selectedSubToGrade.coinsAwarded || selectedSubToGrade.coinsAwarded === 0)) {
+                        const targetStudent = students.find(s => s.id === selectedSubToGrade.studentId || `u_${s.id}` === selectedSubToGrade.studentId || s.id === selectedSubToGrade.studentId.replace('u_', ''));
+                        if (targetStudent) {
+                          updateStudent(targetStudent.id, { coins: (targetStudent.coins || 0) + coins });
                           sendCoins(
                             currentUser.id,
                             currentUser.name,

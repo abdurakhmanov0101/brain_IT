@@ -164,7 +164,7 @@ export const FaceIDAttendance: React.FC = () => {
 
   const cornerColor = phase === 'detected'
     ? (detectedStatus === 'present' ? 'border-emerald-400' : detectedStatus === 'late' ? 'border-amber-400' : 'border-red-400')
-    : 'border-indigo-400';
+    : 'border-emerald-400';
   const statusColor = detectedStatus === 'present' ? 'border-emerald-500 bg-emerald-500/10'
     : detectedStatus === 'late' ? 'border-amber-500 bg-amber-500/10' : 'border-red-500 bg-red-500/10';
 
@@ -181,7 +181,7 @@ export const FaceIDAttendance: React.FC = () => {
         <div className="flex gap-2">
           {(['scan', 'register'] as const).map((t) => (
             <button key={t} onClick={() => { stopCamera(); setTab(t); }}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
               {t === 'scan' ? <span className="flex items-center gap-1.5"><Scan className="h-3.5 w-3.5" /> Skanlaish</span>
                 : <span className="flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Ro'yxatdan o'tkazish</span>}
             </button>
@@ -195,7 +195,7 @@ export const FaceIDAttendance: React.FC = () => {
           {/* Camera Panel */}
           <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col">
             <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
-              <Camera className="h-4 w-4 text-indigo-400" />
+              <Camera className="h-4 w-4 text-emerald-400" />
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kamera oynasi</span>
               <div className="ml-auto flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${phase === 'scanning' ? 'bg-red-500 animate-pulse' : cameraOn ? 'bg-emerald-500' : 'bg-slate-600'}`} />
@@ -219,7 +219,7 @@ export const FaceIDAttendance: React.FC = () => {
                   {phase === 'error' ? (
                     <><CameraOff className="h-12 w-12 text-red-500/60" /><p className="text-xs text-red-400 text-center px-6 leading-relaxed">{camError}</p></>
                   ) : phase === 'loading' ? (
-                    <><div className="h-10 w-10 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" /><p className="text-xs text-slate-400">Kamera ochilmoqda...</p></>
+                    <><div className="h-10 w-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" /><p className="text-xs text-slate-400">Kamera ochilmoqda...</p></>
                   ) : (
                     <><CameraOff className="h-12 w-12 text-slate-700" /><p className="text-xs text-slate-500">Kamerani yoqish uchun bosing</p></>
                   )}
@@ -283,14 +283,14 @@ export const FaceIDAttendance: React.FC = () => {
               )}
               {!cameraOn ? (
                 <button onClick={() => startCamera(false)} disabled={phase === 'loading'}
-                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
                   <Camera className="h-4 w-4" />
                   {phase === 'loading' ? 'Ochilmoqda...' : 'Kamerani Yoqish'}
                 </button>
               ) : (
                 <div className="flex gap-2">
                   <button onClick={handleScan} disabled={phase === 'scanning'}
-                    className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
                     <Scan className="h-4 w-4" />
                     {phase === 'scanning' ? 'Skanlanmoqda...' : 'Yuz skanlash'}
                   </button>
@@ -328,7 +328,7 @@ export const FaceIDAttendance: React.FC = () => {
                 <div className="flex gap-2">
                   {(['all', 'student', 'staff'] as const).map((f) => (
                     <button key={f} onClick={() => setFilter(f)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === f ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                       {f === 'all' ? 'Barchasi' : f === 'student' ? 'Talabalar' : 'Xodimlar'}
                     </button>
                   ))}
@@ -364,7 +364,7 @@ export const FaceIDAttendance: React.FC = () => {
           {/* Registration form */}
           <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 space-y-5">
             <h2 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-indigo-500" /> Yuz Ro'yxatdan O'tkazish
+              <UserPlus className="h-5 w-5 text-emerald-500" /> Yuz Ro'yxatdan O'tkazish
             </h2>
 
             {/* Person type */}
@@ -373,7 +373,7 @@ export const FaceIDAttendance: React.FC = () => {
               <div className="flex gap-2">
                 {(['student', 'teacher'] as const).map((t) => (
                   <button key={t} onClick={() => { setPersonType(t); setSelectedPersonId(''); setCapturedPhoto(''); stopStream(); setRegCamOn(false); }}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${personType === t ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${personType === t ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                     {t === 'student' ? "O'quvchi" : 'Ustoz'}
                   </button>
                 ))}
@@ -386,7 +386,7 @@ export const FaceIDAttendance: React.FC = () => {
                 {personType === 'student' ? "O'quvchini tanlang" : 'Ustozni tanlang'}
               </label>
               <select value={selectedPersonId} onChange={(e) => { setSelectedPersonId(e.target.value); setCapturedPhoto(''); stopStream(); setRegCamOn(false); }}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <option value="">— tanlang —</option>
                 {personList.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -448,7 +448,7 @@ export const FaceIDAttendance: React.FC = () => {
                 ) : (
                   <>
                     <button onClick={capturePhoto}
-                      className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+                      className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
                       <Camera className="h-4 w-4" /> Rasm ol
                     </button>
                     <button onClick={() => { stopStream(); setRegCamOn(false); }}
@@ -472,9 +472,9 @@ export const FaceIDAttendance: React.FC = () => {
           <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-dark-border flex items-center justify-between">
               <h3 className="font-semibold text-slate-800 dark:text-white text-sm flex items-center gap-2">
-                <Users className="h-4 w-4 text-indigo-500" /> Ro'yxatga olinganlar
+                <Users className="h-4 w-4 text-emerald-500" /> Ro'yxatga olinganlar
               </h3>
-              <span className="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 px-2.5 py-1 rounded-full">
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-full">
                 {faces.length} ta
               </span>
             </div>
@@ -489,7 +489,7 @@ export const FaceIDAttendance: React.FC = () => {
                 <div key={f.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   {/* Face photo captured */}
                   <div className="relative shrink-0">
-                    <img src={f.facePhoto} alt={f.personName} className="h-12 w-12 rounded-full object-cover border-2 border-indigo-300 dark:border-indigo-700" />
+                    <img src={f.facePhoto} alt={f.personName} className="h-12 w-12 rounded-full object-cover border-2 border-emerald-300 dark:border-emerald-700" />
                     <img src={f.personPhoto} alt="" className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full object-cover border border-white dark:border-dark-card" />
                   </div>
                   <div className="flex-1 min-w-0">

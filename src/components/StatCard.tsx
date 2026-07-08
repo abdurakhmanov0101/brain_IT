@@ -11,10 +11,10 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon: Icon, iconColor = 'text-indigo-600 dark:text-indigo-400', trend, onClick }) => (
+export const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon: Icon, iconColor = 'text-emerald-600 dark:text-emerald-400', trend, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 space-y-3 ${onClick ? 'cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-600 transition-all hover:shadow-md' : ''}`}
+    className={`bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 space-y-3 ${onClick ? 'cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover:shadow-md' : ''}`}
   >
     <div className="flex items-start justify-between">
       <div className="space-y-1">

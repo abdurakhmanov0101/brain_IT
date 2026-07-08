@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Plus, Check, Trash2, Edit3, Lock, Users, CheckSquare, Square, AlertCircle, Info } from 'lucide-react';
+import { Shield, Plus, Check, Trash2, Edit3, Lock, Users, CheckSquare, Square, AlertCircle, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRoleStore, ALL_PERMISSIONS, type Role } from '../../stores/roleStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Modal } from '../../components/Modal';
@@ -9,6 +9,7 @@ export const RolesPage: React.FC = () => {
   const { addToast } = useUIStore();
 
   const [selectedRoleId, setSelectedRoleId] = useState<string>(roles[0]?.id || 'r_superadmin');
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [addOpen, setAddOpen] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleDesc, setNewRoleDesc] = useState('');
@@ -79,9 +80,9 @@ export const RolesPage: React.FC = () => {
   return (
     <div className="space-y-6 page-enter">
       {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-700 via-indigo-700 to-slate-900 p-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-emerald-700 to-slate-900 p-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/30 border border-purple-400/30 text-purple-200 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/30 text-emerald-200 text-xs font-bold uppercase tracking-wider">
             <Shield className="h-3.5 w-3.5" /> Super Admin Boshqaruvi
           </div>
           <h1 className="font-heading font-black text-3xl lg:text-4xl">Rollar va Huquqlar paneli</h1>
@@ -92,7 +93,7 @@ export const RolesPage: React.FC = () => {
         </div>
         <button
           onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-indigo-700 font-bold text-sm hover:bg-white/90 rounded-2xl transition-all shadow-lg active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-emerald-700 font-bold text-sm hover:bg-white/90 rounded-2xl transition-all shadow-lg active:scale-95 shrink-0"
         >
           <Plus className="h-5 w-5" /> Yangi rol qo'shish
         </button>
@@ -103,7 +104,7 @@ export const RolesPage: React.FC = () => {
         <div className="lg:col-span-1 space-y-3">
           <div className="flex items-center justify-between px-2 mb-1">
             <h3 className="font-heading font-bold text-base text-slate-800 dark:text-white flex items-center gap-2">
-              <Users className="h-4 w-4 text-indigo-500" /> Tizim rollari ({roles.length})
+              <Users className="h-4 w-4 text-emerald-500" /> Tizim rollari ({roles.length})
             </h3>
             <span className="text-xs text-slate-400">Lavozimni tanlang</span>
           </div>
@@ -121,8 +122,8 @@ export const RolesPage: React.FC = () => {
                   onClick={() => setSelectedRoleId(role.id)}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative ${
                     isSelected
-                      ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-600 dark:border-indigo-500 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-slate-600'
+                      ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-600 dark:border-emerald-500 shadow-md'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-slate-600'
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -153,7 +154,7 @@ export const RolesPage: React.FC = () => {
 
                   {/* Progress bar of permissions */}
                   <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                       Huquqlar: {permCount} / {totalPerms} ({pct}%)
                     </span>
                     <span className="text-slate-400 flex items-center gap-1">
@@ -175,7 +176,7 @@ export const RolesPage: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-heading font-black text-2xl text-slate-900 dark:text-white">
-                      {selectedRole.name} <span className="text-indigo-600 dark:text-indigo-400 font-normal text-lg">huquqlari</span>
+                      {selectedRole.name} <span className="text-emerald-600 dark:text-emerald-400 font-normal text-lg">huquqlari</span>
                     </h2>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -197,66 +198,76 @@ export const RolesPage: React.FC = () => {
                   const perms = ALL_PERMISSIONS.filter(p => p.category === cat);
                   const allSelected = perms.every(p => selectedRole.permissions.includes(p.id));
 
-                  return (
-                    <div key={cat} className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/60">
-                      {/* Category Header */}
-                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">
-                        <h4 className="font-bold text-base text-slate-800 dark:text-white flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400 inline-block" />
-                          {cat}
-                        </h4>
+                    const isCollapsed = collapsedCategories[cat] ?? false;
 
-                        {selectedRole.name !== 'Super Admin' && (
+                    return (
+                      <div key={cat} className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/60 transition-all">
+                        {/* Category Header */}
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
                           <button
-                            onClick={() => handleSelectCategoryAll(cat, !allSelected)}
-                            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1.5"
+                            type="button"
+                            onClick={() => setCollapsedCategories(s => ({ ...s, [cat]: !s[cat] }))}
+                            className="font-bold text-base text-slate-800 dark:text-white flex items-center gap-2.5 hover:text-emerald-600 transition-colors"
                           >
-                            {allSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                            {allSelected ? "Barchasini olib tashlash" : "Barchasini tanlash"}
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400 inline-block" />
+                            <span>{cat} ({perms.filter(p => selectedRole.permissions.includes(p.id)).length}/{perms.length})</span>
+                            {isCollapsed ? <ChevronDown className="h-4 w-4 text-slate-400" /> : <ChevronUp className="h-4 w-4 text-slate-400" />}
                           </button>
+
+                          {selectedRole.name !== 'Super Admin' && (
+                            <button
+                              type="button"
+                              onClick={() => handleSelectCategoryAll(cat, !allSelected)}
+                              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5"
+                            >
+                              {allSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                              {allSelected ? "Barchasini olib tashlash" : "Barchasini tanlash"}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Checkboxes grid (Accordion Collapsible) */}
+                        {!isCollapsed && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                            {perms.map(perm => {
+                              const isChecked = selectedRole.permissions.includes(perm.id);
+                              const isDisabled = selectedRole.name === 'Super Admin';
+
+                              return (
+                                <label
+                                  key={perm.id}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!isDisabled) handleTogglePermission(perm.id);
+                                  }}
+                                  className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
+                                    isChecked
+                                      ? 'bg-white dark:bg-slate-800 border-emerald-500 dark:border-emerald-500 shadow-sm'
+                                      : 'bg-white/50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 opacity-60 hover:opacity-100'
+                                  } ${isDisabled ? 'cursor-not-allowed opacity-90' : ''}`}
+                                >
+                                  <div className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${
+                                    isChecked
+                                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                                      : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700'
+                                  }`}>
+                                    {isChecked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className={`text-sm font-bold leading-tight ${isChecked ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                                      {perm.label}
+                                    </p>
+                                    <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                      ID: {perm.id}
+                                    </p>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
-
-                      {/* Checkboxes grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {perms.map(perm => {
-                          const isChecked = selectedRole.permissions.includes(perm.id);
-                          const isDisabled = selectedRole.name === 'Super Admin';
-
-                          return (
-                            <label
-                              key={perm.id}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (!isDisabled) handleTogglePermission(perm.id);
-                              }}
-                              className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
-                                isChecked
-                                  ? 'bg-white dark:bg-slate-800 border-indigo-500 dark:border-indigo-500 shadow-sm'
-                                  : 'bg-white/50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 opacity-60 hover:opacity-100'
-                              } ${isDisabled ? 'cursor-not-allowed opacity-90' : ''}`}
-                            >
-                              <div className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${
-                                isChecked
-                                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
-                                  : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700'
-                              }`}>
-                                {isChecked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
-                              </div>
-                              <div className="min-w-0">
-                                <p className={`text-sm font-bold leading-tight ${isChecked ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
-                                  {perm.label}
-                                </p>
-                                <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                  ID: {perm.id}
-                                </p>
-                              </div>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
+                    );
                 })}
               </div>
             </>
@@ -269,7 +280,7 @@ export const RolesPage: React.FC = () => {
       {/* Add Role Modal */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Yangi rol va lavozim qo'shish" size="sm">
         <form onSubmit={handleCreateRole} className="space-y-4">
-          <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-start gap-2.5 text-xs text-indigo-700 dark:text-indigo-300">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-start gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
             <Info className="h-4 w-4 shrink-0 mt-0.5" />
             <span>Lavozim qo'shilganidan so'ng, huquqlar panelidan unga kerakli ptichkalarni qo'yib sozlab chiqing.</span>
           </div>
@@ -282,7 +293,7 @@ export const RolesPage: React.FC = () => {
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
               placeholder="Masalan: Moderator, Kassir, Operator, Assistent..."
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <div>
@@ -294,7 +305,7 @@ export const RolesPage: React.FC = () => {
               value={newRoleDesc}
               onChange={(e) => setNewRoleDesc(e.target.value)}
               placeholder="Tizimda nima ishlarni amalga oshiradi..."
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <div className="flex gap-3 pt-2">
@@ -307,7 +318,7 @@ export const RolesPage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20"
+              className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-lg shadow-emerald-600/20"
             >
               Yaratish
             </button>

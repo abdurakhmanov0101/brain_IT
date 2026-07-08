@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EditorMod from 'react-simple-code-editor';
 const Editor = (EditorMod as unknown as { default: React.ComponentType<any> }).default || EditorMod;
 import Prism from 'prismjs';
@@ -35,6 +35,36 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [exitCode, setExitCode] = useState<number | null>(null);
   const [errorType, setErrorType] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCode(initialCode || '');
+  }, [initialCode]);
+
+  useEffect(() => {
+    setLanguage(initialLanguage || 'python');
+  }, [initialLanguage]);
+
+  const getWebPreviewDoc = (content: string) => {
+    if (!content) return '';
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && (parsed.html !== undefined || parsed.css !== undefined || parsed.js !== undefined)) {
+        return `
+          <!DOCTYPE html>
+          <html>
+            <head><style>body { font-family: system-ui, sans-serif; padding: 12px; margin: 0; color: #333; } ${parsed.css || ''}</style></head>
+            <body>
+              ${parsed.html || '<div style="color:#888; text-align:center; padding: 20px;">Bo\'sh HTML</div>'}
+              <script>${parsed.js || ''}<\/script>
+            </body>
+          </html>
+        `;
+      }
+    } catch (e) {
+      // Not JSON, return raw HTML
+    }
+    return content;
+  };
 
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
@@ -82,15 +112,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const highlightCode = (codeToHighlight: string) => {
-    // Basic mapping for prism grammar
     let grammar = Prism.languages.javascript;
     if (language === 'python') grammar = Prism.languages.python;
     else if (language === 'java') grammar = Prism.languages.java;
     else if (language === 'cpp' || language === 'c') grammar = Prism.languages.cpp;
-    else if (language === 'html') grammar = Prism.languages.html || Prism.languages.javascript;
+    else if (language === 'html' || language === 'web') grammar = Prism.languages.html || Prism.languages.javascript;
     
-    return Prism.highlight(codeToHighlight, grammar, language);
+    return Prism.highlight(codeToHighlight, grammar, (language === 'web' || language === 'html') ? 'html' : language);
   };
+
+  const isWebPreview = language === 'html' || language === 'web';
 
   return (
     <div className="flex flex-col h-full bg-[#1e1e1e] rounded-xl overflow-hidden shadow-xl border border-slate-700">
@@ -101,7 +132,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             value={language}
             onChange={handleLanguageChange}
             disabled={readOnly}
-            className="bg-[#333333] text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:border-indigo-500 disabled:opacity-50 appearance-none"
+            className="bg-[#333333] text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:border-emerald-500 disabled:opacity-50 appearance-none"
           >
             {SUPPORTED_LANGUAGES.map((lang) => (
               <option key={lang.id} value={lang.id}>
@@ -109,21 +140,32 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               </option>
             ))}
           </select>
-          {readOnly && <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">O'qish uchun (Read-only)</span>}
+          {readOnly && (
+            <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-md font-bold border border-amber-500/30">
+              👁️ O'QUVCHI KODI (Read Only)
+            </span>
+          )}
         </div>
         
-        <button
-          onClick={handleRun}
-          disabled={isRunning || !code.trim()}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-600/50 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors"
-        >
-          {isRunning ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Play className="h-4 w-4" />
-          )}
-          Run
-        </button>
+        {!isWebPreview && (
+          <button
+            onClick={handleRun}
+            disabled={isRunning || !code.trim()}
+            className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold text-xs rounded-lg transition-all shadow-md active:scale-95"
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Bajarilmoqda...</span>
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5 fill-white" />
+                <span>Run (Ctrl+Enter)</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -154,19 +196,19 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Output Pane */}
         <div className="flex-1 bg-black flex flex-col relative">
           <div className="px-4 py-2 bg-[#1a1a1a] border-b border-slate-800 text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
-            <span>{language === 'html' ? 'Browser Preview' : 'Terminal (Output)'}</span>
-            {executionTime !== null && language !== 'html' && (
+            <span>{isWebPreview ? 'Jonli Brauzer (Preview)' : 'Terminal (Output)'}</span>
+            {executionTime !== null && !isWebPreview && (
               <div className="flex gap-3 text-[10px]">
                 <span>Vaqt: {Math.round(executionTime)}ms</span>
                 {exitCode !== null && <span>Exit code: {exitCode}</span>}
               </div>
             )}
           </div>
-          <div className={`p-4 flex-1 font-mono text-sm ${language === 'html' ? 'p-0 bg-white' : 'overflow-auto'}`}>
-            {language === 'html' ? (
+          <div className={`p-4 flex-1 font-mono text-sm ${isWebPreview ? 'p-0 bg-white' : 'overflow-auto'}`}>
+            {isWebPreview ? (
               <iframe
                 title="HTML Preview"
-                srcDoc={output ? output : code} // If 'run' was clicked, use code
+                srcDoc={getWebPreviewDoc(output ? output : code)}
                 className="w-full h-full border-none bg-white"
                 sandbox="allow-scripts"
               />

@@ -18,11 +18,11 @@ export const Footer: React.FC<FooterProps> = ({ onEnterPortal, t }) => {
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white font-black text-base">
+              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-black text-base">
                 B
               </div>
               <span className="font-heading font-black text-lg tracking-tight text-zinc-900 dark:text-zinc-100">
-                Brain IT <span className="text-violet-600 font-normal">Academy & Co</span>
+                Brain IT <span className="text-teal-600 font-normal">Academy & Co</span>
               </span>
             </div>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-sm leading-relaxed">
@@ -45,10 +45,10 @@ export const Footer: React.FC<FooterProps> = ({ onEnterPortal, t }) => {
               {t.footerLinks || "Havolalar"}
             </h4>
             <ul className="space-y-2.5 text-sm text-zinc-600 dark:text-zinc-400">
-              <li><a href="#courses" className="hover:text-violet-600 transition-colors">{t.navCourses || "O'quv Kurslari"}</a></li>
-              <li><a href="#services" className="hover:text-violet-600 transition-colors">{t.navServices || "Dasturiy Yechimlar"}</a></li>
-              <li><a href="#projects" className="hover:text-violet-600 transition-colors">Loyihalar</a></li>
-              <li><a href="#team" className="hover:text-violet-600 transition-colors">Jamoa</a></li>
+              <li><a href="#courses" className="hover:text-teal-600 transition-colors">{t.navCourses || "O'quv Kurslari"}</a></li>
+              <li><a href="#services" className="hover:text-teal-600 transition-colors">{t.navServices || "Dasturiy Yechimlar"}</a></li>
+              <li><a href="#projects" className="hover:text-teal-600 transition-colors">Loyihalar</a></li>
+              <li><a href="#team" className="hover:text-teal-600 transition-colors">Jamoa</a></li>
             </ul>
           </div>
 
@@ -59,16 +59,16 @@ export const Footer: React.FC<FooterProps> = ({ onEnterPortal, t }) => {
             </h4>
             <ul className="space-y-2.5 text-sm text-zinc-600 dark:text-zinc-400">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-violet-600 shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                 <span>Termiz shahri, Yubileyny</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-violet-600 shrink-0" />
-                <a href="tel:+998990670066" className="hover:text-violet-600 transition-colors">+998 99 067 00 66</a>
+                <Phone className="w-4 h-4 text-teal-600 shrink-0" />
+                <a href="tel:+998990670066" className="hover:text-teal-600 transition-colors">+998 99 067 00 66</a>
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-violet-600 shrink-0" />
-                <a href="mailto:info@brainit.uz" className="hover:text-violet-600 transition-colors">info@brainit.uz</a>
+                <Mail className="w-4 h-4 text-teal-600 shrink-0" />
+                <a href="mailto:info@brainit.uz" className="hover:text-teal-600 transition-colors">info@brainit.uz</a>
               </li>
             </ul>
           </div>
@@ -83,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({ onEnterPortal, t }) => {
                 <a
                   key={soc}
                   href="#"
-                  className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-teal-600 hover:text-white dark:hover:bg-teal-600 transition-all"
                 >
                   {soc}
                 </a>
@@ -97,7 +97,7 @@ export const Footer: React.FC<FooterProps> = ({ onEnterPortal, t }) => {
           <p>{t.footerText || "© 2026 Brain IT Academy & Co. Barcha huquqlar himoyalangan."}</p>
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-violet-600 transition-colors font-semibold"
+            className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-teal-600 transition-colors font-semibold"
           >
             <span>Yuqoriga</span>
             <ArrowUp className="w-3.5 h-3.5" />

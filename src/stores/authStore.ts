@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user, token) => set({ currentUser: user, token }),
       logout: () => set({ currentUser: null, token: null }),
     }),
-    { name: 'brain-it-auth-v2' }
+    { name: 'brain-it-auth-clean-v1' }
   )
 );
 
@@ -51,26 +51,47 @@ export const mockLogin = async (username: string, password: string):Promise<{use
       const validLogins: Record<string, string> = {
         'superadmin': 'BrainIT@2025',
         'director': 'director123',
-        'bobur': 'bobur123',
         'avaazbek': 'hello1212',
+        'umid': 'Umid@2025',
+        'jahongir': 'Jahongir@2025',
         'student1': '123',
-        'teacher1': '123',
       };
       
-      if (validLogins[username] && (validLogins[username] === password || password === 'bobur123' || password === 'stud123' || password === 'Bobur@2025')) {
+      if (validLogins[username] && (validLogins[username] === password || password === '123' || password === 'Umid@2025' || password === 'Jahongir@2025' || password === 'umid123' || password === 'jahongir123')) {
         let role: AuthRoleType = 'Teacher';
         let studentId: string | undefined = undefined;
-        if (username === 'superadmin') role = 'Super Admin';
-        if (username === 'director') role = 'Academy Director';
-        if (username === 'avaazbek') role = 'Super Admin';
-        if (username === 'student1') { role = 'Student'; studentId = 'st1'; }
-        if (username === 'teacher1') role = 'Teacher';
+        let id: string = `u_${username}`;
+        let name: string = username;
+        let avatar: string = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop';
+
+        if (username === 'superadmin' || username === 'avaazbek') {
+          role = 'Super Admin';
+          name = username === 'avaazbek' ? 'Avazbek' : 'Super Admin';
+        } else if (username === 'director') {
+          role = 'Academy Director';
+          name = 'Feruza Salimova';
+        } else if (username === 'umid') {
+          role = 'Teacher';
+          id = 'tr_umid';
+          name = 'Umidjon Xudoyberdiyev';
+          avatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
+        } else if (username === 'jahongir') {
+          role = 'Teacher';
+          id = 'tr_jahongir';
+          name = 'Jahongir Rahimov';
+          avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80';
+        } else if (username === 'student1') {
+          role = 'Student';
+          id = 'u_st1';
+          studentId = 'st1';
+          name = 'Aziz Alimov';
+        }
         
         const user: AuthUserType = {
-          id: username === 'teacher1' ? 'tr1' : `u_${username}`,
-          name: username === 'superadmin' ? 'Super Admin' : username === 'director' ? 'Feruza Salimova' : username === 'avaazbek' ? 'Avazbek' : username === 'student1' ? 'Aziz Alimov' : username === 'teacher1' ? 'Bobur Akbarov' : 'Bobur Akbarov',
-          role: role,
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+          id,
+          name,
+          role,
+          avatar,
           ...(studentId ? { studentId } : {}),
         };
         return resolve({ user, token: `mock_jwt_token_${Date.now()}` });
@@ -78,7 +99,7 @@ export const mockLogin = async (username: string, password: string):Promise<{use
 
       // Check Teacher store
       const foundTeacher = useTeacherStore.getState().teachers.find(t => 
-        t.username === username && (t.password === password || password === 'bobur123' || password === 'Bobur@2025')
+        t.username === username && (t.password === password || password === '123' || password === 'Umid@2025' || password === 'Jahongir@2025' || password === 'umid123' || password === 'jahongir123')
       );
       if (foundTeacher) {
         return resolve({
@@ -94,7 +115,7 @@ export const mockLogin = async (username: string, password: string):Promise<{use
 
       // Check Student store
       const foundStudent = useStudentStore.getState().students.find(s => 
-        s.studentUsername === username && (s.studentPassword === password || password === 'stud123')
+        s.studentUsername === username && (s.studentPassword === password || password === '123')
       );
       if (foundStudent) {
         return resolve({

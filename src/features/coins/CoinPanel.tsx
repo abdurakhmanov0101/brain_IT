@@ -34,7 +34,7 @@ const COIN_RULES = [
   },
   {
     icon: CheckCircle2,
-    color: 'violet',
+    color: 'teal',
     title: "Davomat va boshqalar",
     rules: [
       { label: "Videoni to'liq ko'rdi (belgiladi)", coins: 1, emoji: "📺" },
@@ -54,8 +54,8 @@ const COIN_RULES = [
 
 const colorMap: Record<string, string> = {
   emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50',
-  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-900/50',
-  violet: 'bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200 dark:border-violet-900/50',
+  blue: 'bg-blue-100 text-emerald-600 dark:bg-blue-900/30 dark:text-emerald-400 border-blue-200 dark:border-blue-900/50',
+  teal: 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-teal-900/50',
   amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
 };
 
@@ -177,12 +177,12 @@ export const CoinPanel: React.FC = () => {
               <div className="relative">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Qabul qiluvchi</label>
                 {selectedUser ? (
-                  <div className="flex items-center justify-between bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 p-3 rounded-xl">
+                  <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3 rounded-xl">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-200 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-black text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-200 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-black text-sm">
                         {selectedUser.name[0]}
                       </div>
-                      <span className="font-bold text-indigo-700 dark:text-indigo-300">{selectedUser.name}</span>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-300">{selectedUser.name}</span>
                     </div>
                     <button
                       onClick={() => { setSelectedUser(null); setSearch(''); }}
@@ -323,7 +323,7 @@ export const CoinPanel: React.FC = () => {
                               {rule.negative ? '0 🪙' : `+${rule.coins} 🪙`}
                             </span>
                           ) : rule.note ? (
-                            <span className="text-xs font-bold text-violet-500 shrink-0">{rule.note}</span>
+                            <span className="text-xs font-bold text-teal-500 shrink-0">{rule.note}</span>
                           ) : (
                             <span className="text-xs font-bold text-slate-400 shrink-0">Market</span>
                           )}
@@ -373,7 +373,7 @@ export const CoinPanel: React.FC = () => {
       <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700/50">
           <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
-            <History className="h-5 w-5 text-indigo-500" /> Tranzaksiya Tarixi
+            <History className="h-5 w-5 text-emerald-500" /> Tranzaksiya Tarixi
           </h3>
           <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg">
             So'nggi {myTransactions.length} ta

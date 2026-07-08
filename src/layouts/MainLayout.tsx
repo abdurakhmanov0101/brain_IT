@@ -13,8 +13,8 @@ const getThemeStyle = (role: string) => {
       '--color-brand-100': '#ede9fe',
       '--color-brand-200': '#ddd6fe',
       '--color-brand-400': '#a78bfa',
-      '--color-brand-500': '#8b5cf6',
-      '--color-brand-600': '#7c3aed',
+      '--color-brand-500': '#34d399',
+      '--color-brand-600': '#059669',
       '--color-brand-700': '#6d28d9',
       '--color-brand-800': '#5b21b6',
       '--color-brand-900': '#4c1d95',
@@ -51,7 +51,7 @@ const getThemeStyle = (role: string) => {
     '--color-brand-100': '#e0e7ff',
     '--color-brand-200': '#c7d2fe',
     '--color-brand-400': '#818cf8',
-    '--color-brand-500': '#6366f1',
+    '--color-brand-500': '#10b981',
     '--color-brand-600': '#4f46e5',
     '--color-brand-700': '#4338ca',
     '--color-brand-800': '#3730a3',
@@ -66,6 +66,10 @@ export const MainLayout: React.FC = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  React.useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
   const currentUser = authStore.currentUser;
   if (!currentUser) return null;
 
@@ -77,7 +81,7 @@ export const MainLayout: React.FC = () => {
       
       {/* Global ambient glow (very subtle for Zinc Studio) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/5 blur-[120px] rounded-full" />
       </div>
 
       {/* Sidebar */}

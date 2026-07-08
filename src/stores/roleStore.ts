@@ -8,42 +8,64 @@ export interface PermissionItem {
 }
 
 export const ALL_PERMISSIONS: PermissionItem[] = [
-  // Ta'lim
-  { id: 'dashboard', label: 'Boshqaruv paneli (Dashboard)', category: "Ta'lim" },
-  { id: 'academy', label: 'LMS & Classroom', category: "Ta'lim" },
-  { id: 'courses', label: 'Kurslar bo\'limi', category: "Ta'lim" },
-  { id: 'groups', label: 'Guruhlar bo\'limi', category: "Ta'lim" },
-  { id: 'students', label: "O'quvchilar ro'yxati", category: "Ta'lim" },
-  { id: 'attendance', label: 'Davomat paneli', category: "Ta'lim" },
-  { id: 'homework', label: 'Uy‑vazifalar', category: "Ta'lim" },
+  // Ta'lim & Akademik
+  { id: 'dashboard', label: 'Boshqaruv paneli (Dashboard ko\'rish)', category: "Ta'lim" },
+  { id: 'groups.view', label: 'Guruhlarni ko\'rish', category: "Ta'lim" },
+  { id: 'groups.create', label: 'Yangi guruh yaratish', category: "Ta'lim" },
+  { id: 'groups.edit', label: 'Guruh ma\'lumotlarini tahrirlash', category: "Ta'lim" },
+  { id: 'groups.delete', label: 'Guruhni arxivlash / o\'chirish', category: "Ta'lim" },
+  { id: 'courses.view', label: 'Kurslar ro\'yxatini ko\'rish', category: "Ta'lim" },
+  { id: 'courses.create', label: 'Yangi kurs qo\'shish', category: "Ta'lim" },
+  { id: 'courses.edit', label: 'Kurs narxi va rejasini tahrirlash', category: "Ta'lim" },
+  { id: 'courses.delete', label: 'Kursni o\'chirish', category: "Ta'lim" },
+  { id: 'students.view', label: "O'quvchilar ro'yxatini ko'rish", category: "Ta'lim" },
+  { id: 'students.add', label: "Yangi o'quvchi qo'shish va tahrirlash", category: "Ta'lim" },
+  { id: 'students.delete', label: "O'quvchini tizimdan o'chirish (Arxivlash)", category: "Ta'lim" },
+  { id: 'students.export', label: "O'quvchilar ro'yxatini CSV/Excel ga yuklash", category: "Ta'lim" },
+  { id: 'groups.manage', label: "O'quvchini guruhga biriktirish / olib tashlash", category: "Ta'lim" },
+  { id: 'attendance.view', label: 'Davomat panelini ko\'rish', category: "Ta'lim" },
+  { id: 'attendance.mark', label: 'Bugungi dars uchun davomat olish', category: "Ta'lim" },
+  { id: 'attendance.edit_past', label: 'O\'tgan kunlar davomatini o\'zgartirish (Admin)', category: "Ta'lim" },
+  { id: 'homework.view', label: 'Uy vazifalari ro\'yxatini ko\'rish', category: "Ta'lim" },
+  { id: 'homework.create', label: 'Yangi uy vazifasi va video dars yuklash', category: "Ta'lim" },
+  { id: 'homework.grade', label: 'Uy vazifalarini tekshirish va baho qo\'yish', category: "Ta'lim" },
+  { id: 'academy', label: 'LMS & Classroom interfeysi', category: "Ta'lim" },
 
-  // Moliya
-  { id: 'finance', label: 'Kassa / Moliya paneli', category: "Moliya" },
-  { id: 'payroll', label: 'Ustoz maoshi va hisob-kitoblar', category: "Moliya" },
-  { id: 'coins', label: 'Tanga tizimi va reyting', category: "Moliya" },
-  { id: 'market', label: 'Online Market & Sovg\'alar', category: "Moliya" },
+  // Moliya & Kassa
+  { id: 'finance', label: 'Kassa / Moliya panelini ko\'rish', category: "Moliya" },
+  { id: 'finance.receive', label: 'Kassadan to\'lov qabul qilish va chek chiqarish', category: "Moliya" },
+  { id: 'finance.expense', label: 'Xarajat (chiqim) kiritish', category: "Moliya" },
+  { id: 'finance.export', label: 'Moliya va tranzaksiyalarni eksport qilish', category: "Moliya" },
+  { id: 'payroll', label: 'Ustoz maoshlari panelini ko\'rish', category: "Moliya" },
+  { id: 'payroll.generate', label: 'Ustozlarga oylik maosh hisoblab yaratish', category: "Moliya" },
+  { id: 'payroll.pay', label: 'Ustoz maoshlarini to\'lash', category: "Moliya" },
+  { id: 'coins', label: 'Tanga tizimi va reytingni ko\'rish', category: "Moliya" },
+  { id: 'coins.send', label: 'O\'quvchilarga tanga (coin) berish', category: "Moliya" },
+  { id: 'market', label: 'Online Market & Sovg\'alarni boshqarish', category: "Moliya" },
 
   // CRM & PM
-  { id: 'crm', label: 'CRM Pipeline (Lidlar)', category: "CRM & PM" },
+  { id: 'crm', label: 'CRM Pipeline (Lidlar ko\'rish)', category: "CRM & PM" },
+  { id: 'crm.edit', label: 'Lidlarni holatini o\'zgartirish', category: "CRM & PM" },
   { id: 'pm', label: 'Kanban Topshiriqlar paneli', category: "CRM & PM" },
   { id: 'faceid', label: 'Face ID Davomat tizimi', category: "CRM & PM" },
 
-  // Boshqaruv
-  { id: 'staff', label: 'Xodimlar (HR) boshqaruvi', category: "Boshqaruv" },
-  { id: 'contracts', label: 'Shartnomalar va hujjatlar', category: "Boshqaruv" },
+  // Boshqaruv & HR
+  { id: 'staff', label: 'Xodimlar (HR) ro\'yxatini ko\'rish', category: "Boshqaruv" },
+  { id: 'staff.create', label: 'Yangi xodim qo\'shish', category: "Boshqaruv" },
+  { id: 'staff.edit', label: 'Xodim ma\'lumotlarini va lavozimini tahrirlash', category: "Boshqaruv" },
+  { id: 'staff.delete', label: 'Xodimni bo\'shatish / o\'chirish', category: "Boshqaruv" },
+  { id: 'contracts', label: 'Shartnomalar bo\'limini ko\'rish', category: "Boshqaruv" },
+  { id: 'contracts.create', label: 'Yangi shartnoma yaratish', category: "Boshqaruv" },
+  { id: 'contracts.sign', label: 'Shartnomani imzolash va faollashtirish', category: "Boshqaruv" },
+  { id: 'contracts.print', label: 'Shartnomani chop etish (Muhr va Imzo bilan)', category: "Boshqaruv" },
   { id: 'notifications', label: 'Xabarnomalar jo\'natish', category: "Boshqaruv" },
-  { id: 'reports', label: 'Analitik hisobotlar', category: "Boshqaruv" },
+  { id: 'reports', label: 'Analitik hisobotlarni ko\'rish', category: "Boshqaruv" },
   { id: 'settings', label: 'Sozlamalar va integratsiyalar', category: "Boshqaruv" },
-  { id: 'roles', label: 'Rollar va Huquqlar (Super Admin)', category: "Boshqaruv" },
+  { id: 'roles', label: 'Rollar va Huquqlarni boshqarish (Super Admin)', category: "Boshqaruv" },
 
   // Maxsus Amallar
-  { id: 'students.add', label: "Yangi o'quvchi qo'shish va tahrirlash", category: "Maxsus Amallar" },
-  { id: 'students.delete', label: "O'quvchining tizimdan o'chirish", category: "Maxsus Amallar" },
-  { id: 'groups.manage', label: "O'quvchini guruhga biriktirish / olib tashlash", category: "Maxsus Amallar" },
-  { id: 'finance.receive', label: "Kassadan to'lov qabul qilish va chek chiqarish", category: "Maxsus Amallar" },
-  { id: 'homework.grade', label: "Uy vazifalarini tekshirish va baho qo'yish", category: "Maxsus Amallar" },
-  { id: 'coins.send', label: "O'quvchilarga tanga (coin) berish", category: "Maxsus Amallar" },
-  { id: 'courses.manage', label: "Yangi kurs va guruh yaratish", category: "Maxsus Amallar" },
+  { id: 'admin.override', label: "Favqulodda admin ruxsati (Override)", category: "Maxsus Amallar" },
+  { id: 'audit.logs', label: "Tizim audit va tranzaksiya tarixini o'qish", category: "Maxsus Amallar" },
 ];
 
 export interface Role {
@@ -63,89 +85,7 @@ interface RoleState {
   hasPermission: (roleName: string, permissionId: string) => boolean;
 }
 
-const initialRoles: Role[] = [
-  {
-    id: 'r_superadmin',
-    name: 'Super Admin',
-    description: 'Tizimning barcha imkoniyatlariga to\'liq ruxsat (Tizim egasi)',
-    isSystem: true,
-    userCount: 2,
-    permissions: ALL_PERMISSIONS.map(p => p.id),
-  },
-  {
-    id: 'r_director',
-    name: 'Academy Director',
-    description: 'O\'quv markaz operatsiyalari, moliya va o\'quvchilar boshqaruvi',
-    isSystem: true,
-    userCount: 1,
-    permissions: [
-      'dashboard', 'academy', 'courses', 'groups', 'students', 'attendance', 'homework',
-      'finance', 'payroll', 'coins', 'market', 'crm', 'pm', 'faceid', 'staff', 'contracts',
-      'notifications', 'reports', 'settings', 'students.add', 'groups.manage', 'finance.receive',
-      'coins.send', 'courses.manage'
-    ],
-  },
-  {
-    id: 'r_teacher',
-    name: 'Teacher',
-    description: 'O\'z guruhlariga dars o\'tish, davomat olish va uy vazifa baholash',
-    isSystem: true,
-    userCount: 8,
-    permissions: [
-      'dashboard', 'academy', 'courses', 'groups', 'students', 'attendance', 'homework',
-      'coins', 'faceid', 'homework.grade', 'coins.send'
-    ],
-  },
-  {
-    id: 'r_student',
-    name: 'Student',
-    description: 'Darslarni ko\'rish, uy vazifa topshirish va Marketdan xarid qilish',
-    isSystem: true,
-    userCount: 120,
-    permissions: ['dashboard', 'academy', 'coins', 'market', 'homework'],
-  },
-  {
-    id: 'r_moderator',
-    name: 'Moderator',
-    description: 'Guruhlar va o\'quvchilar ro\'yxatining davomati hamda intizomnazorati',
-    userCount: 3,
-    permissions: [
-      'dashboard', 'academy', 'courses', 'groups', 'students', 'attendance', 'homework',
-      'students.add', 'groups.manage', 'notifications'
-    ],
-  },
-  {
-    id: 'r_cashier',
-    name: 'Kassir',
-    description: 'O\'quvchilardan to\'lov qabul qilish, chek berish va moliya hisoboti',
-    userCount: 2,
-    permissions: ['dashboard', 'finance', 'students', 'contracts', 'finance.receive', 'reports'],
-  },
-  {
-    id: 'r_operator',
-    name: 'Operator',
-    description: 'Yangi lidlar bilan ishlash (CRM), qo\'ng\'iroqlar va maslahat berish',
-    userCount: 4,
-    permissions: ['dashboard', 'crm', 'students', 'students.add', 'notifications'],
-  },
-  {
-    id: 'r_assistant',
-    name: 'Assistent',
-    description: 'Ustozlarga ko\'maklashish, vazifalarni tekshirish va javob berish',
-    userCount: 5,
-    permissions: ['dashboard', 'academy', 'attendance', 'homework', 'homework.grade', 'coins.send'],
-  },
-  {
-    id: 'r_administrator',
-    name: 'Administrator',
-    description: 'Guruhlar tuzish, o\'quvchi qabul qilish va ofis operatsiyalari',
-    userCount: 2,
-    permissions: [
-      'dashboard', 'academy', 'courses', 'groups', 'students', 'attendance', 'homework',
-      'crm', 'pm', 'faceid', 'contracts', 'notifications', 'students.add', 'groups.manage', 'courses.manage'
-    ],
-  },
-];
+[];
 
 export const useRoleStore = create<RoleState>()(
   persist(
@@ -173,9 +113,15 @@ export const useRoleStore = create<RoleState>()(
           (r) => r.name.toLowerCase() === roleName.toLowerCase()
         );
         if (!role) return false;
-        return role.permissions.includes(permissionId);
+        // Exact match
+        if (role.permissions.includes(permissionId)) return true;
+        // Granular prefix match (e.g., checking 'attendance' matches 'attendance.view')
+        if (role.permissions.some(p => p.startsWith(`${permissionId}.`))) return true;
+        // Parent match (e.g., checking 'attendance.view' matches 'attendance')
+        if (role.permissions.some(p => permissionId.startsWith(`${p}.`))) return true;
+        return false;
       },
     }),
-    { name: 'brain_role_store_v1' }
+    { name: 'brain_role_store_v2' }
   )
 );

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useGroupStore } from './groupStore';
 
 export interface AcademyCourse {
   id: string;
@@ -24,10 +25,7 @@ interface CourseState {
 const calcLessonPrice = (monthly: number, lessonsPerWeek: number) =>
   Math.round(monthly / (lessonsPerWeek * 4));
 
-const initial: AcademyCourse[] = [
-  { id: 'ac2', name: 'Frontend dasturlash', category: 'Frontend', monthlyPrice: 4000000, lessonPrice: calcLessonPrice(4000000, 3), teacherPercent: 35, durationMonths: 4, lessonsPerWeek: 3, syllabus: ['HTML/CSS', 'JavaScript', 'React', 'TypeScript', 'Next.js'], color: 'blue' },
-  { id: 'ac3', name: 'Backend dasturlash', category: 'Backend', monthlyPrice: 4500000, lessonPrice: calcLessonPrice(4500000, 3), teacherPercent: 35, durationMonths: 5, lessonsPerWeek: 3, syllabus: ['Python asoslari', 'Django', 'REST API', 'PostgreSQL', 'Docker'], color: 'emerald' },
-];
+[];
 
 export const useCourseStore = create<CourseState>()(
   persist(
@@ -39,8 +37,15 @@ export const useCourseStore = create<CourseState>()(
       updateCourse: (id, patch) => set((s) => ({
         courses: s.courses.map((c) => c.id === id ? { ...c, ...patch, lessonPrice: calcLessonPrice(patch.monthlyPrice ?? c.monthlyPrice, patch.lessonsPerWeek ?? c.lessonsPerWeek) } : c)
       })),
-      deleteCourse: (id) => set((s) => ({ courses: s.courses.filter((c) => c.id !== id) })),
+      deleteCourse: (id) => {
+        const hasGroups = useGroupStore.getState().groups.some(g => g.courseId === id && g.status !== 'archived');
+        if (hasGroups) {
+          alert("Bu kursga bog'liq faol guruhlar mavjud! Kursni o'chirish mumkin emas.");
+          return;
+        }
+        set((s) => ({ courses: s.courses.filter((c) => c.id !== id) }));
+      },
     }),
-    { name: 'brain-it-courses' }
+    { name: 'brain-it-courses-clean-v1' }
   )
 );

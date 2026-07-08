@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, CreditCard, Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileCode, UploadCloud, Code, Play, ChevronRight, Zap, Target, TrendingUp } from 'lucide-react';
+import { BookOpen, CreditCard, Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileCode, UploadCloud, Code, Play, ChevronRight, Zap, Target, TrendingUp, QrCode, Camera, Scan } from 'lucide-react';
 import { useStudentStore } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useCourseStore } from '../../stores/courseStore';
@@ -8,6 +8,7 @@ import { useAttendanceStore } from '../../stores/attendanceStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Badge } from '../../components/Badge';
+import { SubmissionForm, type SubmissionData } from '../../components/SubmissionForm';
 
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
 
@@ -17,11 +18,13 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
   const { students, payments } = useStudentStore();
   const { groups } = useGroupStore();
   const { courses } = useCourseStore();
-  const { getByStudent } = useAttendanceStore();
+  const { getByStudent, markAttendance } = useAttendanceStore();
   const { submissions, submitHomework, assignments } = useHomeworkStore();
   const { addToast } = useUIStore();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'homework'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homework' | 'qr'>('dashboard');
+  const [qrGroupId, setQrGroupId] = useState('');
+  const [scanning, setScanning] = useState(false);
   const [hwMode, setHwMode] = useState<'code' | 'file'>('code');
   const [hwAssignmentId, setHwAssignmentId] = useState('');
   const [hwFile, setHwFile] = useState<File | null>(null);
@@ -74,89 +77,73 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
     }
   };
 
-  const handleHwSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleNewSubmission = (data: SubmissionData) => {
     if (!studentGroups[0]) {
       addToast({ type: 'error', message: "Siz hali hech qanday guruhda emassiz" });
       return;
     }
-    if (hwMode === 'code' && !hwHtml && !hwJs && !hwCss) {
-      addToast({ type: 'error', message: "Kodni kiriting!" });
-      return;
-    }
-    if (hwMode === 'file' && !hwFile) {
-      addToast({ type: 'error', message: "Fayl tanlang!" });
-      return;
-    }
-
     if (!hwAssignmentId) {
       addToast({ type: 'error', message: "Vazifani tanlang!" });
       return;
     }
 
-    const teacherId = student.teacherId || 'tr1';
-    
-    // Find assignment to get title
-    const assignment = assignments.find(a => a.id === hwAssignmentId);
-
     const payload: any = {
       studentId: student.id,
       assignmentId: hwAssignmentId,
-      type: hwMode,
+      type: data.type,
+      code: data.code,
+      language: data.language,
+      fileUrl: data.fileUrl,
+      fileName: data.fileName,
     };
 
-    if (hwMode === 'code') {
-      payload.code = JSON.stringify({ html: hwHtml, css: hwCss, js: hwJs });
-      payload.language = 'web'; // or whatever language they submit
-    } else {
-      payload.fileUrl = URL.createObjectURL(hwFile!);
-      payload.fileName = hwFile!.name;
-    }
-
     submitHomework(payload);
-
     addToast({ type: 'success', message: "Vazifa muvaffaqiyatli yuborildi!" });
-    setHwAssignmentId(''); setHwHtml(''); setHwCss(''); setHwJs(''); setHwFile(null);
+    setHwAssignmentId('');
   };
 
   return (
     <div className="space-y-6 max-w-[1600px] xl:max-w-[1650px] mx-auto">
       
-      {/* ──────────────── HEADER CARD ──────────────── */}
+      {/* ──────────────── PREMIUM VIBRANT HEADER CARD ──────────────── */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-zinc-950 dark:bg-zinc-900 border border-zinc-800 p-8 sm:p-10 text-white shadow-2xl"
+        className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-teal-600 p-8 sm:p-10 text-white shadow-2xl shadow-teal-500/20"
       >
-        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mix-blend-screen">
-          <div className="absolute top-[-50%] right-[-10%] w-[80%] h-[150%] bg-violet-600/30 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 z-0 opacity-60 pointer-events-none mix-blend-overlay">
+          <div className="absolute -top-[40%] right-[0%] w-[70%] h-[140%] bg-cyan-400/50 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[0%] -left-[10%] w-[50%] h-[100%] bg-yellow-400/40 blur-[100px] rounded-full" />
         </div>
         
-        <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-          <div className="relative">
-            <img src={student.photo} alt={student.fullName} className="h-24 w-24 rounded-2xl border border-zinc-700/50 object-cover shadow-xl" />
-            <div className="absolute -bottom-2 -right-2 bg-violet-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-zinc-950">
+        <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8 text-center sm:text-left">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-white/30 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+            <img src={student.photo} alt={student.fullName} className="relative h-28 w-28 rounded-2xl border-2 border-white/20 object-cover shadow-2xl" />
+            <div className="absolute -bottom-3 -right-3 bg-white text-teal-600 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border border-teal-100 shadow-lg shadow-black/10">
               PRO
             </div>
           </div>
           <div className="flex-1">
-            <h1 className="font-heading font-black text-3xl sm:text-4xl tracking-tight text-white mb-2">
-              Xush kelibsiz, <span className="text-violet-400">{student.fullName.split(' ')[0]}</span>!
+            <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tight text-white mb-3 drop-shadow-md">
+              Xush kelibsiz, <span className="text-white drop-shadow-lg">{student.fullName.split(' ')[0]}</span>!
             </h1>
-            <p className="text-zinc-400 text-sm font-medium flex items-center justify-center sm:justify-start gap-2">
-              <BookOpen className="w-4 h-4" /> 
+            <div className="inline-flex items-center gap-2 bg-white/20 border border-white/30 backdrop-blur-md px-4 py-2 rounded-xl text-white drop-shadow-sm text-sm font-medium shadow-inner">
+              <BookOpen className="w-4 h-4 text-white" /> 
               {studentGroups.length > 0 ? studentGroups.map(g => g.name).join(', ') : 'Guruhga biriktirilmagan'}
-            </p>
+            </div>
           </div>
           
           <div className="hidden lg:flex gap-4">
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-center backdrop-blur-sm">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">O'rtacha Ball</p>
-              <p className="font-heading font-black text-2xl text-violet-400">{avgGrade}%</p>
+            <div className="bg-white/20 border border-white/30 rounded-2xl px-6 py-5 text-center backdrop-blur-xl shadow-inner relative overflow-hidden group">
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="text-[10px] font-black text-white/90 uppercase tracking-widest mb-2 relative z-10 drop-shadow-sm">O'rtacha Ball</p>
+              <p className="font-heading font-black text-3xl text-white relative z-10 drop-shadow-md">{avgGrade}<span className="text-lg text-white/70">%</span></p>
             </div>
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl px-5 py-4 text-center backdrop-blur-sm">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Davomat</p>
-              <p className="font-heading font-black text-2xl text-emerald-400">{attendanceRate}%</p>
+            <div className="bg-white/20 border border-white/30 rounded-2xl px-6 py-5 text-center backdrop-blur-xl shadow-inner relative overflow-hidden group">
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="text-[10px] font-black text-white/90 uppercase tracking-widest mb-2 relative z-10 drop-shadow-sm">Davomat</p>
+              <p className="font-heading font-black text-3xl text-white relative z-10 drop-shadow-md">{attendanceRate}<span className="text-lg text-white/70">%</span></p>
             </div>
           </div>
         </div>
@@ -175,6 +162,12 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'homework' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
         >
           <UploadCloud className="w-4 h-4" /> Vazifalar
+        </button>
+        <button 
+          onClick={() => setActiveTab('qr')} 
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'qr' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+        >
+          <QrCode className="w-4 h-4 text-emerald-500" /> QR Davomat
         </button>
       </div>
 
@@ -220,7 +213,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
               <div className="card space-y-5">
                 <div className="flex items-center justify-between">
                   <h3 className="font-heading font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-violet-500" /> Mening kurslarim
+                    <BookOpen className="h-5 w-5 text-teal-500" /> Mening kurslarim
                   </h3>
                 </div>
                 
@@ -233,10 +226,10 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
                     studentGroups.map((g) => {
                       const course = courses.find((c) => c.id === g.courseId);
                       return (
-                        <div key={g.id} className="group flex flex-col p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:border-violet-500/30 transition-all">
+                        <div key={g.id} className="group flex flex-col p-4 bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 rounded-2xl hover:border-teal-500/30 transition-all">
                           <div className="flex items-start justify-between mb-3">
                             <div>
-                              <p className="font-bold text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">{g.name}</p>
+                              <p className="font-bold text-zinc-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{g.name}</p>
                               <p className="text-xs font-semibold text-zinc-500 mt-0.5">{course?.name}</p>
                             </div>
                             <Badge label="Aktiv" color="emerald" dot />
@@ -298,7 +291,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
             {/* Payments */}
             <div className="card space-y-5">
               <h3 className="font-heading font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-violet-500" /> So'nggi to'lovlar
+                <CreditCard className="h-5 w-5 text-teal-500" /> So'nggi to'lovlar
               </h3>
               
               <div className="overflow-x-auto">
@@ -346,7 +339,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
             <div className="lg:col-span-2 space-y-6">
               <div className="card space-y-5">
                 <div className="flex items-center gap-3 border-b border-light-border dark:border-dark-border pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
                     <UploadCloud className="w-5 h-5" />
                   </div>
                   <div>
@@ -355,7 +348,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
                   </div>
                 </div>
 
-                <form onSubmit={handleHwSubmit} className="space-y-5">
+                <div className="space-y-5">
                   <div className="space-y-1.5">
                     <label htmlFor="hw-assignment-select" className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Qaysi vazifa uchun?</label>
                     <select 
@@ -375,62 +368,14 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
                     </select>
                   </div>
                   
-                  <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                    <button 
-                      type="button" 
-                      onClick={() => setHwMode('code')} 
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${hwMode === 'code' ? 'bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white border border-zinc-200/50 dark:border-zinc-700/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                    >
-                      <Code className="w-4 h-4" /> Live Code
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => setHwMode('file')} 
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${hwMode === 'file' ? 'bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-white border border-zinc-200/50 dark:border-zinc-700/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                    >
-                      <FileCode className="w-4 h-4" /> Fayl orqali
-                    </button>
-                  </div>
-
-                  {hwMode === 'file' ? (
-                    <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl p-8 text-center hover:bg-zinc-50 dark:hover:bg-zinc-800/30 hover:border-violet-500 transition-all cursor-pointer group relative overflow-hidden bg-zinc-50/50 dark:bg-zinc-900/50">
-                      <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                      <div className="relative z-0 flex flex-col items-center">
-                        <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-500 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all duration-300">
-                          <UploadCloud className="w-8 h-8" />
-                        </div>
-                        <span className="text-sm font-bold text-zinc-900 dark:text-white mb-1">Faylni shu yerga tashlang yoki tanlang</span>
-                        <span className="text-xs font-medium text-zinc-500 max-w-[200px]">.zip, .pdf, .js, .html, .css formatlari qo'llab quvvatlanadi</span>
-                        
-                        {hwFile && (
-                          <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl text-emerald-700 dark:text-emerald-400 text-xs font-bold w-full max-w-xs truncate">
-                            <CheckCircle className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{hwFile.name}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  {hwAssignmentId ? (
+                    <SubmissionForm onSubmit={handleNewSubmission} />
                   ) : (
-                    <div className="space-y-4">
-                      <div className="relative group">
-                        <label className="absolute -top-2.5 left-3 bg-white dark:bg-dark-card px-1.5 text-[10px] uppercase font-black tracking-wider text-emerald-500 z-10">HTML</label>
-                        <textarea value={hwHtml} onChange={e => setHwHtml(e.target.value)} className="w-full bg-zinc-950 text-emerald-400 text-[13px] p-4 rounded-xl outline-none font-mono min-h-[100px] border border-zinc-800 focus:border-emerald-500/50 transition-colors custom-scrollbar placeholder:text-zinc-800" placeholder="<h1>Salom Dunyo</h1>" />
-                      </div>
-                      <div className="relative group">
-                        <label className="absolute -top-2.5 left-3 bg-white dark:bg-dark-card px-1.5 text-[10px] uppercase font-black tracking-wider text-cyan-500 z-10">CSS</label>
-                        <textarea value={hwCss} onChange={e => setHwCss(e.target.value)} className="w-full bg-zinc-950 text-cyan-400 text-[13px] p-4 rounded-xl outline-none font-mono min-h-[100px] border border-zinc-800 focus:border-cyan-500/50 transition-colors custom-scrollbar placeholder:text-zinc-800" placeholder="h1 { color: red; }" />
-                      </div>
-                      <div className="relative group">
-                        <label className="absolute -top-2.5 left-3 bg-white dark:bg-dark-card px-1.5 text-[10px] uppercase font-black tracking-wider text-amber-500 z-10">JS</label>
-                        <textarea value={hwJs} onChange={e => setHwJs(e.target.value)} className="w-full bg-zinc-950 text-amber-400 text-[13px] p-4 rounded-xl outline-none font-mono min-h-[100px] border border-zinc-800 focus:border-amber-500/50 transition-colors custom-scrollbar placeholder:text-zinc-800" placeholder="console.log('JS Ishladi');" />
-                      </div>
+                    <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 text-zinc-500 text-sm">
+                      Avval yuqoridan vazifani tanlang
                     </div>
                   )}
-
-                  <button type="submit" disabled={!hwAssignmentId || (hwMode === 'code' ? (!hwHtml && !hwCss && !hwJs) : !hwFile)} className="btn-primary w-full py-3.5 shadow-lg shadow-violet-600/20 disabled:opacity-50">
-                    <UploadCloud className="w-5 h-5" /> Vazifani Yuborish
-                  </button>
-                </form>
+                </div>
               </div>
             </div>
 
@@ -454,7 +399,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
                   </div>
                 ) : (
                   myHomeworks.slice().reverse().map(hw => (
-                    <div key={hw.id} className="p-5 bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-violet-500/30 transition-colors relative overflow-hidden group">
+                    <div key={hw.id} className="p-5 bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-teal-500/30 transition-colors relative overflow-hidden group">
                       
                       {hw.status === 'graded' && (
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-2xl rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
@@ -462,12 +407,12 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
 
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 relative z-10">
                         <div>
-                          <h4 className="font-heading font-bold text-base text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors mb-1">{hw.title}</h4>
+                          <h4 className="font-heading font-bold text-base text-zinc-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors mb-1">{hw.title}</h4>
                           <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
                             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date(hw.submittedAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
-                              {hw.type === 'code' ? <Code className="w-3.5 h-3.5 text-indigo-500" /> : <FileCode className="w-3.5 h-3.5 text-indigo-500" />}
+                              {hw.type === 'code' ? <Code className="w-3.5 h-3.5 text-emerald-500" /> : <FileCode className="w-3.5 h-3.5 text-emerald-500" />}
                               {hw.type === 'code' ? 'Live Code' : hw.originalFileName}
                             </span>
                           </div>
@@ -504,6 +449,83 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
                   ))
                 )}
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ──────────────── QR DAVOMAT TAB ──────────────── */}
+        {activeTab === 'qr' && (
+          <motion.div
+            key="qr"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="card max-w-xl mx-auto p-6 sm:p-8 space-y-6"
+          >
+            <div className="text-center space-y-2">
+              <div className="inline-flex p-3 rounded-2xl bg-emerald-500/10 text-emerald-500 mb-2">
+                <QrCode className="w-10 h-10" />
+              </div>
+              <h2 className="font-heading font-black text-2xl text-zinc-900 dark:text-white">QR Kod orqali davomat</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Guruhni tanlang va QR kodni skanerlash tugmasini bosib bugungi darsga hozir ekanligingizni tasdiqlang.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Guruhni tanlang</label>
+                <select
+                  value={qrGroupId}
+                  onChange={(e) => setQrGroupId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">-- Guruh tanlang --</option>
+                  {studentGroups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name} ({g.room})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Simulated Camera Box */}
+              <div className="relative aspect-video bg-zinc-900 rounded-2xl overflow-hidden border-2 border-zinc-800 flex flex-col items-center justify-center">
+                <div className="absolute inset-4 border-2 border-emerald-500/50 rounded-xl pointer-events-none flex items-center justify-center">
+                  <div className="w-full h-0.5 bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,1)] animate-pulse" />
+                </div>
+                <Camera className="w-12 h-12 text-zinc-600 mb-2" />
+                <p className="text-xs text-zinc-400 font-medium">Kamera tayyor — QR kodni markazlashtiring</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const targetGId = qrGroupId || studentGroups[0]?.id;
+                  if (!targetGId) {
+                    addToast({ type: 'error', message: "Siz hech qaysi guruhga a'zo emassiz!" });
+                    return;
+                  }
+                  const todayStr = new Date().toISOString().split('T')[0];
+                  const alreadyMarked = getByStudent(student.id).some(r => r.groupId === targetGId && r.date === todayStr);
+                  if (alreadyMarked) {
+                    addToast({ type: 'warning', message: "⏳ Siz bugun ushbu guruh uchun allaqachon davomatdan o'tgansiz!" });
+                    return;
+                  }
+                  markAttendance({
+                    studentId: student.id,
+                    groupId: targetGId,
+                    date: todayStr,
+                    status: 'present',
+                    checkedBy: 'qr',
+                    deductionApplied: true
+                  });
+                  addToast({ type: 'success', message: "✅ QR Davomat muvaffaqiyatli belgilandi! Bugungi darsga hozir bo'ldingiz." });
+                }}
+                className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Scan className="w-5 h-5" /> QR Kodni skanerlash va Davomat belgilash
+              </button>
             </div>
           </motion.div>
         )}

@@ -125,9 +125,9 @@ const TechBackground: React.FC = () => {
         if (bright > 0.97) {
           ctx.fillStyle = 'rgba(200, 220, 255, 0.95)'; // bright white-blue flash
         } else if (bright > 0.8) {
-          ctx.fillStyle = `rgba(129,140,248,${0.6 + Math.random() * 0.35})`; // indigo bright
+          ctx.fillStyle = `rgba(52,211,153,${0.6 + Math.random() * 0.35})`; // emerald bright
         } else {
-          ctx.fillStyle = `rgba(99,102,241,${0.2 + Math.random() * 0.3})`; // indigo dim
+          ctx.fillStyle = `rgba(16,185,129,${0.2 + Math.random() * 0.3})`; // emerald dim
         }
 
         ctx.fillText(char, x, y);

@@ -30,12 +30,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo */}
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-violet-600/25 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-teal-600/25 group-hover:scale-105 transition-transform">
               B
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-black text-base tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-                Brain IT <span className="text-violet-600 text-xs px-1.5 py-0.5 rounded bg-violet-500/10 dark:bg-violet-500/20">PRO</span>
+                Brain IT <span className="text-teal-600 text-xs px-1.5 py-0.5 rounded bg-teal-500/10 dark:bg-teal-500/20">PRO</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 -mt-1">
                 Ecosystem
@@ -45,16 +45,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-zinc-600 dark:text-zinc-400">
-            <a href="#courses" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+            <a href="#courses" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
               {t.navCourses || "O'quv Kurslari"}
             </a>
-            <a href="#services" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+            <a href="#services" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
               {t.navServices || "Dasturiy Yechimlar"}
             </a>
-            <a href="#projects" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+            <a href="#projects" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
               Loyihalar
             </a>
-            <a href="#contact" className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors">
+            <a href="#contact" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
               {t.navContact || "Bog'lanish"}
             </a>
           </nav>
@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onClick={() => { setLanguage(l); setLangDropdown(false); }}
                       className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
                         language === l
-                          ? 'bg-violet-50 dark:bg-violet-500/20 text-violet-600 dark:text-violet-300'
+                          ? 'bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-300'
                           : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                       }`}
                     >
@@ -93,7 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-violet-600 dark:hover:text-violet-400 transition-colors relative overflow-hidden"
+              className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors relative overflow-hidden"
               aria-label="Toggle Theme"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -105,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     exit={{ y: 20, opacity: 0, rotate: 90 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Moon className="w-4 h-4 text-violet-400" />
+                    <Moon className="w-4 h-4 text-teal-400" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -124,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Enter Portal CTA */}
             <button
               onClick={onEnterPortal}
-              className="btn-primary text-xs py-2 px-4 shadow-sm shadow-violet-600/20"
+              className="btn-primary text-xs py-2 px-4 shadow-sm shadow-teal-600/20"
             >
               <span>{t.navPortal || "LMS Portaliga Kirish"}</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
             >
-              {darkMode ? <Moon className="w-4 h-4 text-violet-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+              {darkMode ? <Moon className="w-4 h-4 text-teal-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             </button>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -205,7 +205,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onClick={() => { setLanguage(l); setMenuOpen(false); }}
                         className={`px-3 py-1 rounded-md text-xs font-bold uppercase ${
                           language === l
-                            ? 'bg-violet-600 text-white'
+                            ? 'bg-teal-600 text-white'
                             : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                         }`}
                       >

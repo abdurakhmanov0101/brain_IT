@@ -5,6 +5,8 @@ import type { PayrollRecord } from '../../stores/financeStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useCourseStore } from '../../stores/courseStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useGroupStore } from '../../stores/groupStore';
+import { useStudentStore } from '../../stores/studentStore';
 import { statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { Modal } from '../../components/Modal';
@@ -33,8 +35,9 @@ export const TeacherPayroll: React.FC = () => {
 
   const getTeacher = (id: string) => teachers.find((t) => t.id === id);
   const monthRecords = payrollRecords.filter((r) => r.month === selectedMonth);
-  const totalPaid = monthRecords.filter((r) => r.status === 'paid').reduce((s, r) => s + r.totalAmount, 0);
-  const totalPending = monthRecords.filter((r) => r.status !== 'paid').reduce((s, r) => s + (r.totalAmount - r.paidAmount), 0);
+  const totalExpected = monthRecords.reduce((s, r) => s + r.totalAmount, 0);
+  const totalPaid = monthRecords.reduce((s, r) => s + r.paidAmount, 0);
+  const totalPending = monthRecords.reduce((s, r) => s + Math.max(0, r.totalAmount - r.paidAmount), 0);
 
   const handlePayFull = (record: PayrollRecord) => {
     const penalty = Number(penaltyAmount) || 0;
@@ -62,17 +65,37 @@ export const TeacherPayroll: React.FC = () => {
   };
 
   const handleGenerate = () => {
+    const { groups } = useGroupStore.getState();
+    const { students } = useStudentStore.getState();
     const existing = payrollRecords.filter((r) => r.month === selectedMonth).map((r) => r.teacherId);
     const missing = teachers.filter((t) => t.status === 'active' && !existing.includes(t.id));
     missing.forEach((t) => {
+      const tGroups = groups.filter(g => t.groupIds.includes(g.id) || g.teacherId === t.id || g.teacherId === `u_${t.id}`);
+      const tStudents = students.filter(s => tGroups.some(g => s.groupIds.includes(g.id)));
       const teacherCourses = courses.filter((c) => t.courseIds.includes(c.id));
-      const totalAmount = teacherCourses.length > 0
-        ? teacherCourses.reduce((sum, c) => sum + Math.round(c.monthlyPrice * c.teacherPercent / 100), 0)
-        : 1500000;
-      const lessonsCount = teacherCourses.reduce((sum, c) => sum + c.lessonsPerWeek * 4, 0);
+      
+      let totalAmount = 0;
+      if (tStudents.length > 0) {
+        const pct = t.salaryPercentage || (teacherCourses[0]?.teacherPercent) || 35;
+        totalAmount = tStudents.reduce((sum, s) => {
+          const sGroup = tGroups.find(g => s.groupIds.includes(g.id));
+          const sCourse = courses.find(c => c.id === sGroup?.courseId);
+          const price = sCourse?.monthlyPrice || 500000;
+          return sum + Math.round((price * pct) / 100);
+        }, 0);
+      } else if (teacherCourses.length > 0) {
+        totalAmount = teacherCourses.reduce((sum, c) => sum + Math.round(c.monthlyPrice * c.teacherPercent / 100), 0);
+      } else {
+        totalAmount = 1500000;
+      }
+
+      const lessonsCount = teacherCourses.length > 0
+        ? teacherCourses.reduce((sum, c) => sum + c.lessonsPerWeek * 4, 0)
+        : tGroups.length > 0 ? tGroups.length * 12 : 24;
+
       addPayrollRecord({ teacherId: t.id, month: selectedMonth, lessonsCount, totalAmount, status: 'pending', paidAmount: 0 });
     });
-    if (missing.length > 0) addToast({ type: 'success', message: `${missing.length} ta ustoz uchun maosh yaratildi` });
+    if (missing.length > 0) addToast({ type: 'success', message: `${missing.length} ta ustoz uchun maosh hisoblab yaratildi!` });
     else addToast({ type: 'info', message: 'Barcha ustoz maoshlari allaqachon yaratilgan' });
   };
 
@@ -92,7 +115,7 @@ export const TeacherPayroll: React.FC = () => {
           <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50">
             <Download className="h-4 w-4" /> CSV
           </button>
-          <button onClick={handleGenerate} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
+          <button onClick={handleGenerate} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
             Maosh yaratish
           </button>
         </div>
@@ -101,17 +124,17 @@ export const TeacherPayroll: React.FC = () => {
       <div className="flex gap-2">
         {MONTHS.map((m) => (
           <button key={m} onClick={() => setSelectedMonth(m)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${selectedMonth === m ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${selectedMonth === m ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {m}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard title="Jami maoshlar" value={monthRecords.length} icon={DollarSign} />
-        <StatCard title="To'langan" value={monthRecords.filter((r) => r.status === 'paid').length} icon={CheckCircle} iconColor="text-emerald-500" />
-        <StatCard title="To'liq to'langan" value={`${(totalPaid / 1_000_000).toFixed(1)}M`} icon={DollarSign} iconColor="text-emerald-600 dark:text-emerald-400" />
-        <StatCard title="Qoldiq" value={`${(totalPending / 1_000_000).toFixed(1)}M`} icon={AlertCircle} iconColor="text-amber-500" />
+        <StatCard title="Olishi kerak (Jami)" value={`${(totalExpected / 1_000_000).toFixed(2)}M`} icon={DollarSign} iconColor="text-emerald-500" />
+        <StatCard title="To'langan summa" value={`${(totalPaid / 1_000_000).toFixed(2)}M`} icon={CheckCircle} iconColor="text-emerald-500" />
+        <StatCard title="Qoldiq summa" value={`${(totalPending / 1_000_000).toFixed(2)}M`} icon={AlertCircle} iconColor="text-amber-500" />
+        <StatCard title="Ustozlar soni" value={monthRecords.length} icon={DollarSign} />
       </div>
 
       <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl overflow-hidden">
@@ -148,7 +171,7 @@ export const TeacherPayroll: React.FC = () => {
                     <td className="px-5 py-4">{statusBadge(actualStatus)}</td>
                     <td className="px-5 py-4">
                       {remaining > 0 ? (
-                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-500/30 transition-all flex items-center gap-1">
+                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm shadow-emerald-500/30 transition-all flex items-center gap-1">
                           <DollarSign className="w-3.5 h-3.5" /> To'lash
                         </button>
                       ) : (
@@ -183,10 +206,10 @@ export const TeacherPayroll: React.FC = () => {
               <button onClick={() => handlePayFull(payOpen)} className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all">To'liq to'lash ({remaining.toLocaleString()} so'm)</button>
               <div className="flex gap-2 items-center">
                 <input type="number" value={penaltyAmount} onChange={(e) => setPenaltyAmount(e.target.value)} placeholder="Izoh (so'm)" min={0}
-                  className="w-32 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold" />
+                  className="w-32 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" />
                 <input type="number" value={partialAmount} onChange={(e) => setPartialAmount(e.target.value)} placeholder="Qisman summa kiriting..." min={1} max={remaining}
-                  className="flex-1 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold" />
-                <button onClick={() => handlePayPartial(payOpen)} className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold whitespace-nowrap shadow-lg shadow-indigo-500/30 transition-all">Avans / Qisman</button>
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" />
+                <button onClick={() => handlePayPartial(payOpen)} className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30 transition-all">Avans / Qisman</button>
               </div>
             </div>
           );

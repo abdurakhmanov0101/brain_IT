@@ -6,6 +6,7 @@ export interface Staff {
   fullName: string;
   phone: string;
   role: string;
+  salaryType?: 'fix' | 'foiz' | 'soatbay';
   fixedSalary: number;
   salaryBalance: number;
   hiredDate: string;
@@ -23,10 +24,7 @@ interface StaffState {
 const generateUsername = (name: string) => name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z.]/g, '') + Math.floor(Math.random() * 100);
 const generatePassword = () => Math.random().toString(36).slice(-8);
 
-const initialStaff: Staff[] = [
-  { id: 'stf1', fullName: 'Olim Rahimov', phone: '+998901112233', role: 'Menejer', fixedSalary: 5000000, salaryBalance: 0, hiredDate: '2024-01-10', username: 'olim.rahimov', password: 'staff123' },
-  { id: 'stf2', fullName: 'Guli Karimova', phone: '+998934445566', role: 'Farrosh', fixedSalary: 2000000, salaryBalance: 0, hiredDate: '2024-05-15', username: 'guli.karimova', password: 'staff456' },
-];
+[];
 
 export const useStaffStore = create<StaffState>()(
   persist(

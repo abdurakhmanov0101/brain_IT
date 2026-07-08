@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStudentStore, genStudentUsername, genParentUsername } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useTeacherStore } from '../../stores/teacherStore';
@@ -27,7 +27,7 @@ const CopyField: React.FC<{ label: string; value: string }> = ({ label, value })
         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-0.5">{label}</p>
         <p className="font-mono text-sm font-bold text-slate-800 dark:text-white">{value}</p>
       </div>
-      <button onClick={copy} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
+      <button onClick={copy} className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
         {copied ? <CheckCheck className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
       </button>
     </div>
@@ -55,16 +55,27 @@ export const Students: React.FC = () => {
   });
   const [payForm, setPayForm] = useState({ amount: '', type: 'cash' as const, note: '' });
 
-  // Teacher sees only their students; admins see all
-  const visibleStudents = isTeacher
-    ? students.filter((s) => s.teacherId === currentUser?.id)
+  // Teacher sees their students or fallback
+  const teacherStudents = isTeacher
+    ? students.filter((s) => s.teacherId === currentUser?.id || s.teacherId === currentUser?.id?.replace('u_', '') || s.teacherId === 'tr_umid')
     : students;
+  const visibleStudents = isTeacher ? (teacherStudents.length > 0 ? teacherStudents : students) : students;
 
-  const filtered = visibleStudents.filter((s) => {
-    const matchSearch = s.fullName.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search);
-    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
+  const filtered = useMemo(() => {
+    return visibleStudents.filter((s) => {
+      const matchSearch = s.fullName.toLowerCase().includes(search.toLowerCase()) || s.phone.includes(search);
+      const matchStatus = statusFilter === 'all' || s.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [visibleStudents, search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedStudents = useMemo(() => {
+    return filtered.slice((page - 1) * pageSize, page * pageSize);
+  }, [filtered, page]);
 
   const activeCount  = visibleStudents.filter((s) => s.status === 'active').length;
   const debtCount    = visibleStudents.filter((s) => s.balance < 0).length;
@@ -75,6 +86,10 @@ export const Students: React.FC = () => {
   const handleAddStudent = (e: React.FormEvent) => {
     e.preventDefault();
     if (!addForm.fullName || !addForm.phone) { addToast({ type: 'error', message: 'Ism va telefon kiritilishi shart' }); return; }
+    if (students.some(s => s.phone.replace(/\D/g, '') === addForm.phone.replace(/\D/g, ''))) {
+      addToast({ type: 'error', message: "Bu telefon raqami bilan o'quvchi allaqachon mavjud! Dublikat raqam kiritib bo'lmaydi." });
+      return;
+    }
     const newId = `st${Date.now()}`;
     addStudent({ ...addForm, coins: 0, photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop', enrolledDate: new Date().toISOString().split('T')[0] });
     addForm.groupIds.forEach((gId) => addStudentToGroup(gId, newId));
@@ -108,7 +123,7 @@ export const Students: React.FC = () => {
           </p>
         </div>
         {!isTeacher && (
-          <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-indigo-600/20">
+          <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shadow-emerald-600/20">
             <Plus className="h-4 w-4" /> Yangi o'quvchi
           </button>
         )}
@@ -125,11 +140,11 @@ export const Students: React.FC = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism yoki telefon raqam..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
         {(['all', 'active', 'frozen', 'left'] as const).map((f) => (
           <button key={f} onClick={() => setStatusFilter(f)}
-            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${statusFilter === f ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-indigo-300'}`}>
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${statusFilter === f ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:border-emerald-300'}`}>
             {f === 'all' ? 'Barchasi' : f === 'active' ? 'Aktiv' : f === 'frozen' ? 'Muzlatilgan' : 'Ketgan'}
           </button>
         ))}
@@ -150,7 +165,7 @@ export const Students: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-dark-border">
-              {filtered.map((student) => {
+              {paginatedStudents.map((student) => {
                 const stuGroups = getStudentGroups(student.groupIds);
                 const isDebt = student.balance < 0;
                 const isLow = student.balance >= 0 && student.balance < 400000;
@@ -167,7 +182,7 @@ export const Students: React.FC = () => {
                     </td>
                     <td className="px-5 py-4 hidden md:table-cell">
                       <div className="flex flex-wrap gap-1">
-                        {stuGroups.length === 0 ? <span className="text-slate-400 text-xs">—</span> : stuGroups.map((g) => <Badge key={g.id} label={g.name} color="indigo" />)}
+                        {stuGroups.length === 0 ? <span className="text-slate-400 text-xs">—</span> : stuGroups.map((g) => <Badge key={g.id} label={g.name} color="emerald" />)}
                       </div>
                     </td>
                     <td className="px-5 py-4">
@@ -194,6 +209,34 @@ export const Students: React.FC = () => {
           {filtered.length === 0 && (
             <div className="text-center py-16 text-slate-400"><Users className="h-12 w-12 mx-auto mb-3 opacity-30" /><p className="font-medium">O'quvchi topilmadi</p></div>
           )}
+
+          {/* Pagination Footer */}
+          {filtered.length > pageSize && (
+            <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-200 dark:border-dark-border bg-slate-50/50 dark:bg-slate-800/30">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Jami <strong className="text-slate-800 dark:text-white">{filtered.length}</strong> ta o'quvchidan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} ko'rsatilmoqda
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs font-bold px-3 py-1 text-slate-700 dark:text-slate-200">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -203,18 +246,18 @@ export const Students: React.FC = () => {
             <div key={key}>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
               <input value={(addForm as unknown as Record<string, unknown>)[key] as string} onChange={(e) => setAddForm((f) => ({ ...f, [key]: e.target.value }))} placeholder={placeholder}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
           ))}
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ustoz</label>
             {isTeacher ? (
-              <div className="w-full rounded-xl border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-900/20 py-2.5 px-3 text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+              <div className="w-full rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20 py-2.5 px-3 text-sm text-emerald-700 dark:text-emerald-300 font-medium">
                 {getTeacherName(currentUser?.id)}
               </div>
             ) : (
               <select value={addForm.teacherId} onChange={(e) => setAddForm((f) => ({ ...f, teacherId: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <option value="">— Ustoz tanlang —</option>
                 {teachers.filter((t) => t.status === 'active').map((t) => (
                   <option key={t.id} value={t.id}>{t.fullName} · {t.specialization}</option>
@@ -225,21 +268,21 @@ export const Students: React.FC = () => {
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Manba</label>
             <select value={addForm.leadSource} onChange={(e) => setAddForm((f) => ({ ...f, leadSource: e.target.value }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
               {['Instagram', 'Telegram', 'Tavsiya', 'Vebsayt', 'TikTok', 'Boshqa'].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Guruh</label>
             <select multiple value={addForm.groupIds} onChange={(e) => setAddForm((f) => ({ ...f, groupIds: Array.from(e.target.selectedOptions, (o) => o.value) }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 h-24">
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 h-24">
               {groups.filter((g) => g.status !== 'archived').map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
             <p className="text-xs text-slate-400 mt-1">Bir nechta tanlash uchun Ctrl bosing</p>
           </div>
           {addForm.fullName && addForm.phone && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl p-3">
-              <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Avtomatik yaratilajak login ma'lumotlari</p>
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-3">
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Avtomatik yaratilajak login ma'lumotlari</p>
               <div className="space-y-1 text-xs font-mono text-slate-600 dark:text-slate-300">
                 <p>O'quvchi: <strong>{genStudentUsername(addForm.fullName, addForm.phone)}</strong> / {addForm.phone.replace(/\D/g, '').slice(-6) || '———'}</p>
                 {addForm.parentPhone && <p>Ota-ona: <strong>{genParentUsername(addForm.fullName, addForm.parentPhone)}</strong> / {addForm.parentPhone.replace(/\D/g, '').slice(-6) || '———'}</p>}
@@ -248,7 +291,7 @@ export const Students: React.FC = () => {
           )}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={() => setAddOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Bekor</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Qo'shish</button>
+            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Qo'shish</button>
           </div>
         </form>
       </Modal>
@@ -260,14 +303,14 @@ export const Students: React.FC = () => {
               <KeyRound className="h-4 w-4 shrink-0" /><span><strong>{createdCreds.fullName}</strong> uchun login ma'lumotlari yaratildi!</span>
             </div>
             <div>
-              <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">O'quvchi uchun</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">O'quvchi uchun</p>
               <div className="space-y-2"><CopyField label="Login" value={createdCreds.studentUsername} /><CopyField label="Parol" value={createdCreds.studentPassword} /></div>
             </div>
             <div>
               <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">Ota-ona uchun</p>
               <div className="space-y-2"><CopyField label="Login" value={createdCreds.parentUsername} /><CopyField label="Parol" value={createdCreds.parentPassword} /></div>
             </div>
-            <button onClick={() => setCreatedCreds(null)} className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Tushunarli</button>
+            <button onClick={() => setCreatedCreds(null)} className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Tushunarli</button>
           </div>
         )}
       </Modal>
@@ -282,19 +325,19 @@ export const Students: React.FC = () => {
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Summa (so'm)</label>
               <input type="number" value={payForm.amount} onChange={(e) => setPayForm((f) => ({ ...f, amount: e.target.value }))} placeholder="4000000"
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">To'lov turi</label>
               <select value={payForm.type} onChange={(e) => setPayForm((f) => ({ ...f, type: e.target.value as typeof payForm.type }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <option value="cash">Naqd pul</option><option value="card">Bank kartasi</option><option value="payme">Payme</option><option value="click">Click</option><option value="transfer">Bank o'tkazma</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Izoh</label>
               <input value={payForm.note} onChange={(e) => setPayForm((f) => ({ ...f, note: e.target.value }))} placeholder="Iyun oyi to'lovi"
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setPayOpen(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">Bekor</button>
@@ -334,12 +377,12 @@ export const Students: React.FC = () => {
             <div>
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Guruhlari</p>
               <div className="flex flex-wrap gap-2">
-                {getStudentGroups(detailStudent.groupIds).map((g) => <Badge key={g.id} label={g.name} color="indigo" />)}
+                {getStudentGroups(detailStudent.groupIds).map((g) => <Badge key={g.id} label={g.name} color="emerald" />)}
                 {detailStudent.groupIds.length === 0 && <span className="text-sm text-slate-400">Guruhga biriktirilmagan</span>}
               </div>
               {!isTeacher && (
-                <div className="mt-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-3">
-                  <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-2">Guruhlarga biriktirish / olib tashlash:</p>
+                <div className="mt-3 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-3">
+                  <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">Guruhlarga biriktirish / olib tashlash:</p>
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                     {groups.filter(g => g.status !== 'archived').map(g => {
                       const isAssigned = detailStudent.groupIds.includes(g.id);
@@ -348,6 +391,10 @@ export const Students: React.FC = () => {
                           key={g.id}
                           type="button"
                           onClick={() => {
+                            if (!isAssigned && g.studentIds.length >= g.maxStudents) {
+                              addToast({ type: 'error', message: `Guruh sig'imi to'lgan (Max: ${g.maxStudents}). Qo'shib bo'lmaydi!` });
+                              return;
+                            }
                             const newGroupIds = isAssigned
                               ? detailStudent.groupIds.filter(id => id !== g.id)
                               : [...detailStudent.groupIds, g.id];
@@ -361,8 +408,8 @@ export const Students: React.FC = () => {
                           }}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                             isAssigned
-                              ? 'bg-indigo-600 text-white shadow-sm'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-500'
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-emerald-500'
                           }`}
                         >
                           {isAssigned ? '✓' : '+'} {g.name}
@@ -377,7 +424,7 @@ export const Students: React.FC = () => {
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Login ma'lumotlari</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase mb-1.5">O'quvchi</p>
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-1.5">O'quvchi</p>
                   <CopyField label="Login" value={detailStudent.studentUsername} />
                   <div className="mt-1.5"><CopyField label="Parol" value={detailStudent.studentPassword} /></div>
                 </div>

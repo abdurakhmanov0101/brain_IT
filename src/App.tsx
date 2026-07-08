@@ -5,11 +5,11 @@ import { AuthLayout } from './layouts/AuthLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './features/landing/LandingPage';
 import { LoginPage } from './features/auth/LoginPage';
-import { Overview } from './features/dashboard/Overview';
-import { Classroom } from './features/academy/Classroom';
-import { KanbanBoard } from './features/pm/KanbanBoard';
-import { FaceIDAttendance } from './features/faceid/FaceIDAttendance';
-import { CrmPipeline } from './features/crm/CrmPipeline';
+const Overview         = lazy(() => import('./features/dashboard/Overview').then((m) => ({ default: m.Overview })));
+const Classroom        = lazy(() => import('./features/academy/Classroom').then((m) => ({ default: m.Classroom })));
+const KanbanBoard      = lazy(() => import('./features/pm/KanbanBoard').then((m) => ({ default: m.KanbanBoard })));
+const FaceIDAttendance = lazy(() => import('./features/faceid/FaceIDAttendance').then((m) => ({ default: m.FaceIDAttendance })));
+const CrmPipeline      = lazy(() => import('./features/crm/CrmPipeline').then((m) => ({ default: m.CrmPipeline })));
 import { useUIStore } from './stores/uiStore';
 
 const Teachers       = lazy(() => import('./features/teachers/Teachers').then((m) => ({ default: m.Teachers })));

@@ -12,8 +12,9 @@ import { StatCard } from '../../components/StatCard';
 import { Coins, Search, Edit2 } from 'lucide-react';
 import { Modal } from '../../components/Modal';
 import { exportCSV } from '../../utils/exportCSV';
+import { PageHeaderBanner } from '../../components/common/PageHeaderBanner';
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+const COLORS = ['#10b981', '#34d399', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 const EXPENSE_CATEGORIES: ExpenseCategory[] = ['Ustoz maoshi', 'Ijara', 'Kommunal', 'Marketing', 'Jihozlar', 'Boshqa'];
 
 export const Finance: React.FC = () => {
@@ -127,32 +128,35 @@ export const Finance: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Moliya</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Daromad, xarajat va moliyaviy hisobot</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">
-            <Download className="h-4 w-4" /> CSV
-          </button>
-          <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold">
-            <Plus className="h-4 w-4" /> Xarajat qo'shish
-          </button>
-        </div>
-      </div>
+      <PageHeaderBanner
+        category="BANK & MOLIYA • FINTECH SIGNATURE"
+        title="Kassa, Daromadlar va Xarajatlar Boshqaruvi"
+        description="Jiddiy va 100% aniqlikdagi moliyaviy jurnal, kirim/chiqim amallari va avtomatik kassa balansi"
+        accent="emerald"
+        icon={<DollarSign className="w-3.5 h-3.5" />}
+        rightAction={
+          <div className="flex gap-2">
+            <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+              <Download className="h-4 w-4" /> CSV
+            </button>
+            <button onClick={() => setAddOpen(true)} className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all active:scale-95">
+              <Plus className="h-4 w-4" /> Xarajat qo'shish
+            </button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard title="Jami daromad" value={`${fmt(totalIncome)} so'm`} icon={TrendingUp} iconColor="text-emerald-600 dark:text-emerald-400" trend={{ value: 12, label: '+12%' }} />
         <StatCard title="Jami xarajat" value={`${fmt(totalExpense)} so'm`} icon={TrendingDown} iconColor="text-red-500" trend={{ value: 5, label: '-5%' }} />
         <StatCard title="Sof foyda" value={`${fmt(netProfit)} so'm`} icon={DollarSign} iconColor={netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'} />
-        <StatCard title="Xarajat soni" value={expenses.length} icon={BarChart2} iconColor="text-indigo-600 dark:text-indigo-400" />
+        <StatCard title="Xarajat soni" value={expenses.length} icon={BarChart2} iconColor="text-emerald-600 dark:text-emerald-400" />
       </div>
 
       <div className="flex gap-2">
         {(['overview', 'students', 'expenses'] as const).map((v) => (
           <button key={v} onClick={() => setView(v)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${view === v ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${view === v ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {v === 'overview' ? 'Umumiy ko\'rinish' : v === 'students' ? 'Kirim (Kassa)' : 'Chiqim (Xarajatlar)'}
           </button>
         ))}
@@ -166,8 +170,8 @@ export const Finance: React.FC = () => {
               <AreaChart data={monthlyStats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
@@ -179,7 +183,7 @@ export const Finance: React.FC = () => {
                 <YAxis tickFormatter={(v) => fmt(v)} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} />
                 <Legend />
-                <Area type="monotone" dataKey="income" name="Daromad" stroke="#6366f1" fill="url(#colorIncome)" strokeWidth={2} />
+                <Area type="monotone" dataKey="income" name="Daromad" stroke="#10b981" fill="url(#colorIncome)" strokeWidth={2} />
                 <Area type="monotone" dataKey="expense" name="Xarajat" stroke="#ef4444" fill="url(#colorExpense)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
@@ -187,7 +191,7 @@ export const Finance: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><PieChartIcon className="h-4 w-4 text-indigo-500" /> Xarajat taqsimoti</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><PieChartIcon className="h-4 w-4 text-emerald-500" /> Xarajat taqsimoti</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie data={categoryStats} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" nameKey="name" paddingAngle={3}>
@@ -200,7 +204,7 @@ export const Finance: React.FC = () => {
             </div>
 
             <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><BarChart2 className="h-4 w-4 text-indigo-500" /> Oylik foyda</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><BarChart2 className="h-4 w-4 text-emerald-500" /> Oylik foyda</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={monthlyStats.map((m) => ({ ...m, profit: m.income - m.expense }))} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -233,7 +237,7 @@ export const Finance: React.FC = () => {
                   <tr key={e.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-4 text-slate-500 dark:text-slate-400 text-xs">{e.date}</td>
                     <td className="px-5 py-4">
-                      <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium">{e.category}</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium">{e.category}</span>
                     </td>
                     <td className="px-5 py-4 font-bold text-red-500">{e.amount.toLocaleString()} so'm</td>
                     <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{e.note}</td>
@@ -250,8 +254,8 @@ export const Finance: React.FC = () => {
       {view === 'students' && (
         <div className="space-y-4">
           <div className="flex gap-2 border-b border-slate-200 dark:border-dark-border pb-2">
-            <button onClick={() => setKirimTab('students')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${kirimTab === 'students' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>To'lov qabul qilish</button>
-            <button onClick={() => setKirimTab('history')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${kirimTab === 'history' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>Kirimlar tarixi</button>
+            <button onClick={() => setKirimTab('students')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${kirimTab === 'students' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>To'lov qabul qilish</button>
+            <button onClick={() => setKirimTab('history')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${kirimTab === 'history' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>Kirimlar tarixi</button>
           </div>
 
           {kirimTab === 'students' && (
@@ -259,7 +263,7 @@ export const Finance: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <input type="text" placeholder="O'quvchini ismi yoki familiyasi bo'yicha izlash..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
+                  <input type="text" placeholder="O'quvchini ismi yoki familiyasi bo'yicha izlash..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm" />
                 </div>
               </div>
 
@@ -320,7 +324,7 @@ export const Finance: React.FC = () => {
                           <span className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg"><Coins className="w-3 h-3" /> {s.coins || 0}</span>
                           {!editingStudent && (
                             <>
-                              <button onClick={() => handleGiveCoin(s, 30, "Do'st taklif qilgani uchun")} className="text-[10px] bg-indigo-500/10 text-indigo-600 font-bold px-2 py-1 rounded-lg hover:bg-indigo-500 hover:text-white transition-colors" title="Do'st taklif qilsa: +30">
+                              <button onClick={() => handleGiveCoin(s, 30, "Do'st taklif qilgani uchun")} className="text-[10px] bg-emerald-500/10 text-emerald-600 font-bold px-2 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-colors" title="Do'st taklif qilsa: +30">
                                 +30 (Do'st)
                               </button>
                               <button onClick={() => handleGiveCoin(s, 10, "Barvaqt to'lov uchun")} className="text-[10px] bg-emerald-500/10 text-emerald-600 font-bold px-2 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-colors" title="5-chislogacha to'lasa: +10">
@@ -333,7 +337,7 @@ export const Finance: React.FC = () => {
                       <td className="px-5 py-3">
                         {editingStudent === s.id ? (
                           <div className="flex gap-2">
-                            <button onClick={() => saveStudentEdit(s.id)} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold">Saqlash</button>
+                            <button onClick={() => saveStudentEdit(s.id)} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold">Saqlash</button>
                             <button onClick={() => setEditingStudent(null)} className="text-xs bg-slate-200 dark:bg-slate-700 px-3 py-1.5 rounded-lg font-bold">Bekor</button>
                           </div>
                         ) : (
@@ -341,7 +345,7 @@ export const Finance: React.FC = () => {
                             <button onClick={() => { setSelectedStudentForPayment(s); setPaymentModalOpen(true); }} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors">
                               To'lov qabul qilish
                             </button>
-                            <button onClick={() => { setEditingStudent(s.id); setEditForm({ paymentStatus: s.paymentStatus || 'unpaid', paymentNote: s.paymentNote || '', nextPaymentDate: s.nextPaymentDate || '' }); }} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors">
+                            <button onClick={() => { setEditingStudent(s.id); setEditForm({ paymentStatus: s.paymentStatus || 'unpaid', paymentNote: s.paymentNote || '', nextPaymentDate: s.nextPaymentDate || '' }); }} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
                               <Edit2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -376,7 +380,7 @@ export const Finance: React.FC = () => {
                           <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-200">{student?.fullName || 'Noma\'lum'}</td>
                           <td className="px-5 py-3 font-bold text-emerald-500">+{p.amount.toLocaleString()} so'm</td>
                           <td className="px-5 py-3">
-                            <span className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md text-xs font-bold uppercase">{p.type}</span>
+                            <span className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-md text-xs font-bold uppercase">{p.type}</span>
                           </td>
                           <td className="px-5 py-3 text-slate-600 dark:text-slate-400 text-xs max-w-[200px] truncate" title={p.note}>{p.note || '-'}</td>
                           <td className="px-5 py-3 text-slate-500 text-xs">{p.receivedBy}</td>
@@ -397,28 +401,28 @@ export const Finance: React.FC = () => {
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Kategoriya</label>
             <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
               {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Miqdor (so'm)</label>
             <input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="1000000" min={0}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Sana</label>
             <input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Izoh</label>
             <input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} placeholder="Xarajat haqida..."
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={() => setAddOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">Bekor</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold">Qo'shish</button>
+            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Qo'shish</button>
           </div>
         </form>
       </Modal>
@@ -434,7 +438,7 @@ export const Finance: React.FC = () => {
               {selectedStudentForPayment.teacherId && (
                 <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                   <p className="text-xs text-slate-500">Ustoz: <span className="font-semibold text-slate-700 dark:text-slate-300">{teachers.find(t => t.id === selectedStudentForPayment.teacherId)?.fullName || 'Topilmadi'}</span></p>
-                  <p className="text-xs text-indigo-500 font-medium mt-1">
+                  <p className="text-xs text-emerald-500 font-medium mt-1">
                     Ushbu to'lovdan ustoz o'z foizini ({teachers.find(t => t.id === selectedStudentForPayment.teacherId)?.salaryPercentage || 35}%) oladi.
                   </p>
                 </div>
@@ -444,23 +448,23 @@ export const Finance: React.FC = () => {
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">To'lov miqdori (so'm)</label>
               <input type="number" min="0" value={paymentAmount} onChange={(e) => setPaymentAmount(Number(e.target.value))} required placeholder="Masalan: 300000"
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">To'liq izoh</label>
               <input type="text" value={paymentNoteText} onChange={(e) => setPaymentNoteText(e.target.value)} placeholder="Masalan: 1-kurs qishki oyi uchun to'liq to'lov..."
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
 
             {paymentAmount && paymentAmount > 0 && selectedStudentForPayment.teacherId && (
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-800/50 text-sm">
-                <p className="font-semibold text-indigo-800 dark:text-indigo-300 mb-1">Taqsimot:</p>
-                <div className="flex justify-between text-indigo-600 dark:text-indigo-400 text-xs">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/50 text-sm">
+                <p className="font-semibold text-emerald-800 dark:text-emerald-300 mb-1">Taqsimot:</p>
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs">
                   <span>Ustozga ({(teachers.find(t => t.id === selectedStudentForPayment.teacherId)?.salaryPercentage || 35)}%):</span>
                   <span className="font-bold">{((Number(paymentAmount) * (teachers.find(t => t.id === selectedStudentForPayment.teacherId)?.salaryPercentage || 35)) / 100).toLocaleString()} so'm</span>
                 </div>
-                <div className="flex justify-between text-indigo-600 dark:text-indigo-400 text-xs mt-0.5">
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs mt-0.5">
                   <span>Akademiyaga:</span>
                   <span className="font-bold">{(Number(paymentAmount) - ((Number(paymentAmount) * (teachers.find(t => t.id === selectedStudentForPayment.teacherId)?.salaryPercentage || 35)) / 100)).toLocaleString()} so'm</span>
                 </div>
