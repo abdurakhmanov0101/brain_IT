@@ -26,7 +26,7 @@ interface TeacherState {
   deleteTeacher: (id: string) => void;
 }
 
-export [];
+
 
 export const useTeacherStore = create<TeacherState>()(
   persist(
