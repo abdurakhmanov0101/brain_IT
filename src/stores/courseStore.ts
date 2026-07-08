@@ -46,6 +46,6 @@ export const useCourseStore = create<CourseState>()(
         set((s) => ({ courses: s.courses.filter((c) => c.id !== id) }));
       },
     }),
-    { name: 'brain-it-courses-clean-v1' }
+    { name: 'brain-it-courses-clean-v1-prod-v1' }
   )
 );

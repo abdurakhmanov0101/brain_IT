@@ -62,4 +62,4 @@ export const useGroupStore = create<GroupState>()(persist((set) => ({
       useStudentStore.getState().updateStudent(studentId, { groupIds: student.groupIds.filter((id) => id !== groupId) });
     }
   },
-}), { name: 'brain-it-groups-clean-v1' }));
+}), { name: 'brain-it-groups-clean-v1-prod-v1' }));

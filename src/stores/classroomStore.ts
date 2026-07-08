@@ -68,6 +68,6 @@ export const useClassroomStore = create<ClassroomState>()(
         return get().lessons.filter((l) => l.groupId === groupId);
       },
     }),
-    { name: 'classroom-store-clean-v1' }
+    { name: 'classroom-store-clean-v1-prod-v1' }
   )
 );

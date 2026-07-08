@@ -122,6 +122,6 @@ export const useRoleStore = create<RoleState>()(
         return false;
       },
     }),
-    { name: 'brain_role_store_v2' }
+    { name: 'brain_role_store_v2-prod-v1' }
   )
 );

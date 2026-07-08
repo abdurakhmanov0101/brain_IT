@@ -66,6 +66,6 @@ export const useMarketStore = create<MarketState>()(
         purchases: state.purchases.map(p => p.id === id ? { ...p, status } : p)
       }))
     }),
-    { name: 'brain-crm-marketstore' }
+    { name: 'brain-crm-marketstore-prod-v1' }
   )
 );

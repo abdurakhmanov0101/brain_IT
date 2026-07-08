@@ -257,6 +257,6 @@ export const useStudentStore = create<StudentState>()(
         })),
       getStudentBalance: (id) => get().students.find((s) => s.id === id)?.balance ?? 0,
     }),
-    { name: 'brain-it-students-clean-v2' }
+    { name: 'brain-it-students-clean-v2-prod-v1' }
   )
 );

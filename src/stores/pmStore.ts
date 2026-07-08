@@ -25,6 +25,6 @@ export const usePmStore = create<PMState>()(
           ),
         })),
     }),
-    { name: 'brain-it-pm-projects' }
+    { name: 'brain-it-pm-projects-prod-v1' }
   )
 );

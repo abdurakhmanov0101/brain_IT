@@ -36,6 +36,6 @@ export const useContractStore = create<ContractState>()(
       })),
       deleteContract: (id) => set((s) => ({ contracts: s.contracts.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-contracts' }
+    { name: 'brain-it-contracts-prod-v1' }
   )
 );

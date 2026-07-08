@@ -115,6 +115,6 @@ export const useHomeworkStore = create<HomeworkState>()(
         });
       },
     }),
-    { name: 'homework-store-clean-v1' }
+    { name: 'homework-store-clean-v1-prod-v1' }
   )
 );

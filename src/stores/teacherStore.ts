@@ -38,6 +38,6 @@ export const useTeacherStore = create<TeacherState>()(
       })),
       deleteTeacher: (id) => set((s) => ({ teachers: s.teachers.filter((t) => t.id !== id) })),
     }),
-    { name: 'teacher-store-clean-v1' }
+    { name: 'teacher-store-clean-v1-prod-v1' }
   )
 );

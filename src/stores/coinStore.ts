@@ -132,6 +132,6 @@ export const useCoinStore = create<CoinState>()(
         return { balances, transactions: [tx, ...state.transactions] };
       }),
     }),
-    { name: 'brain-crm-coinstore-v2' }
+    { name: 'brain-crm-coinstore-v2-prod-v1' }
   )
 );
