@@ -14,89 +14,122 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
     return (
       <div
         ref={ref}
-        className="relative bg-white w-[1000px] h-[707px] overflow-hidden flex"
+        className="relative bg-white w-[1000px] h-[707px] flex flex-col overflow-hidden"
         style={{
           fontFamily: "'Inter', sans-serif",
           boxSizing: 'border-box',
           color: '#1a1a1a',
         }}
       >
-        {/* Left Accent Bar */}
-        <div className="w-4 h-full bg-[#059669] shrink-0"></div>
-        <div className="w-1 h-full bg-[#34d399] shrink-0 ml-1"></div>
+        {/* Very Faint Ornate Guilloche Background (like in the image) */}
+        <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='a' patternUnits='userSpaceOnUse' width='40' height='40' patternTransform='scale(2) rotate(0)'%3E%3Crect x='0' y='0' width='100%25' height='100%25' fill='transparent'/%3E%3Cpath d='M0 20c10-10 10-10 20 0s10 10 20 0' stroke='%23d4a373' stroke-width='0.5' fill='none'/%3E%3Cpath d='M0 20c10 10 10 10 20 0s10-10 20 0' stroke='%23d4a373' stroke-width='0.5' fill='none'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23a)'/%3E%3C/svg%3E")`
+        }}></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-white/80 to-emerald-50/30 z-0"></div>
+        
+        {/* Outer & Inner Borders */}
+        <div className="absolute inset-4 border-[1px] border-zinc-400 pointer-events-none z-10"></div>
+        <div className="absolute inset-[18px] border-[0.5px] border-zinc-300 pointer-events-none z-10"></div>
 
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] opacity-20 pointer-events-none"></div>
+        {/* Right Vertical Banner overlay */}
+        <div className="absolute top-0 right-32 w-52 h-[80%] bg-[#f4f5f6] border-x border-b border-zinc-300 z-20 shadow-sm flex flex-col items-center pt-24" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 92%, 0 100%)' }}>
+            <p className="text-zinc-600 font-bold tracking-widest text-[11px] leading-relaxed text-center">
+              COURSE<br/>CERTIFICATE
+            </p>
+            {/* The circular seal inside the banner */}
+            <div className="mt-20 relative w-40 h-40">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-80">
+                  <circle cx="50" cy="50" r="45" stroke="#1a1a1a" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="42" stroke="#1a1a1a" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="32" stroke="#1a1a1a" strokeWidth="0.5" />
+                  <circle cx="50" cy="50" r="29" stroke="#1a1a1a" strokeWidth="0.5" />
+                  <path d="M25 50A25 25 0 0 1 75 50A25 25 0 0 1 25 50" stroke="#1a1a1a" strokeWidth="0.2" strokeDasharray="2 2" />
+                  
+                  {/* Circular text */}
+                  <path id="curveTop" d="M 15 50 A 35 35 0 1 1 85 50" fill="transparent" />
+                  <text fontSize="7" fill="#1a1a1a" fontWeight="bold" letterSpacing="2.5">
+                    <textPath href="#curveTop" startOffset="50%" textAnchor="middle">INNOVATIVE EDUCATION</textPath>
+                  </text>
 
-        {/* Main Content Container */}
-        <div className="flex-1 flex flex-col pt-16 pb-16 px-20 relative z-10">
+                  <path id="curveBottom" d="M 85 50 A 35 35 0 1 1 15 50" fill="transparent" />
+                  <text fontSize="6" fill="#1a1a1a" fontWeight="bold" letterSpacing="1.5">
+                    <textPath href="#curveBottom" startOffset="50%" textAnchor="middle">BRAIN IT ACADEMY</textPath>
+                  </text>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
+                   <img src="/logo.png" alt="Logo" className="h-10 opacity-90 grayscale contrast-125" />
+                </div>
+            </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col pt-20 px-24 relative z-10">
           
-          {/* Header Row */}
-          <div className="flex justify-between items-start mb-24">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="Brain IT Academy Logo" className="h-[72px] object-contain" />
-              <div className="border-l-[1.5px] border-emerald-300 pl-4 py-1">
-                <h2 className="text-2xl font-black tracking-tight text-emerald-950 uppercase leading-none">Brain IT<br/>Academy</h2>
-              </div>
+          {/* Top Left Logo */}
+          <div className="flex items-center gap-4 mb-20">
+            <img src="/logo.png" alt="Brain IT Academy Logo" className="h-16 object-contain" />
+            <div className="border-l-[1.5px] border-emerald-900 pl-4 py-1">
+              <h2 className="text-[28px] font-black tracking-tight text-emerald-950 uppercase leading-none">Brain IT<br/>Academy</h2>
             </div>
           </div>
 
-          {/* Body Content */}
-          <div className="flex-1">
-            <p className="text-zinc-400 font-bold tracking-[0.25em] uppercase text-[11px] mb-2">
-              Berilgan sana: {new Date(issueDate).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' })}
+          <div className="max-w-2xl">
+            {/* Date */}
+            <p className="text-zinc-600 font-medium text-[13px] mb-8">
+              {new Date(issueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
             
-            <h1 className="text-6xl font-black mb-12 text-[#1a1a1a] capitalize" style={{ fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.02em' }}>
+            {/* Student Name */}
+            <h1 className="text-[44px] font-normal mb-8 text-zinc-800 uppercase leading-tight" style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.05em' }}>
               {studentName}
             </h1>
             
-            <p className="text-zinc-600 text-[15px] max-w-2xl leading-relaxed">
-              ushbu o'quvchi Brain IT Academy tomonidan tashkil etilgan onlayn/oflayn o'quv dasturida qatnashdi va quyidagi kursni muvaffaqiyatli tamomladi:
+            <p className="text-zinc-800 font-normal text-[15px] mb-6 italic" style={{ fontFamily: "'Georgia', serif" }}>
+              has successfully completed
             </p>
 
-            <h2 className="text-[26px] font-bold text-emerald-900 mt-6 mb-8 max-w-3xl">
+            {/* Course Name */}
+            <h2 className="text-[28px] font-bold text-zinc-900 mb-8" style={{ fontFamily: "'Georgia', serif" }}>
               {courseName}
             </h2>
             
-            <p className="text-zinc-500 text-[13px] max-w-xl leading-relaxed">
-              Mazkur sertifikat egasi tanlangan yo'nalish bo'yicha nazariy va amaliy bilimlarni o'zlashtirib, yakuniy imtihonlardan muvaffaqiyatli o'tganini tasdiqlaydi.
+            <p className="text-zinc-800 text-[14px] leading-relaxed max-w-[600px] mb-20" style={{ fontFamily: "'Georgia', serif" }}>
+              an online non-credit course authorized by Brain IT Academy and offered through the academy's official learning platform.
             </p>
-          </div>
 
-          {/* Footer */}
-          <div className="flex justify-between items-end mt-12 w-full border-t border-zinc-200 pt-8">
-            <div className="flex items-end gap-16">
-              <div className="flex flex-col relative">
-                <span style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", fontSize: '2.5rem', color: '#064e3b', opacity: 0.9, transform: 'rotate(-2deg)', marginBottom: '-10px', display: 'inline-block' }}>
+            {/* Signatures Area */}
+            <div className="flex gap-20">
+              <div className="flex flex-col w-64 relative">
+                {/* Temp Signature */}
+                <span className="absolute bottom-10 left-0" style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", fontSize: '2.5rem', color: '#1a1a1a', opacity: 0.8, transform: 'rotate(-3deg)' }}>
                   J. Omonov
                 </span>
-                <div className="w-48 border-b-[1.5px] border-zinc-400 mb-2 mt-2"></div>
-                <p className="text-[13px] font-bold text-zinc-800">Jahongir Omonov</p>
-                <p className="text-[11px] font-medium text-zinc-500 mt-0.5">Akademiya Direktori<br/>Brain IT Academy</p>
+                <div className="w-full border-b border-zinc-400 mb-2 mt-16"></div>
+                <p className="text-[12px] font-bold text-zinc-800">Jahongir Omonov</p>
+                <p className="text-[10px] text-zinc-600 mt-1 leading-snug">
+                  Director of Education and Operations<br/>
+                  Center for Quantitative Modeling<br/>
+                  Brain IT Academy
+                </p>
               </div>
-
-              {/* Verified Badge */}
-              <div className="flex flex-col items-center opacity-90 pb-2">
-                <svg width="70" height="70" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="46" stroke="#059669" strokeWidth="2" />
-                    <circle cx="50" cy="50" r="38" stroke="#059669" strokeWidth="1" strokeDasharray="3 3"/>
-                    <path d="M35 50L45 60L65 38" stroke="#059669" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <p className="text-[9px] font-bold text-emerald-700 tracking-widest uppercase mt-2">Tasdiqlangan</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-end text-right">
-              <div className="p-2 bg-white rounded-lg border border-zinc-100 shadow-sm mb-3">
-                <QRCode value={verifyUrl} size={60} level="H" fgColor="#1a1a1a" />
-              </div>
-              <p className="text-[10px] font-semibold text-zinc-500">Sertifikatni tekshirish:</p>
-              <p className="text-[10px] font-mono font-bold text-emerald-700 mt-0.5">{certificateNumber}</p>
             </div>
           </div>
-
         </div>
+
+        {/* Footer Right area */}
+        <div className="absolute bottom-12 right-24 z-10 flex flex-col items-end text-right">
+          <p className="text-[11px] text-zinc-500 mb-1">Verify at:</p>
+          <a href={verifyUrl} className="text-[11px] text-blue-600 font-medium underline mb-3" target="_blank" rel="noreferrer">
+            {verifyUrl}
+          </a>
+          <p className="text-[9px] text-zinc-400 max-w-[250px] leading-relaxed">
+            Brain IT Academy has confirmed the identity of this individual and their participation in the course.
+          </p>
+          <div className="mt-4 border border-zinc-200 p-1 bg-white">
+             <QRCode value={verifyUrl} size={60} level="M" fgColor="#1a1a1a" />
+          </div>
+        </div>
+
       </div>
     );
   }
