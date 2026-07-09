@@ -423,40 +423,45 @@ export const TeacherHomework: React.FC = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      {/* ─── Hero Header ─── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-emerald-700 to-teal-700 p-7 text-white shadow-2xl">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-300 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-        </div>
-        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Ustoz paneli</p>
-            <h1 className="font-heading font-black text-3xl mt-1">Uy‑Vazifalar</h1>
-            <p className="text-white/70 text-sm mt-1">Guruh o'quvchilari javoblarini tekshiring va baholang.</p>
+      {/* ─── MODERN COMPACT HEADER ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left: Main Controls */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm premium-card-shadow">
+          <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-emerald-500/5 to-transparent pointer-events-none" />
+          
+          <div className="relative flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800/50">
+              <BookOpen className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Ustoz Paneli</p>
+              <h1 className="font-heading font-black text-2xl text-slate-800 dark:text-white leading-none">Uy-Vazifalar</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">Guruh o'quvchilari javoblarini tekshiring va baholang.</p>
+            </div>
           </div>
+          
           <button
             onClick={() => setShowForm(true)}
-            className="shrink-0 inline-flex items-center gap-2 px-5 py-3 bg-white text-emerald-700 font-bold hover:bg-white/90 rounded-2xl transition-all active:scale-95 shadow-xl shadow-black/20"
+            className="shrink-0 relative z-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:bg-slate-800 dark:hover:bg-slate-100 rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-95"
           >
             <Plus className="h-4 w-4" /> Yangi vazifa
           </button>
         </div>
 
-        {/* Stats row */}
-        <div className="relative flex flex-wrap gap-4 mt-6">
+        {/* Right: Bento Stats */}
+        <div className="grid grid-cols-2 gap-3 lg:col-span-1">
           {[
-            { label: 'Jami vazifalar', value: visibleAssignments.length, icon: BookOpen },
-            { label: 'Topshirilgan', value: totalSubs, icon: TrendingUp },
-            { label: 'Tekshirilmoqda', value: pendingSubs, icon: Clock },
-            { label: 'Baholangan', value: gradedSubs, icon: Award },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="flex items-center gap-2.5 px-4 py-2.5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
-              <Icon className="h-4 w-4 text-white/70" />
-              <div>
-                <p className="text-xl font-black leading-none">{value}</p>
-                <p className="text-[10px] text-white/60 font-semibold">{label}</p>
+            { label: 'Vazifalar', value: visibleAssignments.length, icon: BookOpen, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+            { label: 'Topshirilgan', value: totalSubs, icon: TrendingUp, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+            { label: 'Kutmoqda', value: pendingSubs, icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+            { label: 'Baholangan', value: gradedSubs, icon: Award, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <div key={label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center shadow-sm">
+              <div className={`p-2 rounded-xl mb-2 ${bg}`}>
+                <Icon className={`h-4 w-4 ${color}`} />
               </div>
+              <p className="text-xl font-black text-slate-800 dark:text-white leading-none mb-1">{value}</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{label}</p>
             </div>
           ))}
         </div>

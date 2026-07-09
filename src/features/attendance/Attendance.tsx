@@ -223,107 +223,39 @@ export const Attendance: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-5 items-start">
-        
-        {/* ──────────────── COLUMN 1: SIDEBAR / COLLAPSIBLE GROUP INFO ──────────────── */}
-        <div className="xl:col-span-1 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl overflow-hidden shadow-sm transition-all premium-card-shadow">
-          {/* Header click toggles sidebar on mobile */}
-          <div 
-            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-            className="flex items-center justify-between p-4.5 cursor-pointer xl:cursor-default border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/10"
-          >
+      {/* ─── COMPACT GROUP INFO BAR ─── */}
+      {group && (
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl shadow-sm premium-card-shadow text-xs">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-emerald-500" />
-              <h3 className="font-bold text-xs text-slate-700 dark:text-slate-200 uppercase tracking-wider">Guruh ma'lumotlari</h3>
+              <span className="font-bold text-slate-800 dark:text-white text-sm">{group.name}</span>
+              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-md">Offline</span>
             </div>
-            <div className="xl:hidden text-slate-400">
-              {isSidebarExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+              <span className="font-semibold">Ustoz:</span> {teacher?.fullName || 'Noma\'lum'}
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+              <span className="font-semibold">Xona:</span> {group.room || '101-xona'}
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+              <span className="font-semibold">Vaqt:</span> {group.schedule.time} ({group.schedule.days.join(', ')})
             </div>
           </div>
-
-          {/* Expanded Container */}
-          <div className={`${isSidebarExpanded ? 'block' : 'hidden'} xl:block p-5 space-y-4.5 text-xs`}>
-            {group ? (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Guruh nomi</p>
-                  <p className="font-heading font-black text-slate-800 dark:text-white mt-0.5 text-sm">{group.name}</p>
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ta'lim turi</p>
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mt-1">
-                      offline
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Xona</p>
-                    <p className="font-bold text-slate-700 dark:text-slate-300 mt-1">{group.room || '101-xona'}</p>
-                  </div>
-                </div>
-
-                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dars vaqti & Kunlari</p>
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{group.schedule.time} · {group.schedule.days.join(', ')}</p>
-                </div>
-
-                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kurs va Ustoz</p>
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{course?.name} · {teacher?.fullName || 'Noma\'lum'}</p>
-                </div>
-
-                <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Boshlanish sanasi</p>
-                    <p className="font-medium text-slate-600 dark:text-slate-400 mt-0.5">{group.startDate}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tugash kuni</p>
-                    <p className="font-medium text-slate-600 dark:text-slate-400 mt-0.5">{(() => {
-                      const start = new Date(group.startDate);
-                      start.setMonth(start.getMonth() + 3);
-                      return start.toISOString().split('T')[0];
-                    })()}</p>
-                  </div>
-                </div>
-
-                {/* Status indicator legends */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Belgilar izohi</p>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span>Keldi</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                      <span>1-dars</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-slate-800 dark:bg-slate-300" />
-                      <span>Sababli</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                      <span>Sababsiz</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 col-span-2">
-                      <span className="w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px]">❄️</span>
-                      <span>Muz (Yangi qo'shilgan, hisobga kirmaydi)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-slate-400 py-4">Guruh tanlanmagan.</p>
-            )}
+          
+          <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500">
+             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Keldi</span>
+             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-slate-800 dark:bg-slate-300" /> Sababli</span>
+             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Sababsiz</span>
+             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-sky-500 text-white flex items-center justify-center text-[8px]">❄️</span> Muzlatilgan</span>
           </div>
         </div>
+      )}
 
-        {/* ──────────────── COLUMN 2: COMPACT ATTENDANCE GRID ──────────────── */}
-        <div className="xl:col-span-3 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col premium-card-shadow">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 gap-5 items-start">
+        {/* ──────────────── COMPACT ATTENDANCE GRID ──────────────── */}
+        <div className="w-full bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col premium-card-shadow">
           
           {/* Search and stats bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -442,7 +374,9 @@ export const Attendance: React.FC = () => {
                                   circleStyle += "bg-slate-50/50 dark:bg-slate-800/5 hover:bg-slate-100 hover:border-slate-300 dark:hover:bg-slate-800 text-transparent";
                                 }
 
-                                if (!isToday && isTeacher) {
+                                if (dt.dateStr > todayStr) {
+                                  circleStyle += " opacity-50 cursor-not-allowed";
+                                } else if (dt.dateStr < todayStr && isTeacher) {
                                   circleStyle += " opacity-80 cursor-not-allowed";
                                 }
 
@@ -451,12 +385,17 @@ export const Attendance: React.FC = () => {
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      if (!isToday && isTeacher) {
+                                      if (dt.dateStr > todayStr) {
                                         addToast({ 
                                           type: 'warning', 
-                                          message: dt.dateStr < todayStr 
-                                            ? "⏳ O'tgan darslarga davomat belgilash yoki o'zgartirish faqat adminlar uchun ruxsat etiladi!" 
-                                            : "⏳ Kelgusi sanalarga oldindan davomat qilib bo'lmaydi! Faqat bugungi dars uchun belgilang." 
+                                          message: "⏳ Kelgusi sanalarga oldindan davomat qilib bo'lmaydi! Faqat bugun va o'tgan kunlar uchun belgilang." 
+                                        });
+                                        return;
+                                      }
+                                      if (dt.dateStr < todayStr && isTeacher) {
+                                        addToast({ 
+                                          type: 'warning', 
+                                          message: "⏳ O'tgan darslarga davomat belgilash yoki o'zgartirish faqat adminlar uchun ruxsat etiladi!" 
                                         });
                                         return;
                                       }

@@ -271,86 +271,82 @@ export const Classroom: React.FC = () => {
 
   return (
     <div className="space-y-6 page-enter">
-      {/* ═══ PREMIUM VIBRANT HEADER ═══ */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-teal-600 p-8 sm:p-10 text-white shadow-2xl shadow-emerald-500/20">
-        <div className="absolute inset-0 z-0 opacity-60 pointer-events-none mix-blend-overlay">
-          <div className="absolute -top-[30%] -right-[10%] w-[60%] h-[150%] bg-cyan-400/50 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[0%] -left-[10%] w-[50%] h-[100%] bg-yellow-400/40 blur-[100px] rounded-full" />
-        </div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-xl border border-white/30 shadow-inner">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="font-heading font-black text-4xl lg:text-5xl tracking-tight text-white drop-shadow-md">LMS Classroom</h1>
-            </div>
-            <p className="text-white/90 text-sm max-w-md font-medium leading-relaxed drop-shadow-sm">
-              Dars materiallari, video yozuvlar va o'quvchi progressi — barchasi yagona zamonaviy muhitda crm orqali birlashtirilgan.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Group selector */}
-            <div className="relative">
-              <select
-                value={effectiveGroupId}
-                onChange={(e) => { setSelectedGroupId(e.target.value); setSelectedLesson(null); }}
-                className="appearance-none bg-white/15 backdrop-blur-sm border border-white/25 text-white rounded-xl px-4 py-2.5 pr-10 text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40 transition-all"
-              >
-                {visibleGroups.map((g) => (
-                  <option key={g.id} value={g.id} className="bg-slate-900 text-white">{g.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60 pointer-events-none" />
-            </div>
-            {isTeacher && (
-              <div className="flex gap-2.5">
-                <button
-                  onClick={() => {
-                    setAddTaskTitle('');
-                    setAddTaskDesc('');
-                    setAddTaskDuration(30);
-                    // Pre-fill fields with current context
-                    const defaultCourse = courses[0]?.id || '';
-                    setTaskFormCourseId(defaultCourse);
-                    setTaskFormGroupId(effectiveGroupId);
-                    
-                    const groupLessons = lessons.filter(l => l.groupId === effectiveGroupId);
-                    setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
-                    
-                    setShowAddTaskModal(true);
-                  }}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
-                >
-                  <Code className="h-4 w-4" /> Topshiriq berish
-                </button>
-
-                <button
-                  onClick={handleOpenForm}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 border border-white/25 text-white font-bold text-sm rounded-xl backdrop-blur-sm transition-all active:scale-95 shadow-lg"
-                >
-                  <Plus className="h-4 w-4" /> Dars qo'shish
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Stats row */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
-          {[
-            { label: 'Jami darslar', value: groupLessons.length, icon: BookOpen, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-            { label: "O'quvchilar", value: groupStudents.length, icon: Users, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-            { label: "Bugungi dars", value: groupLessons.filter(l => l.date === new Date().toISOString().slice(0, 10)).length, icon: Calendar, color: 'text-teal-400', bg: 'bg-teal-400/10' },
-            { label: "O'rtacha ko'rish", value: groupLessons.length > 0 ? Math.round(groupLessons.reduce((s, l) => s + l.viewedBy.length, 0) / groupLessons.length) : 0, icon: Eye, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-          ].map((stat, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${stat.bg} border border-white/5`}>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+      {/* ═══ MODERN COMPACT HEADER ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left: Main Controls */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
+                <BookOpen className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xl font-black text-white leading-none mb-1">{stat.value}</p>
-                <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">{stat.label}</p>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">LMS Classroom</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm leading-relaxed font-medium">
+                  Darslar, topshiriqlar va materiallarni bitta ixcham joyda boshqaring.
+                </p>
               </div>
+            </div>
+            
+            <div className="shrink-0">
+              <div className="relative">
+                <select
+                  value={effectiveGroupId}
+                  onChange={(e) => { setSelectedGroupId(e.target.value); setSelectedLesson(null); }}
+                  className="appearance-none bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 pr-8 text-sm font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                >
+                  {visibleGroups.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+          
+          {isTeacher && (
+            <div className="relative z-10 flex flex-wrap gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setAddTaskTitle(''); setAddTaskDesc(''); setAddTaskDuration(30);
+                  const defaultCourse = courses[0]?.id || '';
+                  setTaskFormCourseId(defaultCourse); setTaskFormGroupId(effectiveGroupId);
+                  const groupLessons = lessons.filter(l => l.groupId === effectiveGroupId);
+                  setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
+                  setShowAddTaskModal(true);
+                }}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm active:scale-95"
+              >
+                <Code className="w-3.5 h-3.5" /> Topshiriq berish
+              </button>
+              <button
+                onClick={handleOpenForm}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-all active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" /> Dars qo'shish
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Modern Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {[
+            { label: 'Darslar', value: groupLessons.length, icon: BookOpen, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+            { label: "O'quvchi", value: groupStudents.length, icon: Users, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+            { label: "Bugungi", value: groupLessons.filter(l => l.date === new Date().toISOString().slice(0, 10)).length, icon: Calendar, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-50 dark:bg-sky-500/10' },
+            { label: "Ko'rishlar", value: groupLessons.length > 0 ? Math.round(groupLessons.reduce((s, l) => s + l.viewedBy.length, 0) / groupLessons.length) : 0, icon: Eye, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-4 flex flex-col justify-center shadow-sm">
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className={`p-1.5 rounded-[10px] ${stat.bg}`}>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</span>
+              </div>
+              <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{stat.value}</p>
             </div>
           ))}
         </div>
@@ -881,29 +877,27 @@ export const Classroom: React.FC = () => {
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)}>
           <div
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-slate-200 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg mx-4 flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/15 rounded-xl">
-                    {editingLesson ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-lg">{editingLesson ? 'Darsni tahrirlash' : 'Yangi dars yuklash'}</h3>
-                    <p className="text-white/60 text-xs">Dars ma'lumotlarini kiriting</p>
-                  </div>
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                  {editingLesson ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
-                <button onClick={() => setShowForm(false)} className="p-2 hover:bg-white/15 rounded-xl transition-colors">
-                  <X className="h-5 w-5" />
-                </button>
+                <div>
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-tight">{editingLesson ? 'Darsni tahrirlash' : 'Yangi dars yuklash'}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-0.5">Dars ma'lumotlarini kiriting</p>
+                </div>
               </div>
+              <button onClick={() => setShowForm(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Modal body */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
                 {/* Date */}
                 <div>
@@ -1053,30 +1047,29 @@ export const Classroom: React.FC = () => {
       {showAddTaskModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 backdrop-blur-sm" onClick={() => setShowAddTaskModal(false)}>
           <div
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-200 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md mx-4 flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/15 rounded-xl">
-                    <Code className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-bold text-lg">Darsda topshiriq berish</h3>
-                    <p className="text-white/60 text-xs">O'quvchilar uchun tezkor sinov yaratish</p>
-                  </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                  <Code className="h-5 w-5" />
                 </div>
-                <button onClick={() => setShowAddTaskModal(false)} className="p-2 hover:bg-white/15 rounded-xl transition-colors">
-                  <X className="h-5 w-5" />
-                </button>
+                <div>
+                  <h3 className="font-bold text-slate-800 dark:text-white text-lg leading-tight">Darsda topshiriq</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-0.5">O'quvchilar uchun tezkor sinov yaratish</p>
+                </div>
               </div>
+              <button onClick={() => setShowAddTaskModal(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+            <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto custom-scrollbar">
               {/* Kurs Select */}
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Kurs</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Kurs</label>
                 <select
                   value={taskFormCourseId}
                   onChange={(e) => {
@@ -1092,7 +1085,7 @@ export const Classroom: React.FC = () => {
                     const groupLessons = lessons.filter(l => l.groupId === firstGroupId);
                     setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
                   }}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Kursni tanlang</option>
@@ -1103,8 +1096,8 @@ export const Classroom: React.FC = () => {
               </div>
 
               {/* Guruh Select */}
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Guruh</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Guruh</label>
                 <select
                   value={taskFormGroupId}
                   onChange={(e) => {
@@ -1115,7 +1108,7 @@ export const Classroom: React.FC = () => {
                     const groupLessons = lessons.filter(l => l.groupId === gid);
                     setTaskFormLessonId(groupLessons[0]?.id || 'live_today');
                   }}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Guruhni tanlang</option>
@@ -1126,12 +1119,12 @@ export const Classroom: React.FC = () => {
               </div>
 
               {/* Dars Select */}
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Dars (Lesson)</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Dars (Lesson)</label>
                 <select
                   value={taskFormLessonId}
                   onChange={(e) => setTaskFormLessonId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
                   required
                 >
                   <option value="" disabled>Darsni tanlang</option>
@@ -1142,34 +1135,34 @@ export const Classroom: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Topshiriq nomi</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Topshiriq nomi</label>
                 <input
                   type="text"
                   value={addTaskTitle}
                   onChange={(e) => setAddTaskTitle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
                   required
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Topshiriq sharti (Tavsif)</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Topshiriq sharti (Tavsif)</label>
                 <textarea
                   value={addTaskDesc}
                   onChange={(e) => setAddTaskDesc(e.target.value)}
                   rows={4}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all resize-none"
                   required
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 block">Vaqt limiti (Daqiqada)</label>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">Vaqt limiti (Daqiqada)</label>
                 <select
                   value={addTaskDuration}
                   onChange={(e) => setAddTaskDuration(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 py-2.5 px-3.5 text-sm text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 outline-none transition-all"
                 >
                   <option value={10}>10 daqiqa</option>
                   <option value={15}>15 daqiqa</option>

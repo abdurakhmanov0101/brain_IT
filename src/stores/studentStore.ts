@@ -136,7 +136,7 @@ const generateStudents = (): InitStudent[] => {
   return list;
 };
 
-const rawStudents: InitStudent[] = [];
+const rawStudents: InitStudent[] = generateStudents();
 
 const initialStudents: Student[] = rawStudents.map((s) => ({
   ...s,
@@ -214,6 +214,6 @@ export const useStudentStore = create<StudentState>()(
         })),
       getStudentBalance: (id) => get().students.find((s) => s.id === id)?.balance ?? 0,
     }),
-    { name: 'brain-it-students-prod-v3' }
+    { name: 'brain-it-students-prod-v4' }
   )
 );

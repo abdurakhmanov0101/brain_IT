@@ -115,50 +115,52 @@ export const CoinPanel: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-      {/* Hero Balance Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-8 text-white shadow-2xl shadow-amber-500/30">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="bg-white/20 backdrop-blur-md p-5 rounded-2xl border border-white/20 shadow-xl">
-              <Coins className="h-12 w-12 text-white" />
+      {/* ─── MODERN COMPACT HEADER ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left: Main Balance Card */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm premium-card-shadow">
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none" />
+          
+          <div className="relative flex items-center gap-5 z-10">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/50 shadow-lg shadow-amber-500/20">
+              <Coins className="h-8 w-8 text-white" />
             </div>
             <div>
-              <p className="text-amber-100/80 font-semibold mb-1 uppercase tracking-widest text-xs">Mening Tangalarim</p>
-              <h1 className="font-black text-5xl lg:text-6xl tracking-tight">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Mening Tangalarim</p>
+              <h1 className="font-heading font-black text-4xl text-slate-800 dark:text-white leading-none">
                 {myBalance.toLocaleString()}
-                <span className="text-2xl text-amber-200 ml-2 font-bold">🪙</span>
+                <span className="text-xl text-amber-500 ml-1 font-bold">🪙</span>
               </h1>
-              <p className="text-white/60 text-sm mt-1">{currentUser.name} · {currentUser.role}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">{currentUser.name} · {currentUser.role}</p>
             </div>
           </div>
-
-          {/* Stats mini */}
-          <div className="flex gap-4">
-            <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 text-center">
-              <div className="flex items-center gap-1 justify-center text-emerald-300 mb-1">
-                <ArrowDownRight className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase">Tushgan</span>
-              </div>
-              <p className="font-black text-xl">+{earned.toLocaleString()}</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 text-center">
-              <div className="flex items-center gap-1 justify-center text-rose-300 mb-1">
-                <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase">Ketgan</span>
-              </div>
-              <p className="font-black text-xl">-{spent.toLocaleString()}</p>
-            </div>
-          </div>
-
+          
           {isTeacher && (
-            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/20 flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-300" />
-              <span className="text-sm font-semibold">Auto-Refill yoniq!</span>
+            <div className="shrink-0 relative z-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold rounded-xl border border-amber-200 dark:border-amber-500/20">
+              <Zap className="h-4 w-4" /> Auto-Refill yoniq!
             </div>
           )}
+        </div>
+
+        {/* Right: Bento Stats */}
+        <div className="grid grid-cols-2 gap-3 lg:col-span-1">
+          {/* Earned */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="p-2 rounded-xl mb-2 bg-emerald-50 dark:bg-emerald-500/10">
+              <ArrowDownRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">+{earned.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Tushgan</p>
+          </div>
+
+          {/* Spent */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="p-2 rounded-xl mb-2 bg-rose-50 dark:bg-rose-500/10">
+              <ArrowUpRight className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+            </div>
+            <p className="text-2xl font-black text-rose-600 dark:text-rose-400 leading-none mb-1">-{spent.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Ketgan</p>
+          </div>
         </div>
       </div>
 

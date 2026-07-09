@@ -32,6 +32,9 @@ const CoinPanel      = lazy(() => import('./features/coins/CoinPanel').then((m) 
 const Homework       = lazy(() => import('./features/homework/Homework').then((m) => ({ default: m.Homework })));
 const SettingsPage   = lazy(() => import('./features/settings/Settings').then((m) => ({ default: m.Settings })));
 const RolesPage      = lazy(() => import('./features/roles/RolesPage').then((m) => ({ default: m.RolesPage })));
+const Certificates   = lazy(() => import('./features/certificates/Certificates').then((m) => ({ default: m.Certificates })));
+const VerifyCertificate = lazy(() => import('./features/certificates/VerifyCertificate').then((m) => ({ default: m.VerifyCertificate })));
+
 
 const Spinner = () => (
   <div className="flex flex-col items-center justify-center h-full w-full min-h-[50vh] gap-4">
@@ -78,6 +81,8 @@ function AppRoutes() {
         bgAnimationEnabled={true} 
         setBgAnimationEnabled={() => {}} 
       />} />
+      <Route path="/verify-certificate/:id" element={<Suspense fallback={<Spinner />}><VerifyCertificate /></Suspense>} />
+
 
       {/* Auth Routes */}
       <Route element={<AuthLayout />}>
@@ -118,6 +123,7 @@ function AppRoutes() {
           <Route path="/homework" element={<Suspense fallback={<Spinner />}><Homework /></Suspense>} />
           <Route path="/settings" element={<Suspense fallback={<Spinner />}><SettingsPage /></Suspense>} />
           <Route path="/roles" element={<Suspense fallback={<Spinner />}><RolesPage /></Suspense>} />
+          <Route path="/certificates" element={<Suspense fallback={<Spinner />}><Certificates /></Suspense>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

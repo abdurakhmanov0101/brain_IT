@@ -143,8 +143,13 @@ export const Contracts: React.FC = () => {
             {(['startDate', 'endDate'] as const).map((key) => (
               <div key={key}>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{key === 'startDate' ? 'Boshlanish' : 'Tugash'}</label>
-                <input type="date" value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <input 
+                  type="date" 
+                  value={form[key]} 
+                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                  min={key === 'endDate' && form.startDate ? form.startDate : undefined}
+                  className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                />
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, CreditCard, Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileCode, UploadCloud, Code, Play, ChevronRight, Zap, Target, TrendingUp, QrCode, Camera, Scan } from 'lucide-react';
+import { BookOpen, CreditCard, Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileCode, UploadCloud, Code, Play, ChevronRight, Zap, Target, TrendingUp, QrCode, Camera, Scan, FileText, ExternalLink } from 'lucide-react';
 import { useStudentStore } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useCourseStore } from '../../stores/courseStore';
@@ -8,6 +8,8 @@ import { useAttendanceStore } from '../../stores/attendanceStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Badge } from '../../components/Badge';
+import { useCertificateStore } from '../../stores/certificateStore';
+
 import { SubmissionForm, type SubmissionData } from '../../components/SubmissionForm';
 
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
@@ -21,8 +23,9 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
   const { getByStudent, markAttendance } = useAttendanceStore();
   const { submissions, submitHomework, assignments } = useHomeworkStore();
   const { addToast } = useUIStore();
+  const { getCertificatesByStudent } = useCertificateStore();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'homework' | 'qr'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'homework' | 'qr' | 'certificates'>('dashboard');
   const [qrGroupId, setQrGroupId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [hwMode, setHwMode] = useState<'code' | 'file'>('code');
@@ -168,6 +171,12 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'qr' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
         >
           <QrCode className="w-4 h-4 text-emerald-500" /> QR Davomat
+        </button>
+        <button 
+          onClick={() => setActiveTab('certificates')} 
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'certificates' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+        >
+          <FileText className="w-4 h-4" /> Sertifikatlar
         </button>
       </div>
 
@@ -526,6 +535,56 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
               >
                 <Scan className="w-5 h-5" /> QR Kodni skanerlash va Davomat belgilash
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ──────────────── CERTIFICATES TAB ──────────────── */}
+        {activeTab === 'certificates' && (
+          <motion.div 
+            key="certificates"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            <div className="card">
+              <h3 className="font-heading font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2 mb-6">
+                <FileText className="h-5 w-5 text-brand-500" /> Mening Sertifikatlarim
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getCertificatesByStudent(student.id).length === 0 ? (
+                  <div className="col-span-full text-center py-12 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                    <FileText className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+                    <p className="text-zinc-500 font-medium">Hozircha sertifikatlar mavjud emas</p>
+                  </div>
+                ) : (
+                  getCertificatesByStudent(student.id).map((cert) => {
+                    const course = courses.find((c) => c.id === cert.courseId);
+                    return (
+                      <div key={cert.id} className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col items-center text-center relative overflow-hidden group">
+                        <div className="absolute top-0 w-full h-1 bg-brand-500"></div>
+                        <div className="w-16 h-16 bg-brand-100 dark:bg-brand-500/20 text-brand-600 rounded-full flex items-center justify-center mb-4 mt-2">
+                          <FileText className="w-8 h-8" />
+                        </div>
+                        <h4 className="font-bold text-zinc-900 dark:text-white mb-1">{course?.name || course?.title || 'Kurs'}</h4>
+                        <p className="text-sm text-zinc-500 mb-4">{new Date(cert.issueDate).toLocaleDateString('uz-UZ')}</p>
+                        <p className="text-xs font-mono text-zinc-400 mb-6 border border-zinc-200 dark:border-zinc-700 px-3 py-1 rounded-full">
+                          {cert.certificateNumber}
+                        </p>
+                        <button
+                          onClick={() => window.open(`/verify-certificate/${cert.id}`, '_blank')}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-500/20 rounded-xl transition-colors font-medium"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Ko'rish
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </motion.div>
         )}

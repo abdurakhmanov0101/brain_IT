@@ -24,7 +24,32 @@ interface CourseState {
 const calcLessonPrice = (monthly: number, lessonsPerWeek: number) =>
   Math.round(monthly / (lessonsPerWeek * 4));
 
-const initial: AcademyCourse[] = [];
+const initial: AcademyCourse[] = [
+  {
+    id: 'ac2',
+    name: 'Frontend Development',
+    category: 'Frontend',
+    monthlyPrice: 500000,
+    lessonPrice: 41667,
+    teacherPercent: 40,
+    durationMonths: 6,
+    lessonsPerWeek: 3,
+    syllabus: [],
+    color: '#3b82f6'
+  },
+  {
+    id: 'ac3',
+    name: 'Backend Development',
+    category: 'Backend',
+    monthlyPrice: 600000,
+    lessonPrice: 50000,
+    teacherPercent: 40,
+    durationMonths: 7,
+    lessonsPerWeek: 3,
+    syllabus: [],
+    color: '#10b981'
+  }
+];
 
 export const useCourseStore = create<CourseState>()(
   persist(
@@ -38,6 +63,6 @@ export const useCourseStore = create<CourseState>()(
       })),
       deleteCourse: (id) => set((s) => ({ courses: s.courses.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-courses-prod-v3' }
+    { name: 'brain-it-courses-prod-v4' }
   )
 );

@@ -38,6 +38,7 @@ export const Finance: React.FC = () => {
 
   const [kirimTab, setKirimTab] = useState<'students' | 'history'>('students');
   const [paymentNoteText, setPaymentNoteText] = useState('');
+  const [paymentStatusSelection, setPaymentStatusSelection] = useState<'paid' | 'partial'>('paid');
 
   const monthlyStats = getMonthlyStats(payments);
   const totalIncome = payments.reduce((s, p) => s + p.amount, 0);
@@ -102,13 +103,15 @@ export const Finance: React.FC = () => {
     // Update student balance
     updateStudent(selectedStudentForPayment.id, { 
       balance: (selectedStudentForPayment.balance || 0) + amount, // If payment increases balance
-      paymentStatus: 'paid' 
+      paymentStatus: paymentStatusSelection,
+      paymentNote: paymentNoteText
     });
 
     addToast({ type: 'success', message: "To'lov qabul qilindi!" });
     setPaymentModalOpen(false);
     setPaymentAmount('');
     setPaymentNoteText('');
+    setPaymentStatusSelection('paid');
     setSelectedStudentForPayment(null);
   };
 
@@ -301,7 +304,7 @@ export const Finance: React.FC = () => {
                           </select>
                         ) : (
                           <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${s.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-600' : s.paymentStatus === 'partial' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}`}>
-                            {s.paymentStatus === 'paid' ? 'To\'lagan' : s.paymentStatus === 'partial' ? 'Qisman' : 'To\'lamagan'}
+                            {s.paymentStatus === 'paid' ? 'To\'liq' : s.paymentStatus === 'partial' ? 'Avans / Qisman' : 'To\'lamagan'}
                           </span>
                         )}
                       </td>
@@ -427,7 +430,7 @@ export const Finance: React.FC = () => {
         </form>
       </Modal>
 
-      <Modal open={paymentModalOpen} onClose={() => { setPaymentModalOpen(false); setSelectedStudentForPayment(null); setPaymentAmount(''); }} title="To'lov qabul qilish" size="md">
+      <Modal open={paymentModalOpen} onClose={() => { setPaymentModalOpen(false); setSelectedStudentForPayment(null); setPaymentAmount(''); setPaymentNoteText(''); setPaymentStatusSelection('paid'); }} title="To'lov qabul qilish" size="md">
         {selectedStudentForPayment && (
           <form onSubmit={handleAcceptPayment} className="space-y-4">
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -452,6 +455,15 @@ export const Finance: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">To'lov Holati</label>
+              <select value={paymentStatusSelection} onChange={(e) => setPaymentStatusSelection(e.target.value as any)}
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="paid">To'liq to'lagan</option>
+                <option value="partial">Avans (Qisman to'lagan)</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">To'liq izoh</label>
               <input type="text" value={paymentNoteText} onChange={(e) => setPaymentNoteText(e.target.value)} placeholder="Masalan: 1-kurs qishki oyi uchun to'liq to'lov..."
                 className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
@@ -472,7 +484,7 @@ export const Finance: React.FC = () => {
             )}
 
             <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => { setPaymentModalOpen(false); setSelectedStudentForPayment(null); setPaymentAmount(''); setPaymentNoteText(''); }} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Bekor</button>
+              <button type="button" onClick={() => { setPaymentModalOpen(false); setSelectedStudentForPayment(null); setPaymentAmount(''); setPaymentNoteText(''); setPaymentStatusSelection('paid'); }} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">Bekor</button>
               <button type="submit" className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/30">Tasdiqlash</button>
             </div>
           </form>

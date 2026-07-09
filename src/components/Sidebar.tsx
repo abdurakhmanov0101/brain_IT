@@ -75,6 +75,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { id: 'staff',         name: "Xodimlar (HR)",  icon: Users,        roles: ['Super Admin', 'Academy Director'] },
       { id: 'contracts',     name: 'Shartnomalar',   icon: FileText,     roles: ['Super Admin', 'Academy Director'] },
+      { id: 'certificates',  name: 'Sertifikatlar',  icon: FileText,     roles: ['Super Admin'] },
       { id: 'notifications', name: 'Xabarnomalar',   icon: Bell,         roles: ['Super Admin', 'Academy Director'] },
       { id: 'reports',       name: 'Hisobotlar',     icon: BarChart2,    roles: ['Super Admin', 'Academy Director', 'Company Director'] },
       { id: 'roles',         name: 'Rollar va Huquqlar', icon: Shield,   roles: ['Super Admin'] },
@@ -224,7 +225,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Coin balance strip */}
         {!collapsed && (
-          <div className="mx-3 mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 dark:border-amber-500/15 flex items-center gap-3">
+          <button
+            onClick={() => handleNavClick('coins')}
+            className="mx-3 mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/20 dark:border-amber-500/15 flex items-center text-left gap-3 w-[calc(100%-24px)] transition-all cursor-pointer active:scale-95"
+          >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm shadow-amber-500/30 shrink-0">
               <Coins className="h-4 w-4 text-white" />
             </div>
@@ -233,7 +237,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <p className="font-heading font-black text-base text-amber-600 dark:text-amber-400 leading-tight">{myCoins.toLocaleString()}</p>
             </div>
             <Zap className="h-4 w-4 text-amber-400 ml-auto shrink-0 animate-pulse" />
-          </div>
+          </button>
         )}
 
         {/* User card */}
