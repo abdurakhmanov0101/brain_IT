@@ -26,7 +26,16 @@ export const VerifyCertificate: React.FC = () => {
     if (!certificateRef.current) return;
     
     try {
-      const canvas = await html2canvas(certificateRef.current, { scale: 2 });
+      // Create a small delay to ensure all fonts/images are fully rendered before capturing
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const canvas = await html2canvas(certificateRef.current, { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'landscape',
@@ -37,7 +46,8 @@ export const VerifyCertificate: React.FC = () => {
       pdf.addImage(imgData, 'PNG', 0, 0, 1000, 707);
       pdf.save(`${student?.fullName.replace(/\s+/g, '_')}_Sertifikat.pdf`);
     } catch (error) {
-      console.error('PDF yaratisda xatolik:', error);
+      console.error('PDF yaratisda xatolik yuz berdi:', error);
+      alert('Sertifikatni yuklab olishda xatolik yuz berdi. Iltimos qaytadan urinib ko\'ring.');
     }
   };
 
