@@ -31,10 +31,10 @@ export const VerifyCertificate: React.FC = () => {
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'px',
-        format: [800, 565]
+        format: [1000, 707]
       });
       
-      pdf.addImage(imgData, 'PNG', 0, 0, 800, 565);
+      pdf.addImage(imgData, 'PNG', 0, 0, 1000, 707);
       pdf.save(`${student?.fullName.replace(/\s+/g, '_')}_Sertifikat.pdf`);
     } catch (error) {
       console.error('PDF yaratisda xatolik:', error);
@@ -70,7 +70,8 @@ export const VerifyCertificate: React.FC = () => {
     );
   }
 
-  const verifyUrl = `${window.location.origin}/verify-certificate/${cert.id}`;
+  // HARDCODED PRODUCTION DOMAIN FOR QR CODE SO IT ALWAYS WORKS WHEN SCANNED
+  const verifyUrl = `https://brain-itacademy.uz/verify-certificate/${cert.id}`;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 py-12 px-4 relative overflow-hidden">
@@ -139,7 +140,7 @@ export const VerifyCertificate: React.FC = () => {
 
         {/* Hidden certificate for PDF generation */}
         <div className="overflow-hidden">
-          <div className="w-[800px] mx-auto transform scale-[0.4] sm:scale-[0.6] md:scale-[0.8] lg:scale-100 origin-top">
+          <div className="w-[1000px] mx-auto transform scale-[0.4] sm:scale-[0.6] md:scale-[0.8] lg:scale-100 origin-top">
              <CertificateTemplate
                 ref={certificateRef}
                 studentName={student.fullName}
