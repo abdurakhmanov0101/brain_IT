@@ -22,59 +22,55 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
           color: '#0e2a5c',
         }}
       >
-        {/* Large Faint Watermark */}
-        <div className="absolute inset-0 flex justify-center items-center opacity-[0.03] pointer-events-none z-0">
-          <h1 className="text-[200px] font-black uppercase text-[#0e2a5c] whitespace-nowrap -rotate-12" style={{ fontFamily: "'Inter', sans-serif", letterSpacing: '-0.05em' }}>
-            Brain IT
-          </h1>
+        {/* Large Central Watermark */}
+        <div className="absolute inset-0 flex justify-center items-center opacity-[0.04] pointer-events-none z-0">
+          <img src="/logo.png" alt="watermark" className="w-[600px] h-[600px] object-contain grayscale" />
         </div>
 
-        {/* TOP LEFT GEOMETRY (Parallel Diagonal Stripes) */}
-        <svg className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none z-10" viewBox="0 0 600 600">
-          {/* Dark Blue Inner Corner */}
-          <polygon points="0,0 180,0 0,180" fill="#0e2a5c" />
-          
-          {/* Light Blue Stripe 1 */}
-          <polygon points="200,0 280,0 0,280 0,200" fill="#38bdf8" />
-          
-          {/* Dark Blue Stripe 2 */}
-          <polygon points="300,0 420,0 0,420 0,300" fill="#0e2a5c" />
-          
-          {/* Light Blue Stripe 3 */}
-          <polygon points="440,0 520,0 0,520 0,440" fill="#38bdf8" />
-        </svg>
+        {/* TOP LEFT GEOMETRY (Nested Chevrons using solid boxes with white borders) */}
+        <div className="absolute top-0 left-0 z-10 pointer-events-none">
+          {/* Outer Light Blue */}
+          <div className="absolute w-[800px] h-[800px] bg-[#38bdf8] border-[18px] border-white shadow-sm" style={{ top: '-400px', left: '-400px', transform: 'rotate(45deg)' }}></div>
+          {/* Middle Dark Blue */}
+          <div className="absolute w-[620px] h-[620px] bg-[#0e2a5c] border-[18px] border-white shadow-sm" style={{ top: '-310px', left: '-310px', transform: 'rotate(45deg)' }}></div>
+          {/* Inner Light Blue */}
+          <div className="absolute w-[440px] h-[440px] bg-[#38bdf8] border-[18px] border-white shadow-sm" style={{ top: '-220px', left: '-220px', transform: 'rotate(45deg)' }}></div>
+          {/* Corner Dark Blue */}
+          <div className="absolute w-[260px] h-[260px] bg-[#0e2a5c] border-[18px] border-white shadow-sm" style={{ top: '-130px', left: '-130px', transform: 'rotate(45deg)' }}></div>
+        </div>
 
-        {/* BOTTOM LEFT GEOMETRY (Parallel Diagonal Stripes) */}
-        <svg className="absolute bottom-0 left-0 w-[600px] h-[600px] pointer-events-none z-10" viewBox="0 0 600 600">
-          {/* Dark Blue Corner */}
-          <polygon points="0,600 0,420 180,600" fill="#0e2a5c" />
-          
-          {/* Light Blue Stripe 1 */}
-          <polygon points="0,400 0,320 280,600 200,600" fill="#38bdf8" />
-          
-          {/* Dark Blue Stripe 2 */}
-          <polygon points="0,300 0,180 420,600 300,600" fill="#0e2a5c" />
-        </svg>
+        {/* BOTTOM LEFT GEOMETRY */}
+        <div className="absolute bottom-0 left-0 z-10 pointer-events-none">
+          {/* Outer Dark Blue */}
+          <div className="absolute w-[620px] h-[620px] bg-[#0e2a5c] border-[18px] border-white shadow-sm" style={{ bottom: '-310px', left: '-310px', transform: 'rotate(45deg)' }}></div>
+          {/* Middle Light Blue */}
+          <div className="absolute w-[440px] h-[440px] bg-[#38bdf8] border-[18px] border-white shadow-sm" style={{ bottom: '-220px', left: '-220px', transform: 'rotate(45deg)' }}></div>
+          {/* Corner Dark Blue */}
+          <div className="absolute w-[260px] h-[260px] bg-[#0e2a5c] border-[18px] border-white shadow-sm" style={{ bottom: '-130px', left: '-130px', transform: 'rotate(45deg)' }}></div>
+        </div>
 
         {/* BOTTOM RIGHT TECH LINES */}
-        <svg className="absolute bottom-0 right-0 w-[400px] h-[300px] pointer-events-none z-10" viewBox="0 0 400 300">
-          {/* Vertical Tech Lines */}
-          <path d="M350,50 L350,200 L320,230 L320,280" fill="none" stroke="#2063c6" strokeWidth="1.5" />
-          <circle cx="320" cy="280" r="4" fill="#2063c6" />
+        <svg className="absolute bottom-0 right-0 w-[500px] h-[300px] pointer-events-none z-10" viewBox="0 0 500 300">
+          {/* Horizontal Tech Lines extending from the left */}
+          <path d="M50,260 L200,260 L240,220 L320,220" fill="none" stroke="#0e2a5c" strokeWidth="2" />
+          <circle cx="320" cy="220" r="4" fill="#0e2a5c" />
           
-          <path d="M380,100 L380,180 L350,210 L350,260" fill="none" stroke="#0e2a5c" strokeWidth="1.5" />
-          <circle cx="350" cy="260" r="3" fill="#0e2a5c" />
+          <path d="M120,280 L230,280 L260,250 L340,250" fill="none" stroke="#2063c6" strokeWidth="1.5" />
+          <circle cx="340" cy="250" r="3" fill="#2063c6" />
           
-          {/* Circuit branches connecting near signature */}
-          <path d="M150,250 L250,250 L280,220 L300,220" fill="none" stroke="#38bdf8" strokeWidth="2" />
-          <circle cx="150" cy="250" r="4" fill="#38bdf8" />
+          <path d="M180,240 L260,240 L280,220 L300,220" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+          <circle cx="180" cy="240" r="3" fill="#38bdf8" />
+
+          {/* Vertical Tech Lines on the right edge */}
+          <path d="M460,50 L460,200 L430,230 L430,280" fill="none" stroke="#2063c6" strokeWidth="1.5" />
+          <circle cx="430" cy="280" r="4" fill="#2063c6" />
           
-          <path d="M100,270 L200,270 L230,240 L260,240" fill="none" stroke="#0e2a5c" strokeWidth="1.5" />
-          <circle cx="100" cy="270" r="3" fill="#0e2a5c" />
+          <path d="M480,100 L480,180 L450,210 L450,260" fill="none" stroke="#0e2a5c" strokeWidth="1.5" />
+          <circle cx="450" cy="260" r="3" fill="#0e2a5c" />
         </svg>
 
         {/* TOP RIGHT LOGO */}
-        <div className="absolute top-12 right-16 z-20">
+        <div className="absolute top-16 right-20 z-20">
           <img src="/logo.png" alt="Brain IT Academy" className="h-20 object-contain drop-shadow-sm" />
         </div>
 
@@ -87,11 +83,11 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
           </h1>
           
           {/* Decorative Divider */}
-          <div className="flex items-center justify-center gap-3 mb-12">
+          <div className="flex items-center justify-center gap-4 mb-12">
             <div className="w-32 h-[1px] bg-[#0e2a5c]"></div>
             <div className="w-2.5 h-2.5 rounded-full bg-[#0e2a5c]"></div>
-            <div className="w-4 h-4 border border-[#0e2a5c] rotate-45 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 bg-[#0e2a5c] rotate-45"></div>
+            <div className="w-5 h-5 border border-[#0e2a5c] rotate-45 flex items-center justify-center">
+              <div className="w-2 h-2 bg-[#0e2a5c] rotate-45"></div>
             </div>
             <div className="w-2.5 h-2.5 rounded-full bg-[#0e2a5c]"></div>
             <div className="w-32 h-[1px] bg-[#0e2a5c]"></div>
@@ -125,7 +121,7 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
           </div>
 
           {/* Center: Date and ID */}
-          <div className="flex flex-col items-center pb-2">
+          <div className="flex flex-col items-center pb-2 pl-10">
             <p className="text-[#0e2a5c] text-[16px] font-bold tracking-widest mb-3">SANA: <span className="font-mono">{new Date(issueDate).toLocaleDateString('uz-UZ')}</span></p>
             <p className="text-[#0e2a5c] text-[16px] font-bold tracking-widest">ID: <span className="font-mono">{certificateNumber}</span></p>
           </div>
