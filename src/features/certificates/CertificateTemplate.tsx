@@ -70,8 +70,11 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
         </svg>
 
         {/* TOP RIGHT LOGO */}
-        <div className="absolute top-16 right-20 z-20">
-          <img src="/logo.png" alt="Brain IT Academy" className="h-[120px] object-contain drop-shadow-md" />
+        <div className="absolute top-16 right-20 z-20 flex flex-col items-center">
+          <img src="/logo.png" alt="Brain IT Logo" className="h-[90px] object-contain drop-shadow-sm mb-2" style={{ filter: 'brightness(0) sepia(1) hue-rotate(200deg) saturate(300%) contrast(150%)' }} />
+          <h2 className="text-lg font-black tracking-tight text-[#0e2a5c] uppercase leading-tight text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Brain IT<br/>Academy
+          </h2>
         </div>
 
         {/* MAIN CENTER CONTENT */}
