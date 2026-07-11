@@ -40,10 +40,10 @@ export const VerifyCertificate: React.FC = () => {
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'px',
-        format: [1000, 707]
+        format: [1123, 794]
       });
       
-      pdf.addImage(imgData, 'PNG', 0, 0, 1000, 707);
+      pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
       pdf.save(`${student?.fullName.replace(/\s+/g, '_')}_Sertifikat.pdf`);
     } catch (error) {
       console.error('PDF yaratisda xatolik yuz berdi:', error);
@@ -150,7 +150,7 @@ export const VerifyCertificate: React.FC = () => {
 
         {/* Hidden certificate for PDF generation */}
         <div className="overflow-hidden">
-          <div className="w-[1000px] mx-auto transform scale-[0.4] sm:scale-[0.6] md:scale-[0.8] lg:scale-100 origin-top">
+          <div className="w-[1123px] mx-auto transform scale-[0.35] sm:scale-[0.5] md:scale-[0.7] lg:scale-[0.9] origin-top pb-20">
              <CertificateTemplate
                 ref={certificateRef}
                 studentName={student.fullName}
