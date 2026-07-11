@@ -18,142 +18,122 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
         style={{
           fontFamily: "'Inter', sans-serif",
           boxSizing: 'border-box',
-          color: '#0f172a',
-          // Faint neutral slate radial background instead of green
-          backgroundImage: 'radial-gradient(circle at center, #cbd5e1 0.5px, transparent 0.5px)',
-          backgroundSize: '16px 16px',
+          color: '#0e2a5c',
         }}
       >
-        <div className="absolute inset-0 bg-white/80 z-0"></div>
+        {/* Watermark Logo */}
+        <div className="absolute inset-0 flex justify-end items-center pr-20 opacity-[0.04] pointer-events-none z-0">
+          <img src="/logo.png" alt="watermark" className="w-[700px] h-[700px] object-contain grayscale" />
+        </div>
 
-        {/* Certificate Inner Border - Subtle Gold */}
-        <div className="absolute inset-8 border-[2px] border-[#d4af37]/30 z-10 pointer-events-none"></div>
-        <div className="absolute inset-9 border border-[#d4af37]/20 z-10 pointer-events-none"></div>
+        {/* TOP LEFT GEOMETRY */}
+        <div className="absolute top-0 left-0 z-10 pointer-events-none">
+          <div className="absolute w-[550px] h-[550px] border-[50px] border-[#38bdf8]" style={{ top: '-250px', left: '-250px', transform: 'rotate(45deg)' }}></div>
+          <div className="absolute w-[450px] h-[450px] border-[50px] border-[#0e2a5c]" style={{ top: '-240px', left: '-240px', transform: 'rotate(45deg)' }}></div>
+          <div className="absolute w-[350px] h-[350px] bg-[#2063c6]" style={{ top: '-220px', left: '-220px', transform: 'rotate(45deg)' }}></div>
+        </div>
 
-        {/* Two Corner Borders in Green (Top-Left & Bottom-Right) */}
-        <div className="absolute top-0 left-0 w-40 h-40 border-t-[4px] border-l-[4px] border-[#064e3b] m-8 z-20 pointer-events-none"></div>
-        <div className="absolute bottom-0 right-0 w-40 h-40 border-b-[4px] border-r-[4px] border-[#064e3b] m-8 z-20 pointer-events-none"></div>
+        {/* BOTTOM LEFT GEOMETRY */}
+        <div className="absolute bottom-0 left-0 z-10 pointer-events-none">
+          <div className="absolute w-[500px] h-[500px] bg-[#0e2a5c]" style={{ bottom: '-350px', left: '-200px', transform: 'rotate(45deg)' }}></div>
+          <div className="absolute w-[350px] h-[350px] bg-[#38bdf8]" style={{ bottom: '-280px', left: '-120px', transform: 'rotate(45deg)' }}></div>
+          <div className="absolute w-[250px] h-[250px] bg-[#2063c6]" style={{ bottom: '-200px', left: '-150px', transform: 'rotate(45deg)' }}></div>
+        </div>
 
-        {/* SVG Waves Background - Top Left (Accents - Significantly reduced in size) */}
-        <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 707">
-          {/* Gold Wave (Smaller) */}
-          <path d="M300,0 L800,0 L800,100 C550,80 450,40 300,0 Z" fill="#d4af37" opacity="0.9" />
-          {/* Dark Emerald Wave (Significantly Smaller) */}
-          <path d="M0,0 L800,0 L800,40 C450,50 150,100 0,180 Z" fill="#064e3b" />
+        {/* TECH LINES SVG */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 707">
+          {/* Bottom Right Vertical Tech Lines */}
+          <path d="M920,200 L920,500 L950,530 L950,600" fill="none" stroke="#e2e8f0" strokeWidth="2" />
+          <circle cx="950" cy="600" r="5" fill="#e2e8f0" />
+          
+          <path d="M960,300 L960,450 L930,480 L930,550" fill="none" stroke="#0e2a5c" strokeWidth="1.5" />
+          <circle cx="930" cy="550" r="4" fill="#0e2a5c" />
+          
+          <path d="M980,400 L980,500 L960,520 L960,580" fill="none" stroke="#2063c6" strokeWidth="1.5" />
+          <circle cx="960" cy="580" r="4" fill="#2063c6" />
+
+          {/* Bottom Center Horizontal Tech Lines */}
+          <path d="M450,660 L600,660 L630,690 L700,690" fill="none" stroke="#0e2a5c" strokeWidth="2" />
+          <circle cx="700" cy="690" r="4" fill="#0e2a5c" />
+          
+          <path d="M500,680 L650,680 L670,660 L750,660" fill="none" stroke="#2063c6" strokeWidth="1.5" />
+          <circle cx="750" cy="660" r="3" fill="#2063c6" />
         </svg>
 
-        {/* Top Left Title (Adjusted position due to smaller wave) */}
-        <div className="absolute top-10 left-16 z-20">
-          <div className="flex items-center gap-4 mb-2">
-            <img src="/logo.png" alt="Brain IT Academy Logo" className="h-14 object-contain brightness-0 invert" />
-            <div className="border-l-[1.5px] border-[#d4af37] pl-3">
-              <h2 className="text-xl font-black tracking-tight text-white uppercase leading-none">Brain IT<br/>Academy</h2>
-            </div>
-          </div>
-          <h1 className="text-[48px] font-serif text-[#d4af37] drop-shadow-md tracking-wide mt-2 leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
-            CERTIFICATE
-          </h1>
-          <h2 className="text-base text-emerald-50 tracking-[0.2em] uppercase font-medium ml-1 mt-1">
-            of Achievement
-          </h2>
+        {/* TOP RIGHT LOGO */}
+        <div className="absolute top-12 right-16 z-20">
+          <img src="/logo.png" alt="Brain IT Academy" className="h-20 object-contain drop-shadow-sm" />
         </div>
 
-        {/* VERTICAL RIBBON ON THE RIGHT */}
-        <div className="absolute top-0 right-20 w-[110px] h-[75%] bg-[#064e3b] border-l-[3px] border-r-[3px] border-[#d4af37] z-30 shadow-2xl flex flex-col items-center pt-24" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 92%, 0 100%)' }}>
-            <p className="text-[#d4af37] font-bold tracking-[0.2em] text-[10px] leading-relaxed text-center mb-10">
-              OFFICIAL<br/>SEAL
-            </p>
-            {/* Gold Seal inside the ribbon */}
-            <div className="relative w-[90px] h-[90px]">
-               <svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 drop-shadow-lg">
-                  {/* Outer ruffled edge */}
-                  <path d="M50 0 L55 5 L63 2 L66 9 L75 8 L76 16 L84 17 L83 25 L91 29 L88 36 L96 42 L92 49 L98 56 L91 61 L95 69 L87 72 L89 80 L80 81 L79 89 L70 88 L67 96 L58 93 L53 99 L45 95 L39 100 L32 94 L25 99 L20 92 L12 95 L9 87 L1 88 L1 80 L-5 77 L0 69 L-4 61 L2 54 L-2 46 L5 40 L3 32 L11 27 L11 19 L19 16 L21 8 L30 8 L34 1 L42 4 Z" fill="#d4af37" />
-                  {/* Inner rings */}
-                  <circle cx="50" cy="50" r="38" fill="#064e3b" />
-                  <circle cx="50" cy="50" r="36" fill="#d4af37" />
-                  <circle cx="50" cy="50" r="34" fill="#064e3b" />
-                  <circle cx="50" cy="50" r="32" fill="#d4af37" />
-                  {/* Seal Text */}
-                  <text x="50" y="45" fontSize="12" fill="#064e3b" fontWeight="bold" textAnchor="middle" fontFamily="'Playfair Display', serif">BEST</text>
-                  <text x="50" y="58" fontSize="10" fill="#064e3b" fontWeight="bold" textAnchor="middle" fontFamily="'Inter', sans-serif">STUDENT</text>
-                  <text x="50" y="70" fontSize="10" fill="#064e3b" fontWeight="bold" textAnchor="middle" fontFamily="'Inter', sans-serif">{new Date().getFullYear()}</text>
-               </svg>
-            </div>
-        </div>
-
-        {/* LEFT CONTENT AREA - Neutral Colors Only */}
-        <div className="absolute inset-0 w-[720px] h-full flex flex-col justify-end pt-64 pb-16 pl-20 pr-10 z-20">
+        {/* MAIN CENTER CONTENT */}
+        <div className="absolute inset-0 flex flex-col items-center pt-[150px] z-30">
           
-          {/* Certificate Number */}
-          <div className="absolute top-[270px] right-8 text-right">
-             <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1">Sertifikat Raqami</p>
-             <p className="font-mono text-slate-800 font-bold text-sm bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">{certificateNumber}</p>
-          </div>
-
-          <div className="text-left mb-6 mt-8">
-            <h4 className="text-slate-800 text-base font-bold uppercase tracking-widest mb-1">
-              Ushbu sertifikat rasman taqdim etiladi
-            </h4>
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
-              For honorable achievement to:
-            </p>
+          {/* SERTIFIKAT Title */}
+          <h1 className="text-[72px] font-serif text-[#0e2a5c] tracking-[0.08em] uppercase leading-none mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+            SERTIFIKAT
+          </h1>
+          
+          {/* Decorative Divider */}
+          <div className="flex items-center justify-center gap-2 mb-12">
+            <div className="w-24 h-[1px] bg-[#0e2a5c]"></div>
+            <div className="w-2 h-2 rounded-full bg-[#0e2a5c]"></div>
+            <div className="w-4 h-4 border border-[#0e2a5c] rotate-45 flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-[#0e2a5c] rotate-45"></div>
+            </div>
+            <div className="w-2 h-2 rounded-full bg-[#0e2a5c]"></div>
+            <div className="w-24 h-[1px] bg-[#0e2a5c]"></div>
           </div>
 
           {/* Student Name */}
-          <div className="text-left w-full mb-6">
-            <h1 className="text-[56px] text-slate-900 font-normal leading-none capitalize" 
-                style={{ fontFamily: "'Brush Script MT', 'Great Vibes', 'Lucida Handwriting', cursive" }}>
-              {studentName}
-            </h1>
-            <div className="w-[90%] h-[1px] bg-slate-300 mt-4"></div>
-          </div>
+          <h2 className="text-[64px] text-[#2063c6] capitalize mb-6 leading-none px-12" style={{ fontFamily: "'Brush Script MT', 'Great Vibes', 'Lucida Handwriting', cursive" }}>
+            {studentName}
+          </h2>
 
-          {/* Course Details */}
-          <div className="text-left w-[90%] mb-12">
-            <h2 className="text-slate-900 text-2xl font-black uppercase tracking-wider mb-3">
-              {courseName}
-            </h2>
-            <p className="text-slate-600 text-sm leading-relaxed uppercase tracking-wide">
-              Brain IT Academy tomonidan tashkil etilgan ushbu o'quv dasturini to'liq va muvaffaqiyatli tamomlagani 
-              hamda soha bo'yicha amaliy bilimlarni yuqori darajada o'zlashtirgani uchun berildi.
+          {/* Thin Gold Line */}
+          <div className="w-[600px] h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent mb-10"></div>
+
+          {/* Course Description */}
+          <p className="text-[#0e2a5c] text-[22px] leading-loose text-center max-w-[700px]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Ushbu sertifikat <span className="font-bold">“Brain IT academy”</span> sining <br/>
+            <span className="font-bold text-[#2063c6]">“{courseName}”</span> kursini <br/>
+            muvaffaqiyatli bitirgani uchun taqdim etildi
+          </p>
+
+        </div>
+
+        {/* BOTTOM FOOTER AREA */}
+        <div className="absolute bottom-16 left-0 w-full px-24 flex justify-between items-end z-40">
+          
+          {/* Left: Director */}
+          <div className="flex flex-col items-center w-56">
+            <p className="text-[#0e2a5c] text-[18px] font-bold text-center leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Brain IT academiyasi<br/>direktori
             </p>
           </div>
 
-          {/* Signatures & Footer Area */}
-          <div className="flex justify-between items-end w-[90%]">
-            
-            {/* Left: Date */}
-            <div className="flex flex-col items-center w-40 relative">
-              <div className="w-full border-b-[1.5px] border-slate-400 mb-2 flex justify-center items-end h-16 relative z-10">
-                <span className="text-lg font-bold text-slate-800 mb-1">
-                  {new Date(issueDate).toLocaleDateString('uz-UZ')}
-                </span>
-              </div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Berilgan Sana</p>
-            </div>
-            
-            {/* Center: QR Code */}
-            <div className="flex flex-col items-center justify-end px-4">
-              <div className="p-1.5 bg-white rounded border border-slate-200 shadow-sm mb-2">
-                <QRCode value={verifyUrl} size={56} level="M" fgColor="#0f172a" />
-              </div>
-              <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest text-center">
-                Tasdiqlash
-              </p>
-            </div>
+          {/* Center: Date and ID */}
+          <div className="flex flex-col items-center pb-2">
+            <p className="text-[#0e2a5c] text-[15px] font-bold tracking-widest mb-2">SANA: <span className="font-mono">{new Date(issueDate).toLocaleDateString('uz-UZ')}</span></p>
+            <p className="text-[#0e2a5c] text-[15px] font-bold tracking-widest">ID: <span className="font-mono">{certificateNumber}</span></p>
+          </div>
 
-            {/* Right: Signature */}
-            <div className="flex flex-col items-center w-48 relative">
-              <div className="w-full border-b-[1.5px] border-slate-400 mb-2 flex justify-center items-end h-16 relative z-10">
-                <span style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", fontSize: '2.2rem', color: '#0f172a', transform: 'rotate(-5deg) translateY(6px)', display: 'inline-block' }}>
+          {/* Right: Signature Line & QR */}
+          <div className="flex items-end gap-6 w-56">
+            {/* QR Code */}
+            <div className="p-1.5 bg-white rounded border border-[#e2e8f0] shadow-sm mb-1">
+              <QRCode value={verifyUrl} size={48} level="M" fgColor="#0e2a5c" />
+            </div>
+            {/* Signature Line */}
+            <div className="flex-1 flex flex-col items-center justify-end h-full">
+              {/* Optional: Add electronic signature image here if provided */}
+              <div className="w-full h-[1.5px] bg-[#0e2a5c] mt-12 relative">
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2" style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", fontSize: '2rem', color: '#0e2a5c', transform: 'translateX(-50%) rotate(-5deg)' }}>
                   J. Omonov
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Akademiya Direktori</p>
-              <p className="text-xs font-bold mt-1 text-slate-900 relative z-10">Jahongir Omonov</p>
             </div>
-
           </div>
+
         </div>
 
       </div>
