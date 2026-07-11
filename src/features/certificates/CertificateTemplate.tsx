@@ -27,29 +27,33 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
         <div className="absolute inset-0 bg-white/80 z-0"></div>
 
         {/* Certificate Inner Border - Subtle Gold */}
-        <div className="absolute inset-6 border-[2px] border-[#d4af37]/30 z-10 pointer-events-none"></div>
-        <div className="absolute inset-7 border border-[#d4af37]/20 z-10 pointer-events-none"></div>
+        <div className="absolute inset-8 border-[2px] border-[#d4af37]/30 z-10 pointer-events-none"></div>
+        <div className="absolute inset-9 border border-[#d4af37]/20 z-10 pointer-events-none"></div>
 
-        {/* SVG Waves Background - Top Left (Accents) */}
+        {/* Two Corner Borders in Green (Top-Left & Bottom-Right) */}
+        <div className="absolute top-0 left-0 w-40 h-40 border-t-[4px] border-l-[4px] border-[#064e3b] m-8 z-20 pointer-events-none"></div>
+        <div className="absolute bottom-0 right-0 w-40 h-40 border-b-[4px] border-r-[4px] border-[#064e3b] m-8 z-20 pointer-events-none"></div>
+
+        {/* SVG Waves Background - Top Left (Accents - Significantly reduced in size) */}
         <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 707">
-          {/* Gold Wave */}
-          <path d="M400,0 L1000,0 L1000,250 C700,200 600,100 400,0 Z" fill="#d4af37" opacity="0.9" />
-          {/* Dark Emerald Wave */}
-          <path d="M0,0 L1000,0 L1000,120 C600,150 200,250 0,350 Z" fill="#064e3b" />
+          {/* Gold Wave (Smaller) */}
+          <path d="M300,0 L800,0 L800,100 C550,80 450,40 300,0 Z" fill="#d4af37" opacity="0.9" />
+          {/* Dark Emerald Wave (Significantly Smaller) */}
+          <path d="M0,0 L800,0 L800,40 C450,50 150,100 0,180 Z" fill="#064e3b" />
         </svg>
 
-        {/* Top Left Title (Inside the wave) */}
-        <div className="absolute top-12 left-16 z-20">
+        {/* Top Left Title (Adjusted position due to smaller wave) */}
+        <div className="absolute top-10 left-16 z-20">
           <div className="flex items-center gap-4 mb-2">
             <img src="/logo.png" alt="Brain IT Academy Logo" className="h-14 object-contain brightness-0 invert" />
             <div className="border-l-[1.5px] border-[#d4af37] pl-3">
               <h2 className="text-xl font-black tracking-tight text-white uppercase leading-none">Brain IT<br/>Academy</h2>
             </div>
           </div>
-          <h1 className="text-[52px] font-serif text-[#d4af37] drop-shadow-md tracking-wide mt-2 leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h1 className="text-[48px] font-serif text-[#d4af37] drop-shadow-md tracking-wide mt-2 leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
             CERTIFICATE
           </h1>
-          <h2 className="text-lg text-emerald-50 tracking-[0.2em] uppercase font-medium ml-1 mt-1">
+          <h2 className="text-base text-emerald-50 tracking-[0.2em] uppercase font-medium ml-1 mt-1">
             of Achievement
           </h2>
         </div>
