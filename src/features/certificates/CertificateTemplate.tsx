@@ -23,8 +23,8 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
         }}
       >
         {/* Large Central Watermark */}
-        <div className="absolute inset-0 flex justify-center items-center opacity-[0.04] pointer-events-none z-0">
-          <img src="/logo.png" alt="watermark" className="w-[600px] h-[600px] object-contain grayscale" />
+        <div className="absolute inset-0 flex justify-center items-center opacity-[0.08] pointer-events-none z-0">
+          <img src="/logo.png" alt="watermark" className="w-[700px] h-[700px] object-contain grayscale" />
         </div>
 
         {/* TOP LEFT GEOMETRY (Nested Chevrons using solid boxes with white borders) */}
@@ -71,7 +71,7 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
 
         {/* TOP RIGHT LOGO */}
         <div className="absolute top-16 right-20 z-20">
-          <img src="/logo.png" alt="Brain IT Academy" className="h-20 object-contain drop-shadow-sm" />
+          <img src="/logo.png" alt="Brain IT Academy" className="h-[120px] object-contain drop-shadow-md" />
         </div>
 
         {/* MAIN CENTER CONTENT */}
