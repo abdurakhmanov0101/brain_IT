@@ -62,79 +62,148 @@ export const Students: React.FC = () => {
   });
   const [payForm, setPayForm] = useState({ amount: '', type: 'cash' as const, note: '' });
 
-  // Contract modal state
+  // ─── SMART CONTRACT SYSTEM ────────────────────────────────────────────────
   const [contractStudentId, setContractStudentId] = useState<string | null>(null);
-  const [contractForm, setContractForm] = useState({
-    courseId: '', startDate: new Date().toISOString().split('T')[0],
-    endDate: '', totalPrice: '', status: 'active' as const,
-  });
+  const [contractOverride, setContractOverride] = useState<{ totalPrice?: string; endDate?: string; status?: 'active' | 'pending' | 'expired' }>({});
 
   const getStudentContract = (studentId: string) => contracts.find(c => c.studentId === studentId);
 
+  /**
+   * Berilgan o'quvchi uchun guruh va kursdan avtomatik shartnoma ma'lumotlarini hisoblaydi.
+   * 1. O'quvchining birinchi guruhini topadi
+   * 2. Guruhning courseId orqali kursni topadi  
+   * 3. Kursning durationMonths va monthlyPrice dan sana va narxni hisoblab chiqadi
+   */
+  const computeContractData = (studentId: string) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return null;
+
+    // O'quvchining birinchi aktiv guruhini topamiz
+    const studentGroup = groups.find(g => student.groupIds.includes(g.id) && g.status !== 'archived');
+    if (!studentGroup) return null;
+
+    // Guruhga tegishli kursni topamiz
+    const course = courses.find(c => c.id === studentGroup.courseId);
+    if (!course) return null;
+
+    // Boshlanish sanasi: guruhning startDate yoki bugun
+    const startDate = studentGroup.startDate || new Date().toISOString().split('T')[0];
+
+    // Tugash sanasi: startDate + durationMonths
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + course.durationMonths);
+    const endDate = end.toISOString().split('T')[0];
+
+    // Jami narx: oylik narx × oy soni
+    const totalPrice = course.monthlyPrice * course.durationMonths;
+
+    return {
+      studentGroup,
+      course,
+      startDate,
+      endDate,
+      totalPrice,
+      durationMonths: course.durationMonths,
+      monthlyPrice: course.monthlyPrice,
+    };
+  };
+
+  const openContractModal = (studentId: string) => {
+    setContractStudentId(studentId);
+    setContractOverride({});
+  };
+
   const handleCreateContract = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contractStudentId || !contractForm.courseId || !contractForm.endDate) {
-      addToast({ type: 'error', message: 'Kurs, boshlanish va tugash sanasini kiriting' }); return;
+    if (!contractStudentId) return;
+    const computed = computeContractData(contractStudentId);
+    if (!computed) {
+      addToast({ type: 'error', message: "O'quvchi guruhga biriktirilmagan yoki guruh kursi topilmadi!" }); return;
     }
+    const endDate = contractOverride.endDate || computed.endDate;
+    const totalPrice = Number(contractOverride.totalPrice ?? computed.totalPrice);
+    const status = contractOverride.status ?? 'active';
+
     addContract({
       studentId: contractStudentId,
-      courseId: contractForm.courseId,
-      startDate: contractForm.startDate,
-      endDate: contractForm.endDate,
-      totalPrice: Number(contractForm.totalPrice) || 0,
-      status: contractForm.status,
+      courseId: computed.course.id,
+      startDate: computed.startDate,
+      endDate,
+      totalPrice,
+      status,
       signedDate: new Date().toISOString().split('T')[0],
     });
-    addToast({ type: 'success', message: 'Shartnoma muvaffaqiyatli yaratildi!' });
+    addToast({ type: 'success', message: `Shartnoma yaratildi! Davomiylik: ${computed.durationMonths} oy, Jami: ${totalPrice.toLocaleString()} so'm` });
     setContractStudentId(null);
-    setContractForm({ courseId: '', startDate: new Date().toISOString().split('T')[0], endDate: '', totalPrice: '', status: 'active' });
+    setContractOverride({});
   };
 
   const handleDownloadContract = (studentId: string) => {
     const student = students.find(s => s.id === studentId);
     const contract = getStudentContract(studentId);
     const course = courses.find(c => c.id === contract?.courseId);
+    const studentGroup = groups.find(g => student?.groupIds.includes(g.id) && g.courseId === contract?.courseId);
     if (!student || !contract) return;
 
-    const content = `
-BRAIN IT ACADEMY — O'QUV SHARTNOMASI
-${'='.repeat(50)}
+    const contractNum = contract.id.toUpperCase();
+    const today = new Date().toLocaleDateString('uz-UZ');
 
-Shartnoma raqami: ${contract.id.toUpperCase()}
-Tuzilgan sana: ${contract.signedDate || contract.startDate}
-Holat: ${contract.status === 'active' ? 'FAOL' : contract.status === 'expired' ? 'MUDDATI TUGAGAN' : 'KUTILMOQDA'}
+    const content = [
+      `BRAIN IT ACADEMY — O'QUV SHARTNOMASI`,
+      `${'═'.repeat(55)}`,
+      ``,
+      `Shartnoma raqami : ${contractNum}`,
+      `Tuzilgan sana    : ${contract.signedDate || contract.startDate}`,
+      `Holat            : ${contract.status === 'active' ? '✅ FAOL' : contract.status === 'expired' ? '❌ MUDDATI TUGAGAN' : '⏳ KUTILMOQDA'}`,
+      ``,
+      `${'─'.repeat(55)}`,
+      `👤  O'QUVCHI MA'LUMOTLARI`,
+      `${'─'.repeat(55)}`,
+      `Ism-familiya     : ${student.fullName}`,
+      `Telefon          : ${student.phone}`,
+      `Ota-ona          : ${student.parentName || '—'}`,
+      `Ota-ona telefoni : ${student.parentPhone}`,
+      ``,
+      `${'─'.repeat(55)}`,
+      `📚  TA'LIM MA'LUMOTLARI`,
+      `${'─'.repeat(55)}`,
+      `Kurs nomi        : ${course?.name || contract.courseId}`,
+      `Guruh            : ${studentGroup?.name || '—'}`,
+      `Dars kunlari     : ${studentGroup?.schedule.days.join(', ') || '—'}`,
+      `Dars vaqti       : ${studentGroup?.schedule.time || '—'}`,
+      `Kurs davomiyligi : ${course?.durationMonths || '—'} oy`,
+      ``,
+      `${'─'.repeat(55)}`,
+      `💰  MOLIYAVIY SHARTLAR`,
+      `${'─'.repeat(55)}`,
+      `Oylik to'lov     : ${course?.monthlyPrice.toLocaleString() || '—'} so'm`,
+      `Bir dars narxi   : ${course?.lessonPrice.toLocaleString() || '—'} so'm`,
+      `Boshlanish       : ${contract.startDate}`,
+      `Tugash           : ${contract.endDate}`,
+      `Jami summa       : ${Number(contract.totalPrice).toLocaleString()} so'm`,
+      ``,
+      `${'─'.repeat(55)}`,
+      `📋  IMZOLAR`,
+      `${'─'.repeat(55)}`,
+      ``,
+      `O'quvchi: ${student.fullName}`,
+      `Imzo: ______________________    Sana: __________`,
+      ``,
+      `Akademiya vakili:`,
+      `Imzo: ______________________    Muhr: __________`,
+      ``,
+      `${'═'.repeat(55)}`,
+      `Brain IT Academy | Yaratilgan: ${today}`,
+    ].join('\n');
 
-${'─'.repeat(50)}
-O'QUVCHI MA'LUMOTLARI
-${'─'.repeat(50)}
-Ism-familiya: ${student.fullName}
-Telefon: ${student.phone}
-Ota-ona: ${student.parentName || '—'}
-Ota-ona telefoni: ${student.parentPhone}
-
-${'─'.repeat(50)}
-TA'LIM MA'LUMOTLARI
-${'─'.repeat(50)}
-Kurs: ${course?.name || contract.courseId}
-Boshlash sanasi: ${contract.startDate}
-Tugash sanasi: ${contract.endDate}
-Umumiy narx: ${Number(contract.totalPrice).toLocaleString()} so'm
-
-${'─'.repeat(50)}
-QO'SHIMCHA
-${'─'.repeat(50)}
-Bu shartnoma Brain IT Academy tomonidan tuzilgan.
-Vaqt: ${new Date().toLocaleString('uz-UZ')}
-
-
-    O'quvchi imzosi: _________________
-    Akademiya muhri va imzosi: _________________
-`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `shartnoma_${student.fullName.replace(/\s+/g, '_')}_${contract.id}.txt`;
-    a.click(); URL.revokeObjectURL(url);
+    a.href = url;
+    a.download = `Shartnoma_${student.fullName.replace(/\s+/g, '_')}_${contractNum}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
     addToast({ type: 'success', message: 'Shartnoma yuklab olindi!' });
   };
 
@@ -784,86 +853,93 @@ Vaqt: ${new Date().toLocaleString('uz-UZ')}
         )}
       </Modal>
 
-      {/* Shartnoma yaratish modali */}
+      {/* Shartnoma yaratish modali — Smart Auto-Fill */}
       <Modal open={!!contractStudentId} onClose={() => setContractStudentId(null)} title="Shartnoma yaratish" size="sm">
         {contractStudentId && (() => {
           const student = students.find(s => s.id === contractStudentId);
+          const computed = computeContractData(contractStudentId);
+          const endDate = contractOverride.endDate || computed?.endDate || '';
+          const totalPrice = contractOverride.totalPrice ?? computed?.totalPrice?.toString() ?? '';
+          const status = contractOverride.status ?? 'active';
           return (
             <form onSubmit={handleCreateContract} className="space-y-4">
-              {/* Student info */}
               <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3">
-                <img src={student?.photo} alt={student?.fullName} className="h-9 w-9 rounded-full object-cover" />
+                <img src={student?.photo} alt={student?.fullName} className="h-10 w-10 rounded-full object-cover" />
                 <div>
-                  <p className="font-semibold text-sm text-slate-800 dark:text-white">{student?.fullName}</p>
+                  <p className="font-bold text-sm text-slate-800 dark:text-white">{student?.fullName}</p>
                   <p className="text-xs text-slate-400">{student?.phone}</p>
                 </div>
               </div>
-
-              {/* Course */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Kurs *</label>
-                <select
-                  value={contractForm.courseId}
-                  onChange={e => setContractForm(f => ({ ...f, courseId: e.target.value }))}
-                  required
-                  className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="">— Kurs tanlang —</option>
-                  {courses.map(c => <option key={c.id} value={c.id}>{c.name} · {c.lessonPrice?.toLocaleString()} so'm/dars</option>)}
-                </select>
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Boshlanish *</label>
-                  <input type="date" value={contractForm.startDate}
-                    onChange={e => setContractForm(f => ({ ...f, startDate: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              {computed ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl p-3">
+                      <p className="text-[10px] font-bold text-blue-500 uppercase mb-1">Kurs</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{computed.course.name}</p>
+                      <p className="text-[10px] text-slate-500">{computed.durationMonths} oy davomiyligi</p>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-xl p-3">
+                      <p className="text-[10px] font-bold text-purple-500 uppercase mb-1">Guruh</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{computed.studentGroup.name}</p>
+                      <p className="text-[10px] text-slate-500">{computed.studentGroup.schedule.days.length} kun/hafta, {computed.studentGroup.schedule.time}</p>
+                    </div>
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-3">
+                      <p className="text-[10px] font-bold text-emerald-500 uppercase mb-1">Boshlanish</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{computed.startDate}</p>
+                      <p className="text-[10px] text-slate-500">Guruh boshlanish sanasi</p>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl p-3">
+                      <p className="text-[10px] font-bold text-amber-500 uppercase mb-1">Oylik to'lov</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white">{computed.monthlyPrice.toLocaleString()} so'm</p>
+                      <p className="text-[10px] text-slate-500">x {computed.durationMonths} oy</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                      Tugash sanasi <span className="normal-case font-normal text-slate-400">(o'zgartirish mumkin)</span>
+                    </label>
+                    <input type="date" value={endDate}
+                      onChange={e => setContractOverride(o => ({ ...o, endDate: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
+                      Jami summa (so'm) <span className="normal-case font-normal text-slate-400">(o'zgartirish mumkin)</span>
+                    </label>
+                    <input type="number" value={totalPrice}
+                      onChange={e => setContractOverride(o => ({ ...o, totalPrice: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      = {computed.monthlyPrice.toLocaleString()} x {computed.durationMonths} oy = <strong className="text-emerald-600">{computed.totalPrice.toLocaleString()} so'm</strong>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Holat</label>
+                    <div className="flex gap-2">
+                      {(['active', 'pending', 'expired'] as const).map(s => (
+                        <button key={s} type="button"
+                          onClick={() => setContractOverride(o => ({ ...o, status: s }))}
+                          className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${status === s ? s === 'active' ? 'bg-emerald-600 text-white' : s === 'pending' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {s === 'active' ? 'Faol' : s === 'pending' ? 'Kutilmoqda' : 'Tugagan'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl p-4 text-center">
+                  <AlertTriangle className="h-8 w-8 text-rose-400 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-rose-600 dark:text-rose-400">Guruh yoki kurs topilmadi</p>
+                  <p className="text-xs text-rose-500 mt-1">O'quvchini avval guruhga biriktiring.</p>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Tugash *</label>
-                  <input type="date" value={contractForm.endDate} required
-                    onChange={e => setContractForm(f => ({ ...f, endDate: e.target.value }))}
-                    className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                </div>
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Umumiy narx (so'm)</label>
-                <input type="number" value={contractForm.totalPrice} placeholder="3000000"
-                  onChange={e => setContractForm(f => ({ ...f, totalPrice: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2.5 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Holat</label>
-                <div className="flex gap-2">
-                  {(['active', 'pending', 'expired'] as const).map(s => (
-                    <button key={s} type="button"
-                      onClick={() => setContractForm(f => ({ ...f, status: s }))}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                        contractForm.status === s
-                          ? s === 'active' ? 'bg-emerald-600 text-white' : s === 'pending' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      {s === 'active' ? 'Faol' : s === 'pending' ? 'Kutilmoqda' : 'Tugagan'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+              )}
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setContractStudentId(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">
-                  Bekor
-                </button>
-                <button type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
-                  Yaratish
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-medium text-slate-600 dark:text-slate-300">Bekor</button>
+                <button type="submit" disabled={!computed}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold transition-colors">
+                  Shartnomani yaratish
                 </button>
               </div>
             </form>
