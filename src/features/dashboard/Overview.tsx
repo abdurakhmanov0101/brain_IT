@@ -5,7 +5,7 @@ import {
   GraduationCap, CheckCircle2, Clock, ChevronRight, BookOpen,
   Award, AlertCircle, FileText, Play, Coins, ArrowUpRight,
   BarChart2, Activity, Zap, Target, Star, Calendar, ShieldCheck,
-  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing
+  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing, Scan
 } from 'lucide-react';
 import { courses as mockCourses } from '../../data/mockData';
 import { useAuthStore } from '../../stores/authStore';
@@ -17,6 +17,7 @@ import { useCourseStore } from '../../stores/courseStore';
 import { useAttendanceStore } from '../../stores/attendanceStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useInClassTaskStore } from '../../stores/inClassTaskStore';
+import { QuickFaceIDModal } from '../../components/common/QuickFaceIDModal';
 
 // Animated number counter
 function AnimatedCount({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
@@ -60,10 +61,41 @@ export const Overview: React.FC = () => {
   const { records: attendanceRecords } = useAttendanceStore();
   const { assignments, submissions } = useHomeworkStore();
   const { submissions: inClassSubmissions } = useInClassTaskStore();
+  const [faceModalOpen, setFaceModalOpen] = useState(false);
 
   if (!currentUser) return null;
 
   const go = (path: string) => navigate(`/${path}`);
+
+  const renderFaceCheckBanner = () => (
+    <div className="bg-gradient-to-r from-emerald-600/10 via-teal-600/10 to-brand-500/10 border-2 border-emerald-500/30 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 shrink-0">
+          <Scan className="w-6 h-6 animate-pulse" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-heading font-black text-base lg:text-lg text-slate-900 dark:text-white">
+              Face ID & Lokatsiya orqali Davomatdan O'tish
+            </h3>
+            <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              Avtomatik & GPS
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            O'z qurilmangiz kamerasida yuzni skaner qilib va belgilangan GPS lokatsiyani tasdiqlab, davomat belgilang.
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={() => setFaceModalOpen(true)}
+        className="py-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 shrink-0 transition-transform active:scale-95"
+      >
+        <Scan className="w-4 h-4" />
+        Tezkor Davomatdan O'tish
+      </button>
+    </div>
+  );
 
   // ── STUDENT DASHBOARD ──────────────────────────────────────────
   if (currentUser.role === 'Student') {
@@ -174,6 +206,8 @@ export const Overview: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {renderFaceCheckBanner()}
 
         {/* ─── Main Grid ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -400,6 +434,7 @@ export const Overview: React.FC = () => {
             </div>
           </div>
         </div>
+        <QuickFaceIDModal open={faceModalOpen} onClose={() => setFaceModalOpen(false)} targetStudentId={myStudent?.id} />
       </div>
     );
   }
@@ -458,6 +493,8 @@ export const Overview: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {renderFaceCheckBanner()}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -758,6 +795,7 @@ export const Overview: React.FC = () => {
           </div>
         </div>
       </div>
+      <QuickFaceIDModal open={faceModalOpen} onClose={() => setFaceModalOpen(false)} />
     </div>
   );
 };

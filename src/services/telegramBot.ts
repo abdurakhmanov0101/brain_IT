@@ -157,3 +157,56 @@ export function parseStartCommand(text: string): string | null {
   const match = text.match(/^\/start\s+([a-zA-Z0-9_-]+)/);
   return match ? match[1] : null;
 }
+
+/** 
+ * Face ID skrindan olingan rasmni va xabarni ota-onaning telegramiga yuboradi
+ */
+export async function sendFaceIDPhotoNotification(opts: {
+  chatId: number;
+  studentName: string;
+  courseName: string;
+  groupName: string;
+  date: string;
+  time: string;
+  photoDataUrl: string;
+}): Promise<boolean> {
+  const { chatId, studentName, courseName, groupName, date, time, photoDataUrl } = opts;
+  const [y, m, d] = date.split('-');
+  const dateFormatted = `${d}.${m}.${y}`;
+
+  const caption = 
+`🛡 <b>Brain IT Academy — Face ID Davomat</b>
+
+Hurmatli ota-ona!
+Farzandingiz <b>${studentName}</b> yuz skaneri (Face ID) orqali akademiyaga kelganligi aniqlandi va skrin (snapshot) olindi.
+
+📚 Kurs: <b>${courseName}</b> (${groupName})
+📅 Sana: ${dateFormatted}
+⏰ Soat: ${time}
+
+✅ <i>Farzandingiz darsga o'z vaqtida yetib keldi.</i>
+<i>Brain IT Academy — Real-vaqt nazorat tizimi</i>`;
+
+  try {
+    const resBlob = await fetch(photoDataUrl);
+    const blob = await resBlob.blob();
+
+    const formData = new FormData();
+    formData.append('chat_id', chatId.toString());
+    formData.append('photo', blob, 'face_snapshot.jpg');
+    formData.append('caption', caption);
+    formData.append('parse_mode', 'HTML');
+
+    const res = await fetch(`${API_BASE}/sendPhoto`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (data.ok === true) return true;
+    return sendTelegramMessage(chatId, caption);
+  } catch {
+    console.warn('[TelegramBot] Face ID rasmini yuborishda xatolik:', chatId);
+    return sendTelegramMessage(chatId, caption);
+  }
+}
+

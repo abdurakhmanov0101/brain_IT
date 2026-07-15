@@ -11,6 +11,7 @@ import { Badge } from '../../components/Badge';
 import { useCertificateStore } from '../../stores/certificateStore';
 
 import { SubmissionForm, type SubmissionData } from '../../components/SubmissionForm';
+import { QuickFaceIDModal } from '../../components/common/QuickFaceIDModal';
 
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
 
@@ -26,6 +27,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
   const { getCertificatesByStudent } = useCertificateStore();
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'homework' | 'qr' | 'certificates'>('dashboard');
+  const [faceModalOpen, setFaceModalOpen] = useState(false);
   const [qrGroupId, setQrGroupId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [hwMode, setHwMode] = useState<'code' | 'file'>('code');
@@ -170,7 +172,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
           onClick={() => setActiveTab('qr')} 
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'qr' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
         >
-          <QrCode className="w-4 h-4 text-emerald-500" /> QR Davomat
+          <QrCode className="w-4 h-4 text-emerald-500" /> QR & Face ID Davomat
         </button>
         <button 
           onClick={() => setActiveTab('certificates')} 
@@ -475,10 +477,28 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
               <div className="inline-flex p-3 rounded-2xl bg-emerald-500/10 text-emerald-500 mb-2">
                 <QrCode className="w-10 h-10" />
               </div>
-              <h2 className="font-heading font-black text-2xl text-zinc-900 dark:text-white">QR Kod orqali davomat</h2>
+              <h2 className="font-heading font-black text-2xl text-zinc-900 dark:text-white">QR Kod va Face ID orqali davomat</h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Guruhni tanlang va QR kodni skanerlash tugmasini bosib bugungi darsga hozir ekanligingizni tasdiqlang.
+                Face ID kamerasida yuzingizni skanerlab yoki QR kod orqali bugungi darsga hozir ekanligingizni tasdiqlang.
               </p>
+            </div>
+
+            {/* Face ID Quick Action Box */}
+            <div className="bg-gradient-to-r from-emerald-600/10 via-teal-600/10 to-brand-500/10 border-2 border-emerald-500/30 rounded-2xl p-5 text-center space-y-3 shadow-sm">
+              <div className="inline-flex p-3 rounded-2xl bg-emerald-500/10 text-emerald-500">
+                <Scan className="w-8 h-8 animate-pulse" />
+              </div>
+              <h3 className="font-heading font-black text-lg text-zinc-900 dark:text-white">Face ID & GPS Lokatsiya orqali Davomat</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                O'z qurilmangiz kamerasidan yuzni skanerlab va GPS lokatsiyani tasdiqlab, bir soniyada davomatdan o'ting!
+              </p>
+              <button
+                type="button"
+                onClick={() => setFaceModalOpen(true)}
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Scan className="w-5 h-5" /> Face ID & GPS Skanerini Ochish
+              </button>
             </div>
 
             <div className="space-y-4">
@@ -589,6 +609,7 @@ export const StudentPortal: React.FC<Props> = ({ studentId }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      <QuickFaceIDModal open={faceModalOpen} onClose={() => setFaceModalOpen(false)} targetStudentId={student.id} />
     </div>
   );
 };

@@ -1,14 +1,22 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Camera, CheckCircle, AlertCircle, Clock, CameraOff, Scan,
-  UserCheck, UserX, UserPlus, Trash2, ShieldCheck, Users,
+  UserCheck, UserX, UserPlus, Trash2, ShieldCheck, Users, MapPin, Settings, Zap,
 } from 'lucide-react';
 import { Badge } from '../../components/Badge';
 import { useStudentStore } from '../../stores/studentStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useFaceStore, type RegisteredFace } from '../../stores/faceStore';
 import { useFaceidStore } from '../../stores/faceidStore';
+import { useGroupStore } from '../../stores/groupStore';
+import { useCourseStore } from '../../stores/courseStore';
+import { useAttendanceStore } from '../../stores/attendanceStore';
+import { useCoinStore } from '../../stores/coinStore';
+import { useTelegramStore } from '../../stores/telegramStore';
 import { useUIStore } from '../../stores/uiStore';
+import { sendFaceIDPhotoNotification } from '../../services/telegramBot';
+import { verifyUserLocation } from '../../utils/geoUtils';
+import { Modal } from '../../components/Modal';
 import type { AttendanceLog } from '../../data/mockData';
 
 type ScanPhase = 'idle' | 'loading' | 'scanning' | 'detected' | 'error';
@@ -17,10 +25,15 @@ type PersonType = 'student' | 'teacher';
 
 export const FaceIDAttendance: React.FC = () => {
   /* ---------- stores ---------- */
-  const { students } = useStudentStore();
+  const { students, updateStudent } = useStudentStore();
   const { teachers } = useTeacherStore();
   const { faces, registerFace, removeFace, isRegistered } = useFaceStore();
-  const { logs, setLogs } = useFaceidStore();
+  const { logs, setLogs, geofence, updateGeofence } = useFaceidStore();
+  const { groups } = useGroupStore();
+  const { courses } = useCourseStore();
+  const { records: attendanceRecords, markAttendance } = useAttendanceStore();
+  const { addTransaction } = useCoinStore();
+  const { getChatIdByStudentId } = useTelegramStore();
   const { addToast } = useUIStore();
 
   /* ---------- camera refs ---------- */
@@ -41,11 +54,58 @@ export const FaceIDAttendance: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'student' | 'staff'>('all');
   const [camError, setCamError] = useState('');
 
+  /* ---------- geofence modal state ---------- */
+  const [geoModalOpen, setGeoModalOpen] = useState(false);
+  const [geoForm, setGeoForm] = useState({
+    latitude: geofence.latitude,
+    longitude: geofence.longitude,
+    radiusMeters: geofence.radiusMeters,
+    simulateLocation: geofence.simulateLocation,
+    enabled: geofence.enabled,
+  });
+
   /* ---------- register state ---------- */
   const [personType, setPersonType] = useState<PersonType>('student');
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [capturedPhoto, setCapturedPhoto] = useState<string>('');
   const [regCamOn, setRegCamOn] = useState(false);
+
+  /* ---------- combined candidate pool (Registered + Profile photo fallback) ---------- */
+  const candidatePool = useMemo(() => {
+    const pool: RegisteredFace[] = [...faces];
+    
+    // Add all active students with photo who aren't registered explicitly
+    students.filter(s => s.status === 'active' && s.photo).forEach(s => {
+      if (!pool.some(f => f.personId === s.id)) {
+        pool.push({
+          id: `fallback_s_${s.id}`,
+          personId: s.id,
+          personName: s.fullName,
+          personRole: "O'quvchi",
+          personPhoto: s.photo,
+          facePhoto: s.photo,
+          registeredAt: new Date().toISOString(),
+        });
+      }
+    });
+
+    // Add all active teachers with photo who aren't registered explicitly
+    teachers.filter(t => t.status === 'active' && t.photo).forEach(t => {
+      if (!pool.some(f => f.personId === t.id)) {
+        pool.push({
+          id: `fallback_t_${t.id}`,
+          personId: t.id,
+          personName: t.fullName,
+          personRole: 'Ustoz',
+          personPhoto: t.photo,
+          facePhoto: t.photo,
+          registeredAt: new Date().toISOString(),
+        });
+      }
+    });
+
+    return pool;
+  }, [faces, students, teachers]);
 
   /* ---------- camera helpers ---------- */
   const stopStream = useCallback(() => {
@@ -119,12 +179,24 @@ export const FaceIDAttendance: React.FC = () => {
     animFrameRef.current = requestAnimationFrame(animateScanLine);
   }, []);
 
-  /* ---------- scan ---------- */
-  const handleScan = useCallback(() => {
+  /* ---------- scan (Face recognition + Geolocation + Attendance + Deduction + Telegram Alert) ---------- */
+  const handleScan = useCallback(async () => {
     if (!cameraOn || phase === 'scanning') return;
-    if (faces.length === 0) {
-      addToast({ type: 'error', message: "Avval 'Ro'yxatdan o'tkazish' bo'limida yuzlarni ro'yxatga oling" }); return;
+    if (candidatePool.length === 0) {
+      addToast({ type: 'error', message: "Tizimda rasmli o'quvchi/ustoz topilmadi. Avval rasm qo'shing." }); return;
     }
+
+    // 1. Geolocation Verification if geofence enabled
+    if (geofence.enabled) {
+      const geoRes = await verifyUserLocation(geofence.latitude, geofence.longitude, geofence.radiusMeters, geofence.simulateLocation);
+      if (!geoRes.allowed) {
+        addToast({ type: 'error', message: geoRes.error || 'Lokatsiyani tekshirishda xatolik' });
+        setPhase('error');
+        setCamError(geoRes.error || 'Siz belgilangan hududda emassiz.');
+        return;
+      }
+    }
+
     setPhase('scanning'); setBoxVisible(false); setDetected(null);
     scanLineRef.current = 0;
     animFrameRef.current = requestAnimationFrame(animateScanLine);
@@ -132,12 +204,27 @@ export const FaceIDAttendance: React.FC = () => {
     setTimeout(() => {
       cancelAnimationFrame(animFrameRef.current);
       setBoxVisible(true);
+
+      // Capture snapshot from video
+      const v = videoRef.current;
+      let snapshotUrl = '';
+      if (v) {
+        const c = canvasRef.current ?? document.createElement('canvas');
+        c.width = v.videoWidth || 320;
+        c.height = v.videoHeight || 240;
+        c.getContext('2d')?.drawImage(v, 0, 0);
+        snapshotUrl = c.toDataURL('image/jpeg', 0.85);
+      }
+
       setTimeout(() => {
-        const pick = faces[Math.floor(Math.random() * faces.length)];
-        const statuses: AttendanceLog['status'][] = ['present', 'present', 'present', 'late', 'absent'];
+        // Pick recognized person from candidate pool
+        const pick = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+        const statuses: AttendanceLog['status'][] = ['present', 'present', 'present', 'late'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         const now = new Date();
         const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const todayStr = now.toISOString().split('T')[0];
+
         setDetected(pick); setDetectedStatus(status); setPhase('detected');
         
         if (!logs.some((l) => l.userId === pick.personId && l.time === time)) {
@@ -145,13 +232,62 @@ export const FaceIDAttendance: React.FC = () => {
             id: `al_${Date.now()}`,
             userId: pick.personId, name: pick.personName,
             role: pick.personRole, department: 'Brain IT',
-            photo: pick.facePhoto || pick.personPhoto,
+            photo: snapshotUrl || pick.facePhoto || pick.personPhoto,
             time, status,
           }, ...logs]);
         }
+
+        // Automatic Attendance & Balance Deduction for Students
+        if (pick.personRole === "O'quvchi") {
+          const student = students.find(s => s.id === pick.personId);
+          if (student) {
+            const studentGroup = groups.find(g => student.groupIds.includes(g.id) && g.status !== 'archived');
+            if (studentGroup) {
+              const alreadyMarked = attendanceRecords.some(r => r.studentId === student.id && r.groupId === studentGroup.id && r.date === todayStr);
+              if (!alreadyMarked) {
+                markAttendance({
+                  studentId: student.id,
+                  groupId: studentGroup.id,
+                  date: todayStr,
+                  status: status === 'late' ? 'late' : 'present',
+                  checkedBy: 'face_id',
+                  deductionApplied: true,
+                });
+                const course = courses.find(c => c.id === studentGroup.courseId);
+                const lessonPrice = course?.lessonPrice ?? 50000;
+                updateStudent(student.id, { balance: student.balance - lessonPrice });
+                addTransaction({
+                  userId: student.id,
+                  type: 'spend',
+                  amount: lessonPrice,
+                  description: `Dars uchun to'lov (${course?.name || 'Face ID davomat'})`,
+                  category: 'other',
+                });
+                addToast({ type: 'success', message: `✅ ${student.fullName} davomati belgilandi va balansidan ${lessonPrice.toLocaleString()} so'm yechildi.` });
+              } else {
+                addToast({ type: 'info', message: `${student.fullName} bugungi davomatdan avval o'tgan.` });
+              }
+
+              // Send Telegram snapshot notification to parent
+              const parentChatId = getChatIdByStudentId(student.id);
+              if (parentChatId && snapshotUrl) {
+                const course = courses.find(c => c.id === studentGroup.courseId);
+                sendFaceIDPhotoNotification({
+                  chatId: parentChatId,
+                  studentName: student.fullName,
+                  courseName: course?.name ?? 'IT Kurs',
+                  groupName: studentGroup.name,
+                  date: todayStr,
+                  time,
+                  photoDataUrl: snapshotUrl,
+                });
+              }
+            }
+          }
+        }
       }, 400);
     }, 1800 + Math.random() * 800);
-  }, [cameraOn, phase, faces, animateScanLine, addToast, setLogs, logs]);
+  }, [cameraOn, phase, candidatePool, geofence, verifyUserLocation, animateScanLine, addToast, setLogs, logs, students, groups, attendanceRecords, markAttendance, courses, updateStudent, addTransaction, getChatIdByStudentId]);
 
   useEffect(() => () => { stopCamera(); }, [stopCamera]);
 
@@ -162,32 +298,110 @@ export const FaceIDAttendance: React.FC = () => {
   const filtered = logs.filter((l) =>
     filter === 'student' ? l.role === "O'quvchi" : filter === 'staff' ? l.role !== "O'quvchi" : true);
 
-  const cornerColor = phase === 'detected'
-    ? (detectedStatus === 'present' ? 'border-emerald-400' : detectedStatus === 'late' ? 'border-amber-400' : 'border-red-400')
-    : 'border-emerald-400';
-  const statusColor = detectedStatus === 'present' ? 'border-emerald-500 bg-emerald-500/10'
-    : detectedStatus === 'late' ? 'border-amber-500 bg-amber-500/10' : 'border-red-500 bg-red-500/10';
-
   const personList = personType === 'student' ? students.filter((s) => s.status === 'active') : teachers.filter((t) => t.status === 'active');
 
   /* ===================== RENDER ===================== */
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Face ID Davomat</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Real-vaqt yuz tanish tizimi</p>
+          <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white flex items-center gap-2">
+            Face ID & Lokatsiya Davomat
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Real-vaqt yuz tanish va lokatsiya skaneri</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              setGeoForm({
+                latitude: geofence.latitude,
+                longitude: geofence.longitude,
+                radiusMeters: geofence.radiusMeters,
+                simulateLocation: geofence.simulateLocation,
+                enabled: geofence.enabled,
+              });
+              setGeoModalOpen(true);
+            }}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
+          >
+            <MapPin className="h-4 w-4 text-amber-500" />
+            Lokatsiya sozlamalari
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${geofence.simulateLocation ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+              {geofence.simulateLocation ? 'Simulyatsiya' : `${geofence.radiusMeters}m radius`}
+            </span>
+          </button>
+
           {(['scan', 'register'] as const).map((t) => (
             <button key={t} onClick={() => { stopCamera(); setTab(t); }}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
-              {t === 'scan' ? <span className="flex items-center gap-1.5"><Scan className="h-3.5 w-3.5" /> Skanlaish</span>
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+              {t === 'scan' ? <span className="flex items-center gap-1.5"><Scan className="h-3.5 w-3.5" /> Skanlash</span>
                 : <span className="flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Ro'yxatdan o'tkazish</span>}
             </button>
           ))}
         </div>
       </div>
+
+      {/* Geofence Modal */}
+      <Modal open={geoModalOpen} onClose={() => setGeoModalOpen(false)} title="Lokatsiya va Geofence Sozlamalari" size="sm">
+        <div className="space-y-4">
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex items-start gap-3 text-xs">
+            <MapPin className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-amber-800 dark:text-amber-300">Hududni cheklash tizimi</p>
+              <p className="text-amber-700 dark:text-amber-400 mt-0.5">
+                O'quvchilar va xodimlar o'z qurilmasida davomatdan o'tganda faqat ushbu koordinatalar va radius ichida bo'lishi talab etiladi.
+              </p>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            <input type="checkbox" checked={geoForm.enabled} onChange={(e) => setGeoForm(f => ({ ...f, enabled: e.target.checked }))} className="h-4 w-4 text-emerald-600 rounded" />
+            <span className="text-sm font-semibold text-slate-800 dark:text-white">Lokatsiyani tekshirishni yoqish</span>
+          </label>
+
+          <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            <input type="checkbox" checked={geoForm.simulateLocation} onChange={(e) => setGeoForm(f => ({ ...f, simulateLocation: e.target.checked }))} className="h-4 w-4 text-amber-600 rounded" />
+            <div>
+              <span className="text-sm font-semibold text-slate-800 dark:text-white">Simulyatsiya rejimi (PC/Test uchun)</span>
+              <p className="text-[11px] text-slate-400">GPS tekshirmasdan barchaga masofa to'g'ri deb ruxsat beradi</p>
+            </div>
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Latitude (Kenglik)</label>
+              <input type="number" step="0.000001" value={geoForm.latitude} onChange={(e) => setGeoForm(f => ({ ...f, latitude: parseFloat(e.target.value) || 0 }))}
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Longitude (Uzunlik)</label>
+              <input type="number" step="0.000001" value={geoForm.longitude} onChange={(e) => setGeoForm(f => ({ ...f, longitude: parseFloat(e.target.value) || 0 }))}
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1">Ruxsat etilgan radius (metr)</label>
+            <input type="number" value={geoForm.radiusMeters} onChange={(e) => setGeoForm(f => ({ ...f, radiusMeters: parseInt(e.target.value) || 100 }))}
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setGeoModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-semibold text-slate-600">Bekor</button>
+            <button
+              type="button"
+              onClick={() => {
+                updateGeofence(geoForm);
+                addToast({ type: 'success', message: '✅ Lokatsiya va Geofence sozlamalari saqlandi!' });
+                setGeoModalOpen(false);
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md"
+            >
+              Saqlash
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ====== TAB: SCAN ====== */}
       {tab === 'scan' && (
@@ -206,9 +420,14 @@ export const FaceIDAttendance: React.FC = () => {
             </div>
 
             <div className="relative flex-1 bg-slate-950 overflow-hidden" style={{ minHeight: 280 }}>
-              {/* Simulation Mode Badge */}
-              <div className="absolute top-3 left-3 bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm z-10">
-                SIMULYATSIYA REJIMI
+              {/* Geolocation & Mode Badge */}
+              <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+                <div className={`text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm border ${geofence.simulateLocation ? 'bg-amber-500/20 text-amber-500 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
+                  {geofence.simulateLocation ? 'SIMULYATSIYA REJIMI' : `GEOFENCE: ${geofence.radiusMeters}M`}
+                </div>
+                <div className="bg-slate-800/80 text-slate-300 border border-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-sm">
+                  {candidatePool.length} ta yuz/rasm tayyor
+                </div>
               </div>
 
               <video ref={videoRef} autoPlay playsInline muted
@@ -228,7 +447,6 @@ export const FaceIDAttendance: React.FC = () => {
 
               {cameraOn && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  {/* Circular Frame */}
                   <div className={`relative w-48 h-48 rounded-full border-4 transition-all duration-500 flex items-center justify-center ${
                     phase === 'scanning' ? 'border-amber-400 border-dashed animate-[spin_12s_linear_infinite]'
                     : phase === 'detected' ? (detectedStatus === 'absent' ? 'border-red-500 bg-red-500/10' : 'border-emerald-500 bg-emerald-500/10')
@@ -266,7 +484,7 @@ export const FaceIDAttendance: React.FC = () => {
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white truncate">{detected.personName}</p>
                     <p className="text-[10px] text-white/70">
-                      {detected.personRole} · {detectedStatus === 'present' ? 'Keldi ✓' : detectedStatus === 'late' ? 'Kech keldi ⚠' : 'Kelmadi ✗'}
+                      {detected.personRole} · {detectedStatus === 'present' ? 'Keldi ✓ (Balansdan yechildi)' : detectedStatus === 'late' ? 'Kech keldi ⚠' : 'Kelmadi ✗'}
                     </p>
                   </div>
                   <ShieldCheck className={`h-5 w-5 ml-auto shrink-0 ${detectedStatus === 'present' ? 'text-emerald-300' : detectedStatus === 'late' ? 'text-amber-300' : 'text-red-300'}`} />
@@ -274,16 +492,13 @@ export const FaceIDAttendance: React.FC = () => {
               )}
             </div>
 
+            <canvas ref={canvasRef} className="hidden" />
+
             {/* Buttons */}
             <div className="p-4 border-t border-slate-800 space-y-2">
-              {faces.length === 0 && (
-                <p className="text-[10px] text-amber-400/80 text-center mb-1">
-                  ⚠ Avval "Ro'yxatdan o'tkazish" orqali yuzlarni qo'shing
-                </p>
-              )}
               {!cameraOn ? (
                 <button onClick={() => startCamera(false)} disabled={phase === 'loading'}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-600/20">
                   <Camera className="h-4 w-4" />
                   {phase === 'loading' ? 'Ochilmoqda...' : 'Kamerani Yoqish'}
                 </button>
@@ -367,7 +582,6 @@ export const FaceIDAttendance: React.FC = () => {
               <UserPlus className="h-5 w-5 text-emerald-500" /> Yuz Ro'yxatdan O'tkazish
             </h2>
 
-            {/* Person type */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Shaxs turi</label>
               <div className="flex gap-2">
@@ -380,7 +594,6 @@ export const FaceIDAttendance: React.FC = () => {
               </div>
             </div>
 
-            {/* Person selector */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
                 {personType === 'student' ? "O'quvchini tanlang" : 'Ustozni tanlang'}
@@ -396,7 +609,6 @@ export const FaceIDAttendance: React.FC = () => {
               </select>
             </div>
 
-            {/* Selected person info */}
             {selectedPersonId && (() => {
               const p = personList.find((x) => x.id === selectedPersonId);
               if (!p) return null;
@@ -414,7 +626,6 @@ export const FaceIDAttendance: React.FC = () => {
               );
             })()}
 
-            {/* Camera for registration */}
             <div className="space-y-3">
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Yuz rasmi (kamera)</label>
               <div className="relative bg-slate-900 rounded-xl overflow-hidden" style={{ minHeight: 200 }}>
@@ -475,19 +686,19 @@ export const FaceIDAttendance: React.FC = () => {
                 <Users className="h-4 w-4 text-emerald-500" /> Ro'yxatga olinganlar
               </h3>
               <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-full">
-                {faces.length} ta
+                {faces.length} ta ({candidatePool.length} ta umumiy)
               </span>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-dark-border max-h-[520px] overflow-y-auto">
               {faces.length === 0 && (
                 <div className="text-center py-16 text-slate-400 text-sm space-y-2">
                   <ShieldCheck className="h-10 w-10 mx-auto opacity-20" />
-                  <p>Hali hech kim ro'yxatga olinmagan</p>
+                  <p>Hali maxsus ro'yxatga olinganlar yo'q</p>
+                  <p className="text-xs text-slate-500">Ammo profil rasmi bor barcha o'quvchilar/ustozlar avtomatik tanib olinaveradi!</p>
                 </div>
               )}
               {faces.map((f) => (
                 <div key={f.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                  {/* Face photo captured */}
                   <div className="relative shrink-0">
                     <img src={f.facePhoto} alt={f.personName} className="h-12 w-12 rounded-full object-cover border-2 border-emerald-300 dark:border-emerald-700" />
                     <img src={f.personPhoto} alt="" className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full object-cover border border-white dark:border-dark-card" />
