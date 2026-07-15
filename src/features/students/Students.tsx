@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound, ChevronLeft, ChevronRight, Send, MessageSquare } from 'lucide-react';
 import { useStudentStore, genStudentUsername, genParentUsername } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useTelegramStore } from '../../stores/telegramStore';
 import { Badge, statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { Modal } from '../../components/Modal';
@@ -12,7 +13,7 @@ import { Modal } from '../../components/Modal';
 const fmtMoney = (n: number) => n.toLocaleString('uz-UZ') + " so'm";
 
 interface AddStudentForm {
-  fullName: string; phone: string; parentPhone: string; groupIds: string[]; teacherId: string; leadSource: string; status: 'active' | 'frozen' | 'left';
+  fullName: string; phone: string; parentPhone: string; parentName: string; groupIds: string[]; teacherId: string; leadSource: string; status: 'active' | 'frozen' | 'left';
 }
 interface CreatedCreds {
   fullName: string; studentUsername: string; studentPassword: string; parentUsername: string; parentPassword: string;
@@ -40,6 +41,7 @@ export const Students: React.FC = () => {
   const { teachers } = useTeacherStore();
   const { addToast } = useUIStore();
   const currentUser = useAuthStore((s) => s.currentUser);
+  const { isLinked } = useTelegramStore();
   const isTeacher = currentUser?.role === 'Teacher';
 
   const [search, setSearch] = useState('');
@@ -49,7 +51,7 @@ export const Students: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState<string | null>(null);
   const [createdCreds, setCreatedCreds] = useState<CreatedCreds | null>(null);
   const [addForm, setAddForm] = useState<AddStudentForm>({
-    fullName: '', phone: '', parentPhone: '', groupIds: [],
+    fullName: '', phone: '', parentPhone: '', parentName: '', groupIds: [],
     teacherId: isTeacher ? (currentUser?.id ?? '') : '',
     leadSource: 'Instagram', status: 'active',
   });
@@ -97,7 +99,7 @@ export const Students: React.FC = () => {
     const pphones = addForm.parentPhone.replace(/\D/g, '');
     setCreatedCreds({ fullName: addForm.fullName, studentUsername: genStudentUsername(addForm.fullName, addForm.phone), studentPassword: phones.slice(-6), parentUsername: genParentUsername(addForm.fullName, addForm.parentPhone), parentPassword: pphones.slice(-6) });
     addToast({ type: 'success', message: `${addForm.fullName} qo'shildi` });
-    setAddForm({ fullName: '', phone: '', parentPhone: '', groupIds: [], teacherId: isTeacher ? (currentUser?.id ?? '') : '', leadSource: 'Instagram', status: 'active' });
+    setAddForm({ fullName: '', phone: '', parentPhone: '', parentName: '', groupIds: [], teacherId: isTeacher ? (currentUser?.id ?? '') : '', leadSource: 'Instagram', status: 'active' });
     setAddOpen(false);
   };
 
@@ -177,6 +179,9 @@ export const Students: React.FC = () => {
                         <div>
                           <p className="font-semibold text-slate-900 dark:text-white">{student.fullName}</p>
                           <div className="flex items-center gap-1 text-xs text-slate-400"><Phone className="h-3 w-3" />{student.phone}</div>
+                          {student.parentName && (
+                            <div className="text-[10px] text-slate-400 mt-0.5">Ota-ona: <span className="font-semibold text-slate-600 dark:text-slate-300">{student.parentName}</span></div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -199,6 +204,15 @@ export const Students: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <button onClick={() => setDetailOpen(student.id)} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Ko'rish</button>
                         <button onClick={() => setPayOpen(student.id)} className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-100 transition-colors">To'lov</button>
+                        {isLinked(student.id) ? (
+                          <span title="Telegram ulangan" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold">
+                            <Send className="h-3 w-3" /> TG
+                          </span>
+                        ) : (
+                          <span title="Telegram ulanmagan" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] font-bold">
+                            <Send className="h-3 w-3" /> —
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -242,7 +256,7 @@ export const Students: React.FC = () => {
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Yangi o'quvchi qo'shish" size="md">
         <form onSubmit={handleAddStudent} className="space-y-4">
-          {[{ label: "To'liq ism", key: 'fullName', placeholder: 'Aziz Alimov' }, { label: 'Telefon', key: 'phone', placeholder: '+998901234567' }, { label: 'Ota-ona telefoni', key: 'parentPhone', placeholder: '+998901234560' }].map(({ label, key, placeholder }) => (
+          {[{ label: "To'liq ism", key: 'fullName', placeholder: 'Aziz Alimov' }, { label: 'Telefon', key: 'phone', placeholder: '+998901234567' }, { label: 'Ota-ona ismi', key: 'parentName', placeholder: 'Alimov Sardor' }, { label: 'Ota-ona telefoni', key: 'parentPhone', placeholder: '+998901234560' }].map(({ label, key, placeholder }) => (
             <div key={key}>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
               <input value={(addForm as unknown as Record<string, unknown>)[key] as string} onChange={(e) => setAddForm((f) => ({ ...f, [key]: e.target.value }))} placeholder={placeholder}
@@ -354,8 +368,24 @@ export const Students: React.FC = () => {
               <img src={detailStudent.photo} alt={detailStudent.fullName} className="h-16 w-16 rounded-2xl object-cover" />
               <div>
                 <p className="font-semibold text-slate-800 dark:text-white">{detailStudent.fullName}</p>
-                <p className="text-sm text-slate-500">{detailStudent.phone}</p>
-                <p className="text-xs text-slate-400">Ota-ona: {detailStudent.parentPhone}</p>
+                <p className="text-sm text-slate-500 flex items-center gap-1"><Phone className="h-3 w-3" />{detailStudent.phone}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Ota-ona: <span className="font-semibold">{detailStudent.parentName || '—'}</span></p>
+                <p className="text-xs text-slate-400">Tel: {detailStudent.parentPhone}</p>
+                {/* Telegram ulanish holati */}
+                {isLinked(detailStudent.id) ? (
+                  <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                    <Send className="h-3 w-3" /> Telegram ulangan ✅
+                  </div>
+                ) : (
+                  <a
+                    href={`https://t.me/BIT_nazorat_bot?start=${detailStudent.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-blue-600 transition-colors"
+                  >
+                    <Send className="h-3 w-3" /> Telegram'ga ulash havolasi
+                  </a>
+                )}
               </div>
               {statusBadge(detailStudent.status)}
             </div>
@@ -420,6 +450,16 @@ export const Students: React.FC = () => {
                 </div>
               )}
             </div>
+            {/* Ota-ona javobi (bot orqali kelgan) */}
+            {detailStudent.absentReason && (
+              <div className="border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-1">
+                  <MessageSquare className="h-3.5 w-3.5" /> Ota-onadan kelgan javob (bot orqali):
+                </p>
+                <p className="text-sm text-slate-700 dark:text-slate-200">{detailStudent.absentReason}</p>
+              </div>
+            )}
+
             <div className="border-t border-slate-100 dark:border-dark-border pt-4">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Login ma'lumotlari</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

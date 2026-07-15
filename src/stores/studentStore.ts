@@ -30,6 +30,7 @@ export interface Student {
   fullName: string;
   phone: string;
   parentPhone: string;
+  parentName?: string;          // Ota-ona ismi (ixtiyoriy)
   photo: string;
   groupIds: string[];
   teacherId?: string;
@@ -39,6 +40,7 @@ export interface Student {
   enrolledDate: string;
   status: 'active' | 'frozen' | 'left';
   notes?: string;
+  absentReason?: string;        // Ota-ona bot orqali yuborgan javob
   studentUsername: string;
   studentPassword: string;
   parentUsername: string;

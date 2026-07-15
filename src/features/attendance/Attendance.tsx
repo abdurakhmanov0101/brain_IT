@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Check, X, AlertCircle, QrCode, Users, ChevronRight, ChevronLeft,
-  CalendarCheck, BookOpen, Trash2, Download, Search, Info, Plus, ChevronDown, ChevronUp, Clock, Coins
+  CalendarCheck, BookOpen, Trash2, Download, Search, Info, Plus, ChevronDown, ChevronUp, Clock, Coins, Send
 } from 'lucide-react';
 import { useAttendanceStore, type AttendanceRecord } from '../../stores/attendanceStore';
 import { useGroupStore } from '../../stores/groupStore';
@@ -12,6 +12,8 @@ import { useCourseStore } from '../../stores/courseStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useCoinStore } from '../../stores/coinStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useTelegramStore } from '../../stores/telegramStore';
+import { sendAttendanceNotification } from '../../services/telegramBot';
 import { statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 
@@ -66,6 +68,7 @@ export const Attendance: React.FC = () => {
   const { addTransaction } = useCoinStore();
   const { addToast } = useUIStore();
   const currentUser = useAuthStore((s) => s.currentUser);
+  const { getChatId, pollAndProcessReplies } = useTelegramStore();
 
   const isTeacher = currentUser?.role === 'Teacher';
   
@@ -107,6 +110,20 @@ export const Attendance: React.FC = () => {
 
   const monthDates = group ? getMonthDatesForSchedule(selectedYear, selectedMonth, group.schedule.days) : [];
 
+  // Polling for parent replies every 30 seconds when page is active
+  useEffect(() => {
+    const poll = async () => {
+      const replies = await pollAndProcessReplies();
+      for (const reply of replies) {
+        updateStudent(reply.studentId, { absentReason: reply.replyText });
+        addToast({ type: 'info', message: `Ota-ona javobi qabul qilindi: "${reply.replyText}"` });
+      }
+    };
+    poll(); // initial poll
+    const interval = setInterval(poll, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleMarkStatus = (studentId: string, date: string, newStatus: AttendanceRecord['status'], grade?: number) => {
     if (!group || !course) return;
     const prev = records.find(r => r.studentId === studentId && r.groupId === group.id && r.date === date);
@@ -138,6 +155,23 @@ export const Attendance: React.FC = () => {
         lessonDate: date, 
         amount: course.lessonPrice 
       });
+    }
+
+    // Telegram xabarnomasi yuborish
+    const student = students.find(s => s.studentId === studentId || s.id === studentId);
+    if (student && group && course) {
+      const chatId = getChatId(student.id);
+      if (chatId) {
+        sendAttendanceNotification({
+          chatId,
+          studentName: student.fullName,
+          courseName: course.name,
+          groupName: group.name,
+          date,
+          time: group.schedule?.time ?? '10:00',
+          status: newStatus,
+        }).catch(() => {/* silent fail */});
+      }
     }
   };
 
@@ -395,15 +429,18 @@ export const Attendance: React.FC = () => {
                                   if (record.status === 'present') {
                                     circleStyle += "bg-emerald-500 border-emerald-600 text-white";
                                     content = <Check className="w-3 h-3" />;
-                                  } else if (record.status === 'first_lesson') {
+                                  } else if (record.status === 'late') {
                                     circleStyle += "bg-amber-400 border-amber-500 text-white";
-                                    content = <span className="w-1.5 h-1.5 rounded-full bg-white" />;
+                                    content = <Clock className="w-3 h-3" />;
+                                  } else if (record.status === 'first_lesson') {
+                                    circleStyle += "bg-sky-400 border-sky-500 text-white";
+                                    content = <span className="text-[8px] font-black">1</span>;
                                   } else if (record.status === 'excused') {
-                                    circleStyle += "bg-slate-800 dark:bg-slate-200 border-slate-900 text-white dark:text-slate-900 font-bold";
+                                    circleStyle += "bg-slate-700 dark:bg-slate-300 border-slate-800 text-white dark:text-slate-900 font-bold";
                                     content = <span className="text-[8px]">S</span>;
                                   } else if (record.status === 'absent') {
                                     circleStyle += "bg-rose-500 border-rose-600 text-white";
-                                    content = <span className="text-[8px] font-black">X</span>;
+                                    content = <X className="w-3 h-3" />;
                                   }
                                 } else {
                                   circleStyle += "bg-slate-50/50 dark:bg-slate-800/5 hover:bg-slate-100 hover:border-slate-300 dark:hover:bg-slate-800 text-transparent";
@@ -452,11 +489,12 @@ export const Attendance: React.FC = () => {
                             {activeCell && activeCell.studentId === student.id && activeCell.date === dt.dateStr && (
                               <div className="absolute right-0 top-full mt-1.5 z-45 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-2.5 w-44 space-y-1 text-xs text-slate-700 dark:text-slate-200 text-left">
                                 {[
-                                  { status: 'present', label: 'Keldi', color: 'bg-emerald-500' },
-                                  { status: 'first_lesson', label: 'Birinchi dars', color: 'bg-amber-400' },
-                                  { status: 'excused', label: 'Sababli', color: 'bg-slate-800 dark:bg-slate-300' },
-                                  { status: 'absent', label: 'Sababsiz', color: 'bg-rose-500' },
-                                  { status: 'freezed', label: '❄️ Muz (Yangi / Hisobga kirmaydi)', color: 'bg-sky-500' },
+                                  { status: 'present',      label: '✅ Keldi',         color: 'bg-emerald-500' },
+                                  { status: 'late',         label: '⏰ Kech keldi',    color: 'bg-amber-400' },
+                                  { status: 'first_lesson', label: '🆕 Birinchi dars', color: 'bg-sky-400' },
+                                  { status: 'excused',      label: '📋 Sababli',       color: 'bg-slate-600 dark:bg-slate-300' },
+                                  { status: 'absent',       label: '❌ Sababsiz',      color: 'bg-rose-500' },
+                                  { status: 'freezed',      label: '❄️ Muz (hisobga kirmaydi)', color: 'bg-sky-500' },
                                 ].map(opt => (
                                   <button
                                     key={opt.status}
