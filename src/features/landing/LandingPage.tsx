@@ -395,41 +395,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         t={t}
       />
 
-      {/* ──────────────── EDUTIZIM PARTNERS STRIP ("ISHONCHLI HAMKORLARIMIZ") ──────────────── */}
-      <section className="py-12 px-6 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0d0d14] relative z-10">
-        <div className="max-w-7xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-400/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5" />
-            <span>O'ZBEKISTONDAGI ISHONCHLI HAMKORLARIMIZ</span>
-          </div>
-          <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-            Bugungi kunda har kuni <span className="text-teal-600 dark:text-teal-400 font-bold">200+ ta'lim markazlari</span> dars va davomat jarayonlarini Brain IT CRM orqali nazorat qilmoqda
-          </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-3">
-            {[
-              { name: "Target School", label: "INTERNATIONAL ACADEMY", color: "from-emerald-600 to-cyan-500" },
-              { name: "Imperial Academy", label: "IT & LANGUAGES", color: "from-amber-500 to-orange-500" },
-              { name: "Registon", label: "O'QUV MARKAZI", color: "from-red-600 to-rose-500" },
-              { name: "Grand Edu", label: "BUSINESS SCHOOL", color: "from-emerald-600 to-emerald-500" },
-              { name: "Finlite", label: "FINANCE ACADEMY", color: "from-emerald-600 to-teal-500" },
-              { name: "Nexus School", label: "DIGITAL CAMPUS", color: "from-emerald-600 to-teal-500" },
-            ].map((partner, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ y: -4, scale: 1.03 }}
-                className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex flex-col items-center justify-center gap-1.5 shadow-sm"
-              >
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${partner.color} flex items-center justify-center text-white font-black text-lg shadow-md`}>
-                  {partner.name[0]}
-                </div>
-                <span className="font-heading font-black text-sm text-slate-800 dark:text-white leading-tight">{partner.name}</span>
-                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{partner.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ──────────────── EDUTIZIM 2-SIDE ANIMATED FEATURE 1: SUPERAPP (LEFT & RIGHT) ──────────────── */}
       <section className="py-20 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10 overflow-hidden">
