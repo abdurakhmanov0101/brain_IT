@@ -5,7 +5,7 @@ import {
   GraduationCap, CheckCircle2, Clock, ChevronRight, BookOpen,
   Award, AlertCircle, FileText, Play, Coins, ArrowUpRight,
   BarChart2, Activity, Zap, Target, Star, Calendar, ShieldCheck,
-  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing, Scan
+  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing, Scan, Server
 } from 'lucide-react';
 import { courses as mockCourses } from '../../data/mockData';
 import { useAuthStore } from '../../stores/authStore';
