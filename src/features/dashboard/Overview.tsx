@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { courses as mockCourses } from '../../data/mockData';
 import { useAuthStore } from '../../stores/authStore';
-import { usePmStore } from '../../stores/pmStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useTeacherStore } from '../../stores/teacherStore';
 import { useCoinStore } from '../../stores/coinStore';
@@ -53,7 +52,6 @@ function RingProgress({ value, size = 80, stroke = 8, color = '#10B981' }: { val
 export const Overview: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { projects: projectsList } = usePmStore();
   const { students, payments } = useStudentStore();
   const { teachers } = useTeacherStore();
   const { balances, transactions } = useCoinStore();
@@ -189,9 +187,6 @@ export const Overview: React.FC = () => {
                 <h3 className="font-heading font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <BookOpen className="h-5 w-5 text-emerald-500" /> Mening Kurslarim
                 </h3>
-                <button onClick={() => go('academy')} className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1">
-                  Classroomga o'tish <ChevronRight className="h-3 w-3" />
-                </button>
               </div>
               {myCourses.length === 0 ? (
                 <div className="text-center py-8 text-slate-400">
@@ -390,7 +385,6 @@ export const Overview: React.FC = () => {
               <h3 className="font-heading font-bold text-slate-800 dark:text-white mb-4 text-sm">Tez harakatlar</h3>
               <div className="space-y-2">
                 {[
-                  { icon: BookOpen, label: 'Darslarni ko\'rish', path: 'academy', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20' },
                   { icon: FileText, label: 'Vazifalarni topshirish', path: 'homework', color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/20' },
                   { icon: Coins, label: 'Tanga do\'koni', path: 'coins', color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20' },
                 ].map(({ icon: Icon, label, path, color }) => (
@@ -540,9 +534,6 @@ export const Overview: React.FC = () => {
                           <p className="text-[11px] text-slate-400 truncate">{group?.name || 'Guruh'} · Yuborildi: {new Date(inc.submittedAt || Date.now()).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                       </div>
-                      <button onClick={() => go('academy')} className="shrink-0 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1">
-                        <span>Baholash</span> ➔
-                      </button>
                     </div>
                   );
                 })}
@@ -636,7 +627,6 @@ export const Overview: React.FC = () => {
     { id: 1, name: 'Faol Talabalar', value: totalStudents, suffix: ' ta', change: '+15% o\'tgan oyga nisbatan', contextNote: "Davomat o'rtacha 94%", testimonialNote: "Davomat o'rtacha 94% — barqaror o'sish", up: true, icon: Users, iconBg: 'bg-brand-100 dark:bg-brand-500/20', iconColor: 'text-brand-600 dark:text-brand-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
     { id: 2, name: 'Oylik Daromad', value: 142500000, prefix: '', suffix: ' UZS', change: '+22% o\'sdi', contextNote: "Kassa tushumi +22% o'sdi", testimonialNote: "Kassa tushumi +22% o'sdi — rekord ko'rsatkich", up: true, icon: DollarSign, iconBg: 'bg-emerald-100 dark:bg-emerald-500/20', iconColor: 'text-emerald-600 dark:text-emerald-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
     { id: 3, name: 'Ustozlar', value: totalTeachers, suffix: ' ta faol', change: '+18% faollik', contextNote: "Ustozlar KPI 94.8 ball", testimonialNote: "Ustozlar KPI o'rtacha 94.8 ball", up: true, icon: GraduationCap, iconBg: 'bg-teal-100 dark:bg-teal-500/20', iconColor: 'text-teal-600 dark:text-teal-400', badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
-    { id: 4, name: 'Faol Loyihalar', value: projectsList.length, suffix: ' ta', change: '+25% tezkorlik', contextNote: "Sprintlar 100% grafikda", testimonialNote: "Barcha sprintlar 100% grafik bo'yicha", up: true, icon: Briefcase, iconBg: 'bg-amber-100 dark:bg-amber-500/20', iconColor: 'text-amber-600 dark:text-amber-400', badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
     { id: 5, name: 'Tizimda Coinlar', value: totalCoins, suffix: ' C', change: '+14% rag\'bat', contextNote: "Motivatsiya yuqori", testimonialNote: "O'quvchilar motivatsiyasi yuqori", up: true, icon: Coins, iconBg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: 'text-orange-600 dark:text-orange-400', badgeColor: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' },
     { id: 6, name: "O'zlashtirish", value: 87, suffix: '%', change: '+4.5% sifat', contextNote: "O'rtacha sifat 91%", testimonialNote: "Davomat va imtihonlar o'rtacha 91%", up: true, icon: Target, iconBg: 'bg-sky-100 dark:bg-sky-500/20', iconColor: 'text-sky-600 dark:text-sky-400', badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' },
   ];

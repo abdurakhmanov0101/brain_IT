@@ -6,8 +6,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './features/landing/LandingPage';
 import { LoginPage } from './features/auth/LoginPage';
 const Overview         = lazy(() => import('./features/dashboard/Overview').then((m) => ({ default: m.Overview })));
-const Classroom        = lazy(() => import('./features/academy/Classroom').then((m) => ({ default: m.Classroom })));
-const KanbanBoard      = lazy(() => import('./features/pm/KanbanBoard').then((m) => ({ default: m.KanbanBoard })));
 const FaceIDAttendance = lazy(() => import('./features/faceid/FaceIDAttendance').then((m) => ({ default: m.FaceIDAttendance })));
 const CrmPipeline      = lazy(() => import('./features/crm/CrmPipeline').then((m) => ({ default: m.CrmPipeline })));
 import { useUIStore } from './stores/uiStore';
@@ -97,8 +95,6 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Overview />} />
-          <Route path="/academy" element={<Classroom />} />
-          <Route path="/pm" element={<KanbanBoard />} />
           <Route path="/faceid" element={<FaceIDAttendance />} />
           <Route path="/crm" element={<CrmPipeline />} />
           

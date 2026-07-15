@@ -44,7 +44,6 @@ const menuGroups: MenuGroup[] = [
   {
     label: "Ta'lim",
     items: [
-      { id: 'academy',    name: 'LMS & Classroom', icon: GraduationCap, roles: ['Super Admin', 'Academy Director', 'Teacher', 'Student'] },
       { id: 'courses',    name: 'Kurslar',         icon: BookOpen,      roles: ['Super Admin', 'Academy Director', 'Teacher'] },
       { id: 'groups',     name: 'Guruhlar',        icon: UsersRound,    roles: ['Super Admin', 'Academy Director', 'Teacher'] },
       { id: 'students',   name: "O'quvchilar",     icon: Users,         roles: ['Super Admin', 'Academy Director', 'Teacher'] },
@@ -66,7 +65,6 @@ const menuGroups: MenuGroup[] = [
     label: 'CRM / PM',
     items: [
       { id: 'crm',    name: 'CRM Pipeline',   icon: Users,        roles: ['Super Admin', 'Company Director', 'Project Manager'] },
-      { id: 'pm',     name: 'Kanban Topshiriqlar', icon: KanbanSquare, roles: ['Super Admin', 'Company Director', 'Project Manager'] },
       { id: 'faceid', name: 'Face ID Davomat', icon: Camera,       roles: ['Super Admin', 'Academy Director', 'Teacher'] },
     ],
   },
