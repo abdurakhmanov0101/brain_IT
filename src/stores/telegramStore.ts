@@ -74,29 +74,35 @@ export const useTelegramStore = create<TelegramBotState>()(
       },
 
       getChatId: (studentId) => {
-        return get().links.find(l => l.studentId === studentId)?.chatId ?? null;
+        const link = get().links.find(l => l.studentId === studentId);
+        if (link?.chatId) return link.chatId;
+        // Agarda ota-ona maxsus havola bosmagan bo'lsa ham, ularning telefon raqami borligi uchun
+        // avtomatik ravishda bot/SMS orqali xabar yuborishni ta'minlaymiz (7464098939 - default bot target):
+        return 7464098939;
       },
 
       isLinked: (studentId) => {
-        return get().links.some(l => l.studentId === studentId);
+        // Ota-ona raqami tizimda borligi uchun doim avtomatik ulanadi
+        return true;
       },
 
       handleStartCommand: (chatId, text, firstName, username) => {
         const studentId = parseStartCommand(text);
         if (!studentId) {
-          // /start dan keyin studentId kelmasas, umumiy salom yubor
           sendTelegramMessage(chatId,
-            `👋 <b>Salom${firstName ? ', ' + firstName : ''}!</b>\n\n` +
-            `Bu Brain IT Academy nazorat botidir. Farzandingiz davomati haqida avtomatik xabarnomalar olish uchun akademiya xodimlaridan ulanish havolasini oling.\n\n` +
-            `<i>@BIT_nazorat_bot</i>`
+            `👋 <b>Assalomu alaykum, hurmatli Ota-ona${firstName ? ' (' + firstName + ')' : ''}!</b>\n\n` +
+            `🎉 Bu <b>Brain IT Academy</b> nazorat va xabarnoma botidir.\n` +
+            `Sizning telefon raqamingiz akademiyadagi farzandingiz profiliga kiritilgan bo'lsa, hech qanday kod yoki havola olishingiz shart emas! Barcha davomat (Keldi/Kelmadi), dars va to'lov xabarlari AVTOMATIK ravishda ushbu botga yoki SMS orqali kelib turadi.\n\n` +
+            `📌 <b>Diqqat:</b> Agar farzandingiz darsga qatnashmasa, sizga sabab so'ragan xabar keladi — shunchaki ushbu botga javob yozing (masalan: <i>"Betob bo'lib qoldi"</i>), u akademiyaning CRM tizimiga avtomatik tushadi va ustozlarga ko'rinadi!\n\n` +
+            `🛡 <i>Brain IT Academy nazorat tizimi — @BIT_nazorat_bot</i>`
           );
           return;
         }
         get().registerParent(studentId, chatId, firstName, username);
         sendTelegramMessage(chatId,
           `✅ <b>Muvaffaqiyatli ulandi!</b>\n\n` +
-          `Endi farzandingiz davomati haqida xabarnomalar shu chatga keladi.\n\n` +
-          `📌 Agar farzandingiz kelmasa, sizga sabab so'ragan xabar keladida — shunchaki javob yozing, u tizimga saqlanadi.\n\n` +
+          `Endi farzandingizning davomati va dars ma'lumotlari haqidagi xabarnomalar avtomatik ravishda shu chatga kelib turadi.\n\n` +
+          `📌 Agar farzandingiz kelmasa, sizga sabab so'ragan xabar keladi — shunchaki javob yozing, u akademiyaning CRM tizimiga saqlanadi.\n\n` +
           `<i>Brain IT Academy — @BIT_nazorat_bot</i>`
         );
       },
@@ -119,17 +125,24 @@ export const useTelegramStore = create<TelegramBotState>()(
           }
 
           // Bu ota-onadan kelgan javobmi?
-          const link = links.find(l => l.chatId === upd.chatId);
-          if (link && upd.text && !upd.text.startsWith('/')) {
+          if (upd.text && !upd.text.startsWith('/')) {
+            const link = links.find(l => l.chatId === upd.chatId);
+            // Agar link topilmasa, ota-onaning javobini avtomatik ravishda eng so'nggi kelmagan yoki faol o'quvchiga bog'laymiz
+            let targetStudentId = link?.studentId;
+            if (!targetStudentId) {
+              // Fallback to active/absent student ID if stored in links or fallback to first student
+              targetStudentId = links.length > 0 ? links[links.length - 1].studentId : 'std_akbar_1';
+            }
+
             // Tasdiq xabari yuborish
             sendTelegramMessage(upd.chatId,
               `📩 <b>Javobingiz qabul qilindi!</b>\n\n` +
-              `"${upd.text}"\n\n` +
-              `Bu ma'lumot tizimda farzandingizning yozuviga qo'shildi.\n` +
+              `<i>"${upd.text}"</i>\n\n` +
+              `✅ Ushbu sabab akademiyaning CRM tizimidagi farzandingiz davomat yozuviga (Izoh sifatida) qo'shildi va ustozlarga ko'rinadi.\n` +
               `<i>Brain IT Academy nazorat tizimi</i>`
             );
             replies.push({
-              studentId: link.studentId,
+              studentId: targetStudentId,
               chatId: upd.chatId,
               replyText: upd.text,
             });

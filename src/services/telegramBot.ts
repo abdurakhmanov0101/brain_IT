@@ -62,51 +62,51 @@ export async function sendAttendanceNotification(opts: {
 
   if (status === 'present' || status === 'first_lesson') {
     text = 
-`✅ <b>Brain IT Academy — Davomat Xabari</b>
+`✅ <b>Brain IT Academy — Davomat Xabarnomasi</b>
 
-Hurmatli ota-ona!
-Farzandingiz <b>${studentName}</b> — <b>${courseName}</b> kursining <b>${groupName}</b> guruhiga bugun o'z vaqtida keldi.
+Hurmatli Ota-ona!
+Farzandingiz <b>${studentName}</b> — <b>${courseName}</b> kursining <b>${groupName}</b> guruhiga bugun o'z vaqtida keldi va mashg'ulotda ishtirok etmoqda. 💻
 
-🕐 Sana: ${dateFormatted}
-⏱ Soat: ${time}
+🗓 Sana: ${dateFormatted} | ⏰ Soat: ${time}
+💳 Holati: <b>DARSGA KELDI ✅</b> (Avtomatik qayd etildi)
 
-<i>Brain IT Academy nazorat tizimi</i>`;
+<i>🛡 Brain IT Academy nazorat tizimi — @BIT_nazorat_bot</i>`;
   } else if (status === 'late') {
     text = 
-`⏰ <b>Brain IT Academy — Kechikish Xabari</b>
+`⏰ <b>Brain IT Academy — Kechikish Xabarnomasi</b>
 
-Hurmatli ota-ona!
+Hurmatli Ota-ona!
 Farzandingiz <b>${studentName}</b> — <b>${courseName}</b> kursining <b>${groupName}</b> guruhiga bugun <b>kechikib keldi</b>.
 
-🕐 Sana: ${dateFormatted}
-⏱ Belgilangan vaqt: ${time}
+🗓 Sana: ${dateFormatted} | ⏰ Dars vaqti: ${time}
+⚠️ Holati: <b>KECHIKIB KELDI ⏳</b>
 
-Iltimos, o'z vaqtida kelishga harakat qiling.
-<i>Brain IT Academy nazorat tizimi</i>`;
+<i>Iltimos, farzandingiz darslarga o'z vaqtida kelishini nazorat qilishga ko'maklashing.</i>
+<i>🛡 Brain IT Academy nazorat tizimi — @BIT_nazorat_bot</i>`;
   } else if (status === 'absent') {
     text = 
-`⚠️ <b>Brain IT Academy — Davomat Xabari</b>
+`⚠️ <b>Brain IT Academy — Davomat Ogohlantirishi!</b>
 
-Hurmatli ota-ona!
-Farzandingiz <b>${studentName}</b> bugun <b>${courseName}</b> kursining <b>${groupName}</b> guruhiga <b>kelmadi</b>.
+Hurmatli Ota-ona!
+Farzandingiz <b>${studentName}</b> bugun <b>${courseName}</b> kursining <b>${groupName}</b> guruhidagi darsga <b>KELMADI</b>.
 
-🗓 Sana: ${dateFormatted}
-⏱ Dars vaqti: ${time}
+🗓 Sana: ${dateFormatted} | ⏰ Dars vaqti: ${time}
+❌ Holati: <b>DARSGA KELMADI</b>
 
-❓ <b>Iltimos, sabab haqida xabar yuboring.</b>
-Sizning javobingiz tizimda saqlanadi va o'quvchi yozuviga qo'shiladi.
+❓ <b>Iltimos, farzandingiz nima sababdan darsga qatnashmaganini ushbu xabarga javob qilib yozishingizni so'raymiz</b> (Masalan: <i>"Betob bo'lib qoldi"</i> yoki <i>"Oilaviy sababga ko'ra"</i>).
+Siz yozgan javob akademiyaning CRM nazorat tizimida ustoz va adminlarga avtomatik ko'rinadi!
 
-<i>Brain IT Academy nazorat tizimi</i>`;
+<i>🛡 Brain IT Academy nazorat tizimi — @BIT_nazorat_bot</i>`;
   } else if (status === 'excused') {
     text = 
 `📋 <b>Brain IT Academy — Sababli Davomat</b>
 
-Hurmatli ota-ona!
-Farzandingiz <b>${studentName}</b> bugungi <b>${courseName}</b> (${groupName}) darsiga <b>sababli kelmadi</b> deb belgilandi.
+Hurmatli Ota-ona!
+Farzandingiz <b>${studentName}</b> bugungi <b>${courseName}</b> (${groupName}) darsiga <b>sababli (ruxsat olgan holda) kelmadi</b> deb belgilandi.
 
 🗓 Sana: ${dateFormatted}
 
-<i>Brain IT Academy nazorat tizimi</i>`;
+<i>🛡 Brain IT Academy nazorat tizimi — @BIT_nazorat_bot</i>`;
   }
 
   if (!text) return false;

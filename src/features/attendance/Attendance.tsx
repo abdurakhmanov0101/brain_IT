@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   Check, X, AlertCircle, QrCode, Users, ChevronRight, ChevronLeft,
-  CalendarCheck, BookOpen, Trash2, Download, Search, Info, Plus, ChevronDown, ChevronUp, Clock, Coins, Send
+  CalendarCheck, BookOpen, Trash2, Download, Search, Info, Plus, ChevronDown, ChevronUp, Clock, Coins, Send, MessageSquare
 } from 'lucide-react';
 import { useAttendanceStore, type AttendanceRecord } from '../../stores/attendanceStore';
 import { useGroupStore } from '../../stores/groupStore';
@@ -392,7 +392,20 @@ export const Attendance: React.FC = () => {
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
                       <td className="px-3 py-2 text-center text-slate-400 font-semibold border-r border-slate-100 dark:border-slate-800">{sIdx + 1}</td>
-                      <td className="px-3.5 py-2 font-bold text-slate-800 dark:text-white border-r border-slate-100 dark:border-slate-800 truncate max-w-[180px]">{student.fullName}</td>
+                      <td className="px-3.5 py-2 font-bold text-slate-800 dark:text-white border-r border-slate-100 dark:border-slate-800 max-w-[240px]">
+                        <div className="flex flex-col gap-1">
+                          <span className="truncate block w-full">{student.fullName}</span>
+                          {student.absentReason && (
+                            <div className="flex items-start gap-1 bg-amber-500/10 border border-amber-500/30 rounded-lg p-1.5 text-[11px] text-amber-700 dark:text-amber-400 leading-tight w-full max-w-[220px] shadow-sm">
+                              <MessageSquare className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500 animate-pulse" />
+                              <div className="min-w-0">
+                                <span className="font-extrabold block text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400">💬 Ota-ona izohi:</span>
+                                <span className="italic font-medium text-slate-700 dark:text-slate-300 whitespace-normal break-words">"{student.absentReason}"</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-3 py-2 font-medium text-slate-500 border-r border-slate-100 dark:border-slate-800">{student.phone}</td>
                       <td className={`px-3 py-2 text-right font-black border-r border-slate-100 dark:border-slate-800 ${student.balance >= 0 ? 'text-slate-700 dark:text-slate-300' : 'text-rose-500'}`}>
                         {student.balance.toLocaleString()} so'm
