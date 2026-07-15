@@ -833,28 +833,33 @@ export const Overview: React.FC = () => {
               </button>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-dark-border">
-              {courses.map((c) => (
-                <div key={c.id} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-heading font-black text-sm text-brand-600 dark:text-brand-400 shrink-0">
-                      {c.title.substring(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
-                        <span>⏳ {c.duration}</span>
-                        <span>•</span>
-                        <span>💰 {(c.monthlyPrice || 500000).toLocaleString()} so'm/oy</span>
+              {courses.map((c) => {
+                const title = c?.title || 'IT Kursi';
+                const shortCode = title.substring(0, 2).toUpperCase();
+                const price = c?.monthlyPrice || 500000;
+                return (
+                  <div key={c?.id || Math.random()} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-heading font-black text-sm text-brand-600 dark:text-brand-400 shrink-0">
+                        {shortCode}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{title}</p>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                          <span>⏳ {c?.duration || '6 oy'}</span>
+                          <span>•</span>
+                          <span>💰 {price.toLocaleString()} so'm/oy</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800/50">
+                        {c?.level || 'Boshlang\'ich'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800/50">
-                      {c.level}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -931,22 +936,25 @@ export const Overview: React.FC = () => {
               {recentTx.length === 0 && (
                 <div className="px-6 py-8 text-center text-sm text-slate-400">Hech qanday amaliyot topilmadi</div>
               )}
-              {recentTx.map((tx) => (
-                <div key={tx.id} className="px-6 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800/40 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
-                      C
+              {recentTx.map((tx) => {
+                const amount = tx?.amount || 0;
+                return (
+                  <div key={tx?.id || Math.random()} className="px-6 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800/40 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
+                        C
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{tx?.toName || 'O\'quvchi'}</p>
+                        <p className="text-[10px] text-slate-400 truncate mt-0.5">{tx?.reason || 'Vazifa yoki faollik uchun'}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{tx.toName}</p>
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{tx.reason || 'Vazifa yoki faollik uchun'}</p>
-                    </div>
+                    <span className="font-heading font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg shrink-0">
+                      +{amount.toLocaleString()} C
+                    </span>
                   </div>
-                  <span className="font-heading font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg shrink-0">
-                    +{tx.amount.toLocaleString()} C
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-dark-border text-center">
