@@ -727,43 +727,7 @@ export const Overview: React.FC = () => {
           </div>
         </div>
 
-        {/* Projects */}
-        <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-light-border dark:border-dark-border">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10">
-                <Briefcase className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white">Faol Loyihalar</h3>
-            </div>
-            <button onClick={() => go('pm')} className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 hover:underline">
-              Kanban <ArrowUpRight className="h-3 w-3" />
-            </button>
-          </div>
-          <div className="divide-y divide-slate-100 dark:divide-dark-border">
-            {projectsList.map((p) => (
-              <div key={p.id} className="px-6 py-4 hover:bg-slate-50 dark:hover:bg-dark-muted transition-colors">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{p.name}</p>
-                    <p className="text-[11px] text-slate-400">Mijoz: {p.client}</p>
-                  </div>
-                  <span className={`badge ${p.status === 'in_progress' ? 'badge-info' : 'badge-warning'} shrink-0`}>
-                    {p.status === 'in_progress' ? 'Faol' : 'Rejalangan'}
-                  </span>
-                </div>
-                <div>
-                  <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
-                    <span>Progress</span><span>{p.progress}%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 dark:bg-dark-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700" style={{ width: `${p.progress}%` }} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+
 
         {/* Coin transactions */}
         <div className="card overflow-hidden">
