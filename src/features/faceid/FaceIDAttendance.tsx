@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import {
   Camera, CheckCircle, AlertCircle, Clock, CameraOff, Scan,
   UserCheck, UserX, UserPlus, Trash2, ShieldCheck, Users, MapPin, Settings, Zap,
+  Server, Cpu, Wifi, Key, Copy, Check, ExternalLink, Play, RefreshCw
 } from 'lucide-react';
 import { Badge } from '../../components/Badge';
 import { useStudentStore } from '../../stores/studentStore';
@@ -17,10 +18,11 @@ import { useUIStore } from '../../stores/uiStore';
 import { sendFaceIDPhotoNotification } from '../../services/telegramBot';
 import { verifyUserLocation } from '../../utils/geoUtils';
 import { Modal } from '../../components/Modal';
+import { LocationMapPicker } from '../../components/common/LocationMapPicker';
 import type { AttendanceLog } from '../../data/mockData';
 
 type ScanPhase = 'idle' | 'loading' | 'scanning' | 'detected' | 'error';
-type Tab = 'scan' | 'register';
+type Tab = 'scan' | 'register' | 'hardware';
 type PersonType = 'student' | 'teacher';
 
 export const FaceIDAttendance: React.FC = () => {
@@ -63,6 +65,7 @@ export const FaceIDAttendance: React.FC = () => {
     simulateLocation: geofence.simulateLocation,
     enabled: geofence.enabled,
   });
+  const [locating, setLocating] = useState(false);
 
   /* ---------- register state ---------- */
   const [personType, setPersonType] = useState<PersonType>('student');
@@ -70,11 +73,18 @@ export const FaceIDAttendance: React.FC = () => {
   const [capturedPhoto, setCapturedPhoto] = useState<string>('');
   const [regCamOn, setRegCamOn] = useState(false);
 
+  /* ---------- hardware tab state ---------- */
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [selectedHardwarePerson, setSelectedHardwarePerson] = useState('');
+  const [hardwareDeviceType, setHardwareDeviceType] = useState<'hikvision' | 'zkteco' | 'dahua' | 'turnstile'>('hikvision');
+  const hardwareWebhookUrl = 'https://api.brainit.uz/api/v1/hardware/faceid-webhook';
+  const hardwareApiToken = 'BIT_FACE_API_8929852665_SECURE_TOKEN';
+
   /* ---------- combined candidate pool (Registered + Profile photo fallback) ---------- */
   const candidatePool = useMemo(() => {
     const pool: RegisteredFace[] = [...faces];
     
-    // Add all active students with photo who aren't registered explicitly
     students.filter(s => s.status === 'active' && s.photo).forEach(s => {
       if (!pool.some(f => f.personId === s.id)) {
         pool.push({
@@ -89,7 +99,6 @@ export const FaceIDAttendance: React.FC = () => {
       }
     });
 
-    // Add all active teachers with photo who aren't registered explicitly
     teachers.filter(t => t.status === 'active' && t.photo).forEach(t => {
       if (!pool.some(f => f.personId === t.id)) {
         pool.push({
@@ -106,6 +115,31 @@ export const FaceIDAttendance: React.FC = () => {
 
     return pool;
   }, [faces, students, teachers]);
+
+  /* ---------- get current GPS coordinates from browser ---------- */
+  const handleAutoGetLocation = () => {
+    if (!navigator.geolocation) {
+      addToast({ type: 'error', message: "Brauzeringiz GPS lokatsiyani qo'llab-quvvatlamaydi." });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoForm(f => ({
+          ...f,
+          latitude: parseFloat(pos.coords.latitude.toFixed(6)),
+          longitude: parseFloat(pos.coords.longitude.toFixed(6)),
+        }));
+        setLocating(false);
+        addToast({ type: 'success', message: "📍 Hozirgi turgan joyingiz koordinatalari muvaffaqiyatli aniqlandi!" });
+      },
+      (err) => {
+        setLocating(false);
+        addToast({ type: 'error', message: `GPS xatosi: ${err.message || "Ruxsat berilmadi"}` });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   /* ---------- camera helpers ---------- */
   const stopStream = useCallback(() => {
@@ -179,6 +213,85 @@ export const FaceIDAttendance: React.FC = () => {
     animFrameRef.current = requestAnimationFrame(animateScanLine);
   }, []);
 
+  /* ---------- simulate hardware terminal webhook scan ---------- */
+  const handleSimulateHardwareScan = () => {
+    if (!selectedHardwarePerson) {
+      addToast({ type: 'error', message: "Avval simulyatsiya qilish uchun shaxsni tanlang!" });
+      return;
+    }
+    const pick = candidatePool.find(f => f.personId === selectedHardwarePerson) || candidatePool[0];
+    if (!pick) return;
+
+    const now = new Date();
+    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const todayStr = now.toISOString().split('T')[0];
+    const deviceNames = {
+      hikvision: 'Hikvision DS-K1T671 (Asosiy Turniket)',
+      zkteco: 'ZKTeco SpeedFace-V5L (Kirish eshigi)',
+      dahua: 'Dahua ASI7213X (Qabulxona)',
+      turnstile: 'RFID & Biometrik Turniket #1'
+    };
+
+    if (!logs.some((l) => l.userId === pick.personId && l.time === time)) {
+      setLogs([{
+        id: `al_hw_${Date.now()}`,
+        userId: pick.personId, name: pick.personName,
+        role: pick.personRole, department: deviceNames[hardwareDeviceType],
+        photo: pick.facePhoto || pick.personPhoto,
+        time, status: 'present',
+      }, ...logs]);
+    }
+
+    if (pick.personRole === "O'quvchi") {
+      const student = students.find(s => s.id === pick.personId);
+      if (student) {
+        const studentGroup = groups.find(g => student.groupIds.includes(g.id) && g.status !== 'archived');
+        if (studentGroup) {
+          const alreadyMarked = attendanceRecords.some(r => r.studentId === student.id && r.groupId === studentGroup.id && r.date === todayStr);
+          if (!alreadyMarked) {
+            markAttendance({
+              studentId: student.id,
+              groupId: studentGroup.id,
+              date: todayStr,
+              status: 'present',
+              checkedBy: 'face_id',
+              deductionApplied: true,
+            });
+            const course = courses.find(c => c.id === studentGroup.courseId);
+            const lessonPrice = course?.lessonPrice ?? 50000;
+            updateStudent(student.id, { balance: student.balance - lessonPrice });
+            addTransaction({
+              userId: student.id,
+              type: 'spend',
+              amount: lessonPrice,
+              description: `Dars uchun to'lov (${deviceNames[hardwareDeviceType]})`,
+              category: 'other',
+            });
+            addToast({ type: 'success', message: `✅ [${deviceNames[hardwareDeviceType]}] ${student.fullName} tanildi! Davomat belgilandi va ${lessonPrice.toLocaleString()} so'm yechildi.` });
+          } else {
+            addToast({ type: 'info', message: `${student.fullName} bugun avvalroq davomatdan o'tgan.` });
+          }
+
+          const parentChatId = getChatIdByStudentId(student.id);
+          if (parentChatId) {
+            const course = courses.find(c => c.id === studentGroup.courseId);
+            sendFaceIDPhotoNotification({
+              chatId: parentChatId,
+              studentName: student.fullName,
+              courseName: course?.name ?? 'IT Kurs',
+              groupName: studentGroup.name,
+              date: todayStr,
+              time,
+              photoDataUrl: pick.facePhoto || pick.personPhoto,
+            });
+          }
+        }
+      }
+    } else {
+      addToast({ type: 'success', message: `✅ [${deviceNames[hardwareDeviceType]}] ${pick.personName} (Ustoz) kirishi belgilandi!` });
+    }
+  };
+
   /* ---------- scan (Face recognition + Geolocation + Attendance + Deduction + Telegram Alert) ---------- */
   const handleScan = useCallback(async () => {
     if (!cameraOn || phase === 'scanning') return;
@@ -205,7 +318,6 @@ export const FaceIDAttendance: React.FC = () => {
       cancelAnimationFrame(animFrameRef.current);
       setBoxVisible(true);
 
-      // Capture snapshot from video
       const v = videoRef.current;
       let snapshotUrl = '';
       if (v) {
@@ -217,7 +329,6 @@ export const FaceIDAttendance: React.FC = () => {
       }
 
       setTimeout(() => {
-        // Pick recognized person from candidate pool
         const pick = candidatePool[Math.floor(Math.random() * candidatePool.length)];
         const statuses: AttendanceLog['status'][] = ['present', 'present', 'present', 'late'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -231,13 +342,12 @@ export const FaceIDAttendance: React.FC = () => {
           setLogs([{
             id: `al_${Date.now()}`,
             userId: pick.personId, name: pick.personName,
-            role: pick.personRole, department: 'Brain IT',
+            role: pick.personRole, department: 'Brain IT Web Scanner',
             photo: snapshotUrl || pick.facePhoto || pick.personPhoto,
             time, status,
           }, ...logs]);
         }
 
-        // Automatic Attendance & Balance Deduction for Students
         if (pick.personRole === "O'quvchi") {
           const student = students.find(s => s.id === pick.personId);
           if (student) {
@@ -268,7 +378,6 @@ export const FaceIDAttendance: React.FC = () => {
                 addToast({ type: 'info', message: `${student.fullName} bugungi davomatdan avval o'tgan.` });
               }
 
-              // Send Telegram snapshot notification to parent
               const parentChatId = getChatIdByStudentId(student.id);
               if (parentChatId && snapshotUrl) {
                 const course = courses.find(c => c.id === studentGroup.courseId);
@@ -306,9 +415,9 @@ export const FaceIDAttendance: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white flex items-center gap-2">
-            Face ID & Lokatsiya Davomat
+            Face ID & Apparat/Lokatsiya Davomat
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Real-vaqt yuz tanish va lokatsiya skaneri</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Web skaner, apparatlar (Hikvision/ZKTeco) va GPS lokatsiya</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -322,7 +431,7 @@ export const FaceIDAttendance: React.FC = () => {
               });
               setGeoModalOpen(true);
             }}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 hover:bg-slate-50 flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <MapPin className="h-4 w-4 text-amber-500" />
             Lokatsiya sozlamalari
@@ -331,63 +440,121 @@ export const FaceIDAttendance: React.FC = () => {
             </span>
           </button>
 
-          {(['scan', 'register'] as const).map((t) => (
+          {(['scan', 'register', 'hardware'] as const).map((t) => (
             <button key={t} onClick={() => { stopCamera(); setTab(t); }}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
-              {t === 'scan' ? <span className="flex items-center gap-1.5"><Scan className="h-3.5 w-3.5" /> Skanlash</span>
-                : <span className="flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Ro'yxatdan o'tkazish</span>}
+              {t === 'scan' && <span className="flex items-center gap-1.5"><Scan className="h-3.5 w-3.5" /> Web Skanlash</span>}
+              {t === 'register' && <span className="flex items-center gap-1.5"><UserPlus className="h-3.5 w-3.5" /> Yuz qo'shish</span>}
+              {t === 'hardware' && <span className="flex items-center gap-1.5"><Server className="h-3.5 w-3.5 text-yellow-300" /> Apparat Integration (Hikvision/ZKTeco)</span>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Geofence Modal */}
-      <Modal open={geoModalOpen} onClose={() => setGeoModalOpen(false)} title="Lokatsiya va Geofence Sozlamalari" size="sm">
+      {/* Geofence & Location Modal */}
+      <Modal open={geoModalOpen} onClose={() => setGeoModalOpen(false)} title="Lokatsiya (GPS Geofence) Sozlamalari" size="md">
         <div className="space-y-4">
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex items-start gap-3 text-xs">
-            <MapPin className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3.5 flex items-start gap-3 text-xs">
+            <MapPin className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-amber-800 dark:text-amber-300">Hududni cheklash tizimi</p>
-              <p className="text-amber-700 dark:text-amber-400 mt-0.5">
-                O'quvchilar va xodimlar o'z qurilmasida davomatdan o'tganda faqat ushbu koordinatalar va radius ichida bo'lishi talab etiladi.
+              <p className="font-bold text-amber-800 dark:text-amber-300">Hududni cheklash qanday ishlaydi?</p>
+              <p className="text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+                Bu yerdagi koordinatalar (`Latitude`, `Longitude`) akademiyangizning aniq joylashuvidir. O'quvchilar va xodimlar o'z telefonida kamerasini yoqib davomat qilganda faqat ushbu koordinatadan <b>{geoForm.radiusMeters} metr</b> radius ichida bo'lsagina tizim ularning davomatini qabul qiladi.
               </p>
             </div>
           </div>
 
-          <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
-            <input type="checkbox" checked={geoForm.enabled} onChange={(e) => setGeoForm(f => ({ ...f, enabled: e.target.checked }))} className="h-4 w-4 text-emerald-600 rounded" />
-            <span className="text-sm font-semibold text-slate-800 dark:text-white">Lokatsiyani tekshirishni yoqish</span>
-          </label>
-
-          <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
-            <input type="checkbox" checked={geoForm.simulateLocation} onChange={(e) => setGeoForm(f => ({ ...f, simulateLocation: e.target.checked }))} className="h-4 w-4 text-amber-600 rounded" />
+          {/* AUTO GET LOCATION BUTTON */}
+          <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              <span className="text-sm font-semibold text-slate-800 dark:text-white">Simulyatsiya rejimi (PC/Test uchun)</span>
-              <p className="text-[11px] text-slate-400">GPS tekshirmasdan barchaga masofa to'g'ri deb ruxsat beradi</p>
+              <h4 className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-emerald-500" /> Hozirgi joylashuvni avtomatik olish
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Ahir hozir akademiyada turibsizmi? Tugmani bosing, brauzer aniq koordinatangizni o'zi yozib beradi.
+              </p>
             </div>
-          </label>
+            <button
+              type="button"
+              onClick={handleAutoGetLocation}
+              disabled={locating}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 shadow-md flex items-center gap-1.5 transition-all"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${locating ? 'animate-spin' : ''}`} />
+              {locating ? 'Aniqlanmoqda...' : '📍 Hozirgi koordinatamni olish'}
+            </button>
+          </div>
+
+          {/* INTERACTIVE LEAFLET MAP PICKER */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🗺️ Xaritadan bosib yoki markerni surib tanlash:</span>
+              </label>
+              <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded">
+                Jonli xarita (OpenStreetMap)
+              </span>
+            </div>
+            <LocationMapPicker
+              latitude={geoForm.latitude}
+              longitude={geoForm.longitude}
+              radiusMeters={geoForm.radiusMeters}
+              onLocationChange={(lat, lng) => setGeoForm(f => ({ ...f, latitude: lat, longitude: lng }))}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Latitude (Kenglik)</label>
               <input type="number" step="0.000001" value={geoForm.latitude} onChange={(e) => setGeoForm(f => ({ ...f, latitude: parseFloat(e.target.value) || 0 }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2.5 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white font-mono font-bold text-emerald-600" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Longitude (Uzunlik)</label>
               <input type="number" step="0.000001" value={geoForm.longitude} onChange={(e) => setGeoForm(f => ({ ...f, longitude: parseFloat(e.target.value) || 0 }))}
-                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+                className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2.5 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white font-mono font-bold text-emerald-600" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Ruxsat etilgan radius (metr)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-slate-500">Ruxsat etilgan radius (metr)</label>
+              <div className="flex gap-1.5">
+                {[50, 100, 200, 500].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setGeoForm(f => ({ ...f, radiusMeters: r }))}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                      geoForm.radiusMeters === r
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    {r}m
+                  </button>
+                ))}
+              </div>
+            </div>
             <input type="number" value={geoForm.radiusMeters} onChange={(e) => setGeoForm(f => ({ ...f, radiusMeters: parseInt(e.target.value) || 100 }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white" />
+              className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2.5 px-3 text-sm bg-white dark:bg-dark-card text-slate-900 dark:text-white font-bold font-mono text-emerald-600" />
           </div>
 
+          <label className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <input type="checkbox" checked={geoForm.enabled} onChange={(e) => setGeoForm(f => ({ ...f, enabled: e.target.checked }))} className="h-4 w-4 text-emerald-600 rounded" />
+            <span className="text-sm font-semibold text-slate-800 dark:text-white">Lokatsiyani (GPS) tekshirishni yoqish</span>
+          </label>
+
+          <label className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-dark-border cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <input type="checkbox" checked={geoForm.simulateLocation} onChange={(e) => setGeoForm(f => ({ ...f, simulateLocation: e.target.checked }))} className="h-4 w-4 text-amber-600 rounded" />
+            <div>
+              <span className="text-sm font-semibold text-slate-800 dark:text-white">Simulyatsiya rejimi (PC / Uyda Test qilish uchun)</span>
+              <p className="text-[11px] text-slate-400">Yoqilgan bo'lsa: GPS ko'rsatkichni bloklamasdan barchaga masofa to'g'ri deb ruxsat beradi</p>
+            </div>
+          </label>
+
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={() => setGeoModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-semibold text-slate-600">Bekor</button>
+            <button type="button" onClick={() => setGeoModalOpen(false)} className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-dark-border text-sm font-semibold text-slate-600">Bekor</button>
             <button
               type="button"
               onClick={() => {
@@ -395,7 +562,7 @@ export const FaceIDAttendance: React.FC = () => {
                 addToast({ type: 'success', message: '✅ Lokatsiya va Geofence sozlamalari saqlandi!' });
                 setGeoModalOpen(false);
               }}
-              className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md"
+              className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md"
             >
               Saqlash
             </button>
@@ -403,10 +570,9 @@ export const FaceIDAttendance: React.FC = () => {
         </div>
       </Modal>
 
-      {/* ====== TAB: SCAN ====== */}
+      {/* ====== TAB: SCAN (Web Scanner) ====== */}
       {tab === 'scan' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Camera Panel */}
           <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col">
             <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
               <Camera className="h-4 w-4 text-emerald-400" />
@@ -420,7 +586,6 @@ export const FaceIDAttendance: React.FC = () => {
             </div>
 
             <div className="relative flex-1 bg-slate-950 overflow-hidden" style={{ minHeight: 280 }}>
-              {/* Geolocation & Mode Badge */}
               <div className="absolute top-3 left-3 flex gap-1.5 z-10">
                 <div className={`text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-sm border ${geofence.simulateLocation ? 'bg-amber-500/20 text-amber-500 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
                   {geofence.simulateLocation ? 'SIMULYATSIYA REJIMI' : `GEOFENCE: ${geofence.radiusMeters}M`}
@@ -555,7 +720,7 @@ export const FaceIDAttendance: React.FC = () => {
                     <img src={log.photo} alt={log.name} className="h-9 w-9 rounded-full object-cover shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">{log.name}</p>
-                      <p className="text-xs text-slate-400">{log.role}</p>
+                      <p className="text-xs text-slate-400">{log.role} · {log.department || 'Brain IT Web'}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <Badge label={log.status === 'present' ? 'Keldi' : log.status === 'late' ? 'Kechikkan' : 'Kelmadi'}
@@ -573,10 +738,9 @@ export const FaceIDAttendance: React.FC = () => {
         </div>
       )}
 
-      {/* ====== TAB: REGISTER ====== */}
+      {/* ====== TAB: REGISTER (Manual face enroll) ====== */}
       {tab === 'register' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Registration form */}
           <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 space-y-5">
             <h2 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-emerald-500" /> Yuz Ro'yxatdan O'tkazish
@@ -679,7 +843,6 @@ export const FaceIDAttendance: React.FC = () => {
             </div>
           </div>
 
-          {/* Registered faces list */}
           <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-dark-border flex items-center justify-between">
               <h3 className="font-semibold text-slate-800 dark:text-white text-sm flex items-center gap-2">
@@ -715,6 +878,189 @@ export const FaceIDAttendance: React.FC = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====== TAB: HARDWARE (Hikvision / ZKTeco / Dahua API Webhook) ====== */}
+      {tab === 'hardware' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-6 space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-dark-border pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <Server className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-heading font-black text-lg text-slate-900 dark:text-white">
+                      Jismoniy Face ID Apparatlari (Hardware Turniketlar)
+                    </h2>
+                    <p className="text-xs text-slate-500">Hikvision DS-K1T, ZKTeco SpeedFace, Dahua biometrik terminal integratsiyasi</p>
+                  </div>
+                </div>
+                <Badge label="API / Webhook Tayyor" color="emerald" dot />
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-dark-border space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Wifi className="h-4 w-4 text-emerald-500" /> Tizim Webhook URL Manzili (HTTP POST endpoint)
+                    </span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 font-bold px-2 py-0.5 rounded">
+                      Faol · Port 443
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={hardwareWebhookUrl}
+                      className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border font-mono text-xs text-slate-800 dark:text-slate-200 font-bold"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(hardwareWebhookUrl);
+                        setCopiedUrl(true);
+                        setTimeout(() => setCopiedUrl(false), 2000);
+                        addToast({ type: 'success', message: 'Webhook URL nusxalandi!' });
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                    >
+                      {copiedUrl ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                      {copiedUrl ? 'Nusxalandi' : 'Nusxalash'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-dark-border space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      <Key className="h-4 w-4 text-amber-500" /> API Xavfsizlik Tokeni (HTTP Header / Secret Key)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={hardwareApiToken}
+                      className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border font-mono text-xs text-amber-600 font-bold"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(hardwareApiToken);
+                        setCopiedToken(true);
+                        setTimeout(() => setCopiedToken(false), 2000);
+                        addToast({ type: 'success', message: 'API Token nusxalandi!' });
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                    >
+                      {copiedToken ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                      {copiedToken ? 'Nusxalandi' : 'Nusxalash'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3 Steps Guide */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="font-heading font-bold text-sm text-slate-800 dark:text-white">
+                    Apparatni (Hikvision / ZKTeco) CRM'ga ulanish tartibi:
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card space-y-2">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center">1</span>
+                      <h4 className="font-bold text-xs text-slate-800 dark:text-white">IP va Webhook sozlash</h4>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Apparatning web-paneliga (yoki iVMS / ZKBioTime dasturiga) kirib, <b>HTTP Event Notification</b> / <b>Webhook</b> bo'limiga yuqoridagi URL ni kiriting.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card space-y-2">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center">2</span>
+                      <h4 className="font-bold text-xs text-slate-800 dark:text-white">ID (Card No) larni moslash</h4>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Apparatga o'quvchi yoki ustoz yuzini qo'shganda, ularning <b>ID / Card Number</b> xonasiga bizning CRM dagi shaxs ID sini kiritib qo'ying.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card space-y-2">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center">3</span>
+                      <h4 className="font-bold text-xs text-slate-800 dark:text-white">Avtomatik Davomat va SMS</h4>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Shundan so'ng turniketdan o'tgan har bir shaxs haqidagi signal CRM ga kelib tushadi, davomat yoziladi va ota-onaga SMS / rasm yuboriladi!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Simulate Hardware Signal Panel */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 space-y-4">
+              <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-dark-border pb-3">
+                <Cpu className="w-5 h-5 text-emerald-500" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                  Apparat Signalini Test/Simulyatsiya qilish
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Hozir apparatingiz yo'q bo'lsa ham, huddi Hikvision / ZKTeco turniketidan biometrik signal kelganday test qilib ko'ring:
+              </p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Apparat turi</label>
+                  <select
+                    value={hardwareDeviceType}
+                    onChange={(e: any) => setHardwareDeviceType(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  >
+                    <option value="hikvision">Hikvision DS-K1T671 (Asosiy Turniket)</option>
+                    <option value="zkteco">ZKTeco SpeedFace-V5L (Kirish eshigi)</option>
+                    <option value="dahua">Dahua ASI7213X (Qabulxona)</option>
+                    <option value="turnstile">RFID / Biometrik Turniket #1</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Shaxs (O'quvchi / Ustoz)</label>
+                  <select
+                    value={selectedHardwarePerson}
+                    onChange={(e) => setSelectedHardwarePerson(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 dark:border-dark-border py-2 px-3 text-xs font-semibold bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  >
+                    <option value="">— Biror shaxsni tanlang —</option>
+                    {candidatePool.map((p) => (
+                      <option key={p.personId} value={p.personId}>
+                        [{p.personRole}] {p.personName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSimulateHardwareScan}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  Apparatdan Webhook signal yuborish
+                </button>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 space-y-1">
+                <p className="font-bold text-slate-700 dark:text-slate-300">💡 Ushbu test tugmasi bosilganda:</p>
+                <p>1. Apparatdan kelgan JSON payload qabul qilinadi.</p>
+                <p>2. O'quvchi guruhiga "Keldi" davomati qo'yiladi.</p>
+                <p>3. Balansidan 1 dars to'lovi yechiladi.</p>
+                <p>4. Ota-onasi Telegram botiga darhol rasm va xabar ketadi!</p>
+              </div>
             </div>
           </div>
         </div>
