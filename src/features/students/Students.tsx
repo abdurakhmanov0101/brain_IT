@@ -16,7 +16,8 @@ interface AddStudentForm {
   fullName: string; phone: string; parentPhone: string; parentName: string; groupIds: string[]; teacherId: string; leadSource: string; status: 'active' | 'frozen' | 'left';
 }
 interface CreatedCreds {
-  fullName: string; studentUsername: string; studentPassword: string; parentUsername: string; parentPassword: string;
+  fullName: string; studentId: string; studentUsername: string; studentPassword: string;
+  parentUsername: string; parentPassword: string; parentPhone: string; parentName: string;
 }
 
 const CopyField: React.FC<{ label: string; value: string }> = ({ label, value }) => {
@@ -97,8 +98,17 @@ export const Students: React.FC = () => {
     addForm.groupIds.forEach((gId) => addStudentToGroup(gId, newId));
     const phones = addForm.phone.replace(/\D/g, '');
     const pphones = addForm.parentPhone.replace(/\D/g, '');
-    setCreatedCreds({ fullName: addForm.fullName, studentUsername: genStudentUsername(addForm.fullName, addForm.phone), studentPassword: phones.slice(-6), parentUsername: genParentUsername(addForm.fullName, addForm.parentPhone), parentPassword: pphones.slice(-6) });
-    addToast({ type: 'success', message: `${addForm.fullName} qo'shildi` });
+    setCreatedCreds({
+      fullName: addForm.fullName,
+      studentId: newId,
+      studentUsername: genStudentUsername(addForm.fullName, addForm.phone),
+      studentPassword: phones.slice(-6),
+      parentUsername: genParentUsername(addForm.fullName, addForm.parentPhone),
+      parentPassword: pphones.slice(-6),
+      parentPhone: addForm.parentPhone,
+      parentName: addForm.parentName,
+    });
+    addToast({ type: 'success', message: `${addForm.fullName} qo'shildi! Ota-onaga Telegram havolasini yuboring.` });
     setAddForm({ fullName: '', phone: '', parentPhone: '', parentName: '', groupIds: [], teacherId: isTeacher ? (currentUser?.id ?? '') : '', leadSource: 'Instagram', status: 'active' });
     setAddOpen(false);
   };
@@ -286,14 +296,56 @@ export const Students: React.FC = () => {
               {['Instagram', 'Telegram', 'Tavsiya', 'Vebsayt', 'TikTok', 'Boshqa'].map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
+          {/* Guruh tanlash — checkbox pill style */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Guruh</label>
-            <select multiple value={addForm.groupIds} onChange={(e) => setAddForm((f) => ({ ...f, groupIds: Array.from(e.target.selectedOptions, (o) => o.value) }))}
-              className="w-full rounded-xl border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card py-2 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 h-24">
-              {groups.filter((g) => g.status !== 'archived').map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
-            <p className="text-xs text-slate-400 mt-1">Bir nechta tanlash uchun Ctrl bosing</p>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Guruh</label>
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 rounded-xl border border-slate-200 dark:border-dark-border bg-slate-50/50 dark:bg-slate-800/30">
+              {groups.filter((g) => g.status !== 'archived').map((g) => {
+                const selected = addForm.groupIds.includes(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setAddForm((f) => ({
+                      ...f,
+                      groupIds: selected
+                        ? f.groupIds.filter(id => id !== g.id)
+                        : [...f.groupIds, g.id],
+                    }))}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                      selected
+                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-500/20'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-600'
+                    }`}
+                  >
+                    {selected && <span className="text-[10px]">✓</span>}
+                    {g.name}
+                  </button>
+                );
+              })}
+              {groups.filter(g => g.status !== 'archived').length === 0 && (
+                <p className="text-xs text-slate-400 p-1">Guruhlar mavjud emas</p>
+              )}
+            </div>
+            {addForm.groupIds.length > 0 && (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                ✓ {addForm.groupIds.length} ta guruh tanlandi
+              </p>
+            )}
           </div>
+
+          {/* Telegram note */}
+          {addForm.parentPhone && (
+            <div className="flex items-start gap-2.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-3">
+              <Send className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-400">Telegram xabarnomasi</p>
+                <p className="text-[11px] text-blue-600 dark:text-blue-500 mt-0.5">
+                  O'quvchi yaratilgandan so'ng ota-onaga Telegram ulanish havolasi ko'rsatiladi. Ularni WhatsApp orqali bir marta yuborasiz — keyingi barcha davomat xabarlari avtomatik boradi.
+                </p>
+              </div>
+            </div>
+          )}
           {addForm.fullName && addForm.phone && (
             <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-3">
               <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Avtomatik yaratilajak login ma'lumotlari</p>
@@ -310,23 +362,91 @@ export const Students: React.FC = () => {
         </form>
       </Modal>
 
-      <Modal open={!!createdCreds} onClose={() => setCreatedCreds(null)} title="Login ma'lumotlari" size="sm">
-        {createdCreds && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl px-4 py-3">
-              <KeyRound className="h-4 w-4 shrink-0" /><span><strong>{createdCreds.fullName}</strong> uchun login ma'lumotlari yaratildi!</span>
+      <Modal open={!!createdCreds} onClose={() => setCreatedCreds(null)} title="O'quvchi qo'shildi ✅" size="md">
+        {createdCreds && (() => {
+          const botLink = `https://t.me/BIT_nazorat_bot?start=${createdCreds.studentId}`;
+          const waText = encodeURIComponent(
+            `Assalomu alaykum! Siz ${createdCreds.fullName}ning ota-onasisiz.\n\n` +
+            `Brain IT Academy davomat tizimimizda farzandingiz davomati haqida Telegram xabarnomalari olish uchun quyidagi havolani bosing:\n\n` +
+            `${botLink}\n\n` +
+            `(Havola bosilgandan so'ng "START" tugmasi bosing. Keyingi barcha xabarlar avtomatik keladi)\n\n` +
+            `Brain IT Academy`
+          );
+          const phoneClean = createdCreds.parentPhone.replace(/\D/g, '');
+          const waLink = `https://wa.me/${phoneClean}?text=${waText}`;
+          const tgLink = `https://t.me/${phoneClean}`;
+          return (
+            <div className="space-y-4">
+              {/* Success Banner */}
+              <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl px-4 py-3">
+                <div className="text-2xl">🎉</div>
+                <div>
+                  <p className="font-bold text-emerald-700 dark:text-emerald-400">{createdCreds.fullName} tizimga qo'shildi!</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-500">Ota-onaga Telegram ulanish havolasini yuboring</p>
+                </div>
+              </div>
+
+              {/* Telegram Bot Link - Primary Action */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-4">
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Send className="h-3.5 w-3.5" /> Ota-onaga yuborish uchun Telegram havolasi
+                </p>
+                <p className="text-[10px] text-blue-600 dark:text-blue-500 mb-3">
+                  Ota-ona ushbu havolani bosib, botga ulanadi. Shundan so'ng barcha davomat xabarlari avtomatik boradi.
+                </p>
+                {/* Link display */}
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 rounded-xl px-3 py-2 mb-3">
+                  <span className="text-xs font-mono text-slate-600 dark:text-slate-300 truncate flex-1">{botLink}</span>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(botLink); addToast({ type: 'success', message: 'Havola nusxalandi!' }); }}
+                    className="shrink-0 p-1 rounded text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {/* Share Buttons */}
+                <div className="flex gap-2">
+                  <a
+                    href={waLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1ebe57] text-white text-xs font-bold transition-colors shadow-sm"
+                  >
+                    <span className="text-base">📱</span> WhatsApp orqali yuborish
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `Assalomu alaykum! Farzandingiz ${createdCreds.fullName} Brain IT Academyga qo'shildi.\n` +
+                        `Davomat xabarnomalarini olish uchun ushbu havolani bosing: ${botLink}`
+                      );
+                      addToast({ type: 'success', message: 'Xabar matn nusxalandi!' });
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Xabarni nusxalash
+                  </button>
+                </div>
+              </div>
+
+              {/* Login Credentials */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2">O'quvchi kirishi</p>
+                  <div className="space-y-1.5"><CopyField label="Login" value={createdCreds.studentUsername} /><CopyField label="Parol" value={createdCreds.studentPassword} /></div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase mb-2">Ota-ona kirishi</p>
+                  <div className="space-y-1.5"><CopyField label="Login" value={createdCreds.parentUsername} /><CopyField label="Parol" value={createdCreds.parentPassword} /></div>
+                </div>
+              </div>
+
+              <button onClick={() => setCreatedCreds(null)} className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
+                Tushunarli, yopish
+              </button>
             </div>
-            <div>
-              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">O'quvchi uchun</p>
-              <div className="space-y-2"><CopyField label="Login" value={createdCreds.studentUsername} /><CopyField label="Parol" value={createdCreds.studentPassword} /></div>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">Ota-ona uchun</p>
-              <div className="space-y-2"><CopyField label="Login" value={createdCreds.parentUsername} /><CopyField label="Parol" value={createdCreds.parentPassword} /></div>
-            </div>
-            <button onClick={() => setCreatedCreds(null)} className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Tushunarli</button>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
       <Modal open={!!payOpen} onClose={() => setPayOpen(null)} title="To'lov qabul qilish" size="sm">
