@@ -68,32 +68,42 @@ export const Overview: React.FC = () => {
   const go = (path: string) => navigate(`/${path}`);
 
   const renderFaceCheckBanner = () => (
-    <div className="bg-gradient-to-r from-emerald-600/10 via-teal-600/10 to-brand-500/10 border-2 border-emerald-500/30 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 shrink-0">
-          <Scan className="w-6 h-6 animate-pulse" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-heading font-black text-base lg:text-lg text-slate-900 dark:text-white">
-              Face ID & Lokatsiya orqali Davomatdan O'tish
-            </h3>
-            <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Avtomatik & GPS
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900/90 via-slate-900/95 to-teal-950/90 border-2 border-emerald-500/40 p-6 text-white shadow-xl shadow-emerald-500/10 transition-all hover:border-emerald-400/60 group">
+      <div className="absolute -top-24 -left-24 w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/30 transition-colors" />
+      <div className="absolute -bottom-24 -right-24 w-60 h-60 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div className="flex items-start sm:items-center gap-4">
+          <div className="relative shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/40 border border-white/20">
+              <Scan className="w-7 h-7 text-white animate-pulse" />
+            </div>
+            <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-slate-900 flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-            O'z qurilmangiz kamerasida yuzni skaner qilib va belgilangan GPS lokatsiyani tasdiqlab, davomat belgilang.
-          </p>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-heading font-black text-lg sm:text-xl text-white tracking-tight">
+                Biometrik Face ID & GPS Lokatsiya Davomati
+              </h3>
+              <span className="bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                100% Avtomatik
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-300 dark:text-slate-300 font-medium mt-1 leading-relaxed max-w-2xl">
+              Kameraga qarash orqali 1 soniyada yuzni tanitib va GPS koordinatani tasdiqlab, darsga kelganingizni belgilang yoki jismoniy turniketlarni nazorat qiling.
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => setFaceModalOpen(true)}
+          className="py-3.5 px-7 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm shadow-xl shadow-emerald-600/30 border border-white/20 flex items-center justify-center gap-2.5 shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <Scan className="w-5 h-5 text-white animate-spin-slow" />
+          <span>Skanerni Ochish</span>
+        </button>
       </div>
-      <button
-        onClick={() => setFaceModalOpen(true)}
-        className="py-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 shrink-0 transition-transform active:scale-95"
-      >
-        <Scan className="w-4 h-4" />
-        Tezkor Davomatdan O'tish
-      </button>
     </div>
   );
 
@@ -655,7 +665,7 @@ export const Overview: React.FC = () => {
     );
   }
 
-  // ── SUPER ADMIN / DIRECTOR DASHBOARD ──────────────────────────
+  // ── SUPER ADMIN / DIRECTOR DASHBOARD (100X UPGRADED DESIGN) ──────────────────────────
   const totalStudents = students.length;
   const totalTeachers = teachers.length;
   const totalCoins = Object.values(balances).reduce((a, b) => a + b, 0);
@@ -668,46 +678,67 @@ export const Overview: React.FC = () => {
     { id: 6, name: "O'zlashtirish", value: 87, suffix: '%', change: '+4.5% sifat', contextNote: "O'rtacha sifat 91%", testimonialNote: "Davomat va imtihonlar o'rtacha 91%", up: true, icon: Target, iconBg: 'bg-sky-100 dark:bg-sky-500/20', iconColor: 'text-sky-600 dark:text-sky-400', badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' },
   ];
 
-  const recentTx = transactions.slice(0, 5);
+  const recentTx = transactions.slice(0, 6);
 
   return (
-    <div className="space-y-6 page-enter">
-      {/* Hero */}
+    <div className="space-y-6 page-enter pb-8">
+      {/* Hero Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-accent-600 p-8 lg:p-10 text-white shadow-2xl shadow-brand-600/25">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
-              <Zap className="h-3 w-3" /> IT Academy Boshqaruv Markazi
-            </span>
-            <h1 className="font-heading font-black text-3xl lg:text-4xl">Assalomu alaykum, {currentUser.name}!</h1>
-            <p className="text-white/70 mt-2 text-sm max-w-xl">
-              Tizimdagi barcha o'quv jarayonlari, moliya va o'quvchilar ko'rsatkichlarining real-vaqt nazorati.
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/20 text-white text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-1.5 rounded-full shadow-sm">
+                <Zap className="h-3 w-3 text-yellow-300 animate-pulse" /> IT Academy Boshqaruv Markazi
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-emerald-500/25 backdrop-blur-md border border-emerald-400/30 text-emerald-200 text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Biometrik Turniketlar 100% Onlayn
+              </span>
+            </div>
+            <h1 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight">
+              Assalomu alaykum, {currentUser.name}!
+            </h1>
+            <p className="text-white/80 text-sm sm:text-base max-w-2xl leading-relaxed">
+              Tizimdagi barcha o'quv jarayonlari, moliya, davomat va biometrik skanerlarning real-vaqt nazorati. Barcha ma'lumotlar jonli ko'rinishda.
             </p>
           </div>
-          <div className="flex gap-3">
-            <div className="text-center bg-white/10 border border-white/20 px-5 py-4 rounded-2xl">
-              <p className="font-heading font-black text-3xl">{totalStudents}</p>
-              <p className="text-white/60 text-[11px] font-bold uppercase tracking-wider mt-1">O'quvchilar</p>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+            <div className="flex-1 sm:flex-initial text-center bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-4 rounded-2xl shadow-lg hover:bg-white/15 transition-all">
+              <p className="font-heading font-black text-3xl sm:text-4xl text-white">{totalStudents}</p>
+              <p className="text-white/70 text-[11px] font-extrabold uppercase tracking-widest mt-1">O'quvchilar</p>
             </div>
-            <div className="text-center bg-white/10 border border-white/20 px-5 py-4 rounded-2xl">
-              <p className="font-heading font-black text-3xl">{totalTeachers}</p>
-              <p className="text-white/60 text-[11px] font-bold uppercase tracking-wider mt-1">Ustozlar</p>
+            <div className="flex-1 sm:flex-initial text-center bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-4 rounded-2xl shadow-lg hover:bg-white/15 transition-all">
+              <p className="font-heading font-black text-3xl sm:text-4xl text-white">{totalTeachers}</p>
+              <p className="text-white/70 text-[11px] font-extrabold uppercase tracking-widest mt-1">Ustozlar</p>
             </div>
+            <button
+              onClick={() => setFaceModalOpen(true)}
+              className="flex-1 sm:flex-initial flex flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-6 py-4 rounded-2xl shadow-xl shadow-emerald-600/30 border border-white/25 transition-all hover:scale-105 cursor-pointer font-bold"
+              title="Yuz tanish skanerini tezkor ochish"
+            >
+              <Scan className="h-6 w-6 text-white animate-pulse" />
+              <span className="text-xs font-black uppercase tracking-wider">Tezkor Face ID</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Stat cards (Stripe / Notion distinctive hierarchy with EduTizim Testimonial-Style indicators) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* Face ID & Biometric Live Banner */}
+      {renderFaceCheckBanner()}
+
+      {/* Stat cards (Symmetrical 5-column grid — zero blank gaps) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {stats.map((s) => (
-          <div key={s.id} className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+          <div key={s.id} className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
             <div>
               <div className="flex items-start justify-between mb-3">
-                <div className={`p-2.5 rounded-xl ${s.iconBg}`}>
+                <div className={`p-3 rounded-2xl ${s.iconBg} group-hover:scale-110 transition-transform`}>
                   <s.icon className={`h-5 w-5 ${s.iconColor}`} />
                 </div>
-                <span className={`flex items-center gap-0.5 text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                <span className={`flex items-center gap-0.5 text-[10px] font-extrabold px-2 py-1 rounded-lg shadow-2xs ${
                   s.up 
                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50' 
                     : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50'
@@ -716,14 +747,14 @@ export const Overview: React.FC = () => {
                   {s.change}
                 </span>
               </div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{s.name}</p>
-              <h3 className="font-heading font-black text-2xl text-slate-900 dark:text-white mt-1.5 tracking-tight">
+              <p className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider leading-tight">{s.name}</p>
+              <h3 className="font-heading font-black text-2xl sm:text-3xl text-slate-900 dark:text-white mt-1.5 tracking-tight">
                 <AnimatedCount value={s.value} prefix={s.prefix} suffix={s.suffix} />
               </h3>
             </div>
 
-            {/* EduTizim Testimonial-style indicator note below the big number */}
-            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-dark-border space-y-1.5">
+            {/* EduTizim Testimonial indicator note */}
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-dark-border space-y-1.5">
               <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-extrabold border ${s.badgeColor}`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                 {s.contextNote}
@@ -736,66 +767,203 @@ export const Overview: React.FC = () => {
         ))}
       </div>
 
-      {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Courses */}
-        <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-light-border dark:border-dark-border">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-                <GraduationCap className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+      {/* Main Asymmetric Grid: 2 columns left (Actions + Courses), 1 column right (System + Feed) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* LEFT / CENTER SECTION: Quick Actions & Courses (Col Span 2) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Tezkor Amallar va Boshqaruv (Quick Actions 6-button Grid) */}
+          <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="font-heading font-black text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                    <Zap className="h-5 w-5" />
+                  </span>
+                  Tezkor Boshqaruv Markazi
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Asosiy operatsiyalarga 1 tugma orqali o'ting</p>
               </div>
-              <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white">IT Academy Kurslari</h3>
+              <span className="text-[11px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                6 ta tezkor bo'lim
+              </span>
             </div>
-            <button onClick={() => go('academy')} className="text-[11px] font-bold text-brand-600 dark:text-brand-400 flex items-center gap-0.5 hover:underline">
-              Ko'rish <ArrowUpRight className="h-3 w-3" />
-            </button>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+              {[
+                { label: 'Davomat & Skaner', sub: 'Yuz va GPS nazorat', icon: Calendar, path: 'attendance', color: 'from-emerald-500 to-teal-600', bg: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50' },
+                { label: 'Biometrik Face ID', sub: 'Xarita va Apparatlar', icon: Scan, path: 'face-id', color: 'from-brand-500 to-indigo-600', bg: 'bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800/50' },
+                { label: 'Shartnomalar', sub: 'Yaratish va yuklash', icon: FileText, path: 'contracts', color: 'from-amber-500 to-orange-600', bg: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/50' },
+                { label: 'Ustozlar Maoshi', sub: 'KPI va hisoblash', icon: DollarSign, path: 'teacher-payroll', color: 'from-teal-500 to-emerald-600', bg: 'bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800/50' },
+                { label: 'Coin & Tanga Tizimi', sub: 'Rag\'bat berish', icon: Coins, path: 'coins', color: 'from-orange-500 to-amber-600', bg: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800/50' },
+                { label: 'O\'quvchilar & Guruh', sub: 'Ro\'yxatni ko\'rish', icon: Users, path: 'students', color: 'from-sky-500 to-blue-600', bg: 'bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800/50' },
+              ].map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => go(action.path)}
+                  className={`flex items-center gap-3.5 p-4 rounded-2xl border transition-all hover:shadow-lg hover:-translate-y-0.5 text-left group bg-white dark:bg-slate-800/60 ${action.bg}`}
+                >
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${action.color} text-white shadow-md group-hover:scale-110 transition-transform shrink-0`}>
+                    <action.icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white truncate">{action.label}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{action.sub}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-dark-border">
-            {courses.map((c) => (
-              <div key={c.id} className="px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-dark-muted transition-colors">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{c.title}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{c.duration}</p>
+
+          {/* IT Academy Kurslari Table */}
+          <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-dark-border">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                  <GraduationCap className="h-5 w-5" />
                 </div>
-                <span className="badge badge-info shrink-0">{c.level}</span>
+                <div>
+                  <h3 className="font-heading font-black text-base text-slate-900 dark:text-white">IT Academy Kurslari va Yo'nalishlar</h3>
+                  <p className="text-xs text-slate-400">Jami {courses.length} ta faol o'quv yo'nalishi</p>
+                </div>
               </div>
-            ))}
+              <button onClick={() => go('academy')} className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-bold flex items-center gap-1.5 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors">
+                Barcha kurslar <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-dark-border">
+              {courses.map((c) => (
+                <div key={c.id} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-heading font-black text-sm text-brand-600 dark:text-brand-400 shrink-0">
+                      {c.title.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{c.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                        <span>⏳ {c.duration}</span>
+                        <span>•</span>
+                        <span>💰 {(c.monthlyPrice || 500000).toLocaleString()} so'm/oy</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800/50">
+                      {c.level}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-
-
-        {/* Coin transactions */}
-        <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-light-border dark:border-dark-border">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-500/10">
-                <Coins className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h3 className="font-heading font-bold text-sm text-slate-900 dark:text-white">So'nggi Coin Amaliyotlar</h3>
+        {/* RIGHT SECTION: System Health Monitor & Coin Feed (Col Span 1) */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* Biometric & Geofence Live Monitor Card */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 border border-slate-700/80 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Tizim Monitori
+              </span>
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
             </div>
-            <button onClick={() => go('coins')} className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5 hover:underline">
-              Barchasi <ArrowUpRight className="h-3 w-3" />
+
+            <h4 className="font-heading font-black text-base text-white mb-3">Biometrik & GPS Nazorati</h4>
+            
+            <div className="space-y-3 text-xs">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Server className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>Hardware Webhook API</span>
+                </div>
+                <span className="font-bold text-emerald-300">Faol ✓</span>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>GPS Geofence Radius</span>
+                </div>
+                <span className="font-bold text-amber-300">100m (Jonli)</span>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-sky-400 shrink-0" />
+                  <span>Telegram SMS & Rasm</span>
+                </div>
+                <span className="font-bold text-sky-300">892985... Ulangan</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => go('face-id')}
+              className="w-full mt-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs tracking-wide uppercase flex items-center justify-center gap-2 shadow-lg transition-all"
+            >
+              <span>⚙️ Xarita & Apparat sozlamalari</span>
+              <ArrowUpRight className="h-4 w-4" />
             </button>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-dark-border">
-            {recentTx.length === 0 && (
-              <div className="px-6 py-8 text-center text-sm text-slate-400">Hech qanday amaliyot topilmadi</div>
-            )}
-            {recentTx.map((tx) => (
-              <div key={tx.id} className="px-6 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-dark-muted transition-colors">
-                <div className="min-w-0">
-                  <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 truncate">{tx.toName}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{tx.reason}</p>
+
+          {/* So'nggi Coin Amaliyotlari */}
+          <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-3xl overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-dark-border">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  <Coins className="h-5 w-5" />
                 </div>
-                <span className="font-heading font-black text-sm text-emerald-600 dark:text-emerald-400 shrink-0">+{tx.amount.toLocaleString()} C</span>
+                <div>
+                  <h3 className="font-heading font-black text-base text-slate-900 dark:text-white">So'nggi Coin Amaliyotlar</h3>
+                  <p className="text-xs text-slate-400">Tizimdagi real vaqt coin o'tishlari</p>
+                </div>
               </div>
-            ))}
+              <button onClick={() => go('coins')} className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 hover:underline">
+                Barchasi <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="divide-y divide-slate-100 dark:divide-dark-border max-h-[380px] overflow-y-auto">
+              {recentTx.length === 0 && (
+                <div className="px-6 py-8 text-center text-sm text-slate-400">Hech qanday amaliyot topilmadi</div>
+              )}
+              {recentTx.map((tx) => (
+                <div key={tx.id} className="px-6 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800/40 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
+                      C
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{tx.toName}</p>
+                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{tx.reason || 'Vazifa yoki faollik uchun'}</p>
+                    </div>
+                  </div>
+                  <span className="font-heading font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg shrink-0">
+                    +{tx.amount.toLocaleString()} C
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-dark-border text-center">
+              <button
+                onClick={() => go('coins')}
+                className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center justify-center gap-1.5 mx-auto"
+              >
+                <span>Tanga balanslari va do'konni ko'rish</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
       <QuickFaceIDModal open={faceModalOpen} onClose={() => setFaceModalOpen(false)} />
     </div>
   );
 };
+
