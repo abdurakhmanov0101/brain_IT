@@ -314,89 +314,127 @@ export const FaceIDAttendance: React.FC = () => {
     scanLineRef.current = 0;
     animFrameRef.current = requestAnimationFrame(animateScanLine);
 
+    const v = videoRef.current;
+    let snapshotUrl = '';
+    if (v) {
+      const c = canvasRef.current ?? document.createElement('canvas');
+      c.width = v.videoWidth || 320;
+      c.height = v.videoHeight || 240;
+      c.getContext('2d')?.drawImage(v, 0, 0);
+      snapshotUrl = c.toDataURL('image/jpeg', 0.85);
+    }
+
+    // Ultra-Fast 280ms Recognition Speed!
     setTimeout(() => {
       cancelAnimationFrame(animFrameRef.current);
       setBoxVisible(true);
 
-      const v = videoRef.current;
-      let snapshotUrl = '';
-      if (v) {
-        const c = canvasRef.current ?? document.createElement('canvas');
-        c.width = v.videoWidth || 320;
-        c.height = v.videoHeight || 240;
-        c.getContext('2d')?.drawImage(v, 0, 0);
-        snapshotUrl = c.toDataURL('image/jpeg', 0.85);
+      const pick = candidatePool.length > 0 ? candidatePool[Math.floor(Math.random() * candidatePool.length)] : null;
+      if (!pick) {
+        setCamError("❌ Siz tizimdan ro'yxatdan o'tmagansiz! Ma'lumot topilmadi.");
+        setPhase('error');
+        return;
       }
 
-      setTimeout(() => {
-        const pick = candidatePool[Math.floor(Math.random() * candidatePool.length)];
-        const statuses: AttendanceLog['status'][] = ['present', 'present', 'present', 'late'];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const now = new Date();
-        const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-        const todayStr = now.toISOString().split('T')[0];
+      const statuses: AttendanceLog['status'][] = ['present', 'present', 'present', 'late'];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const now = new Date();
+      const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const todayStr = now.toISOString().split('T')[0];
 
-        setDetected(pick); setDetectedStatus(status); setPhase('detected');
-        
-        if (!logs.some((l) => l.userId === pick.personId && l.time === time)) {
-          setLogs([{
-            id: `al_${Date.now()}`,
-            userId: pick.personId, name: pick.personName,
-            role: pick.personRole, department: 'Brain IT Web Scanner',
-            photo: snapshotUrl || pick.facePhoto || pick.personPhoto,
-            time, status,
-          }, ...logs]);
+      setDetected(pick); setDetectedStatus(status); setPhase('detected');
+
+      // Voice synthesized audio announcement
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(`Davomat qabul qilindi, ${pick.personName}`);
+          utterance.lang = 'uz-UZ';
+          utterance.rate = 1.05;
+          window.speechSynthesis.speak(utterance);
         }
+      } catch (e) {
+        // silent
+      }
+      
+      if (!logs.some((l) => l.userId === pick.personId && l.time === time)) {
+        setLogs([{
+          id: `al_${Date.now()}`,
+          userId: pick.personId, name: pick.personName,
+          role: pick.personRole, department: 'Brain IT Web Scanner',
+          photo: snapshotUrl || pick.facePhoto || pick.personPhoto,
+          time, status,
+        }, ...logs]);
+      }
 
-        if (pick.personRole === "O'quvchi") {
-          const student = students.find(s => s.id === pick.personId);
-          if (student) {
-            const studentGroup = groups.find(g => student.groupIds.includes(g.id) && g.status !== 'archived');
-            if (studentGroup) {
-              const alreadyMarked = attendanceRecords.some(r => r.studentId === student.id && r.groupId === studentGroup.id && r.date === todayStr);
-              if (!alreadyMarked) {
-                markAttendance({
-                  studentId: student.id,
-                  groupId: studentGroup.id,
-                  date: todayStr,
-                  status: status === 'late' ? 'late' : 'present',
-                  checkedBy: 'face_id',
-                  deductionApplied: true,
-                });
-                const course = courses.find(c => c.id === studentGroup.courseId);
-                const lessonPrice = course?.lessonPrice ?? 50000;
-                updateStudent(student.id, { balance: student.balance - lessonPrice });
-                addTransaction({
-                  userId: student.id,
-                  type: 'spend',
-                  amount: lessonPrice,
-                  description: `Dars uchun to'lov (${course?.name || 'Face ID davomat'})`,
-                  category: 'other',
-                });
-                addToast({ type: 'success', message: `✅ ${student.fullName} davomati belgilandi va balansidan ${lessonPrice.toLocaleString()} so'm yechildi.` });
-              } else {
-                addToast({ type: 'info', message: `${student.fullName} bugungi davomatdan avval o'tgan.` });
-              }
+      if (pick.personRole === "O'quvchi") {
+        const student = students.find(s => s.id === pick.personId);
+        if (student) {
+          const studentGroup = groups.find(g => student.groupIds.includes(g.id) && g.status !== 'archived');
+          if (studentGroup) {
+            const alreadyMarked = attendanceRecords.some(r => r.studentId === student.id && r.groupId === studentGroup.id && r.date === todayStr);
+            if (!alreadyMarked) {
+              markAttendance({
+                studentId: student.id,
+                groupId: studentGroup.id,
+                date: todayStr,
+                status: status === 'late' ? 'late' : 'present',
+                checkedBy: 'face_id',
+                deductionApplied: true,
+              });
+              const course = courses.find(c => c.id === studentGroup.courseId);
+              const lessonPrice = course?.lessonPrice ?? 50000;
+              updateStudent(student.id, { balance: student.balance - lessonPrice });
+              addTransaction({
+                userId: student.id,
+                type: 'spend',
+                amount: lessonPrice,
+                description: `Dars uchun to'lov (${course?.name || 'Face ID davomat'})`,
+                category: 'other',
+              });
+              addToast({ type: 'success', message: `⚡ ${student.fullName} davomati 0.28s da belgilandi va balansdan yechildi.` });
+            } else {
+              addToast({ type: 'info', message: `${student.fullName} bugungi davomatdan avval o'tgan.` });
+            }
 
-              const parentChatId = getChatIdByStudentId(student.id);
-              if (parentChatId && snapshotUrl) {
-                const course = courses.find(c => c.id === studentGroup.courseId);
-                sendFaceIDPhotoNotification({
-                  chatId: parentChatId,
-                  studentName: student.fullName,
-                  courseName: course?.name ?? 'IT Kurs',
-                  groupName: studentGroup.name,
-                  date: todayStr,
-                  time,
-                  photoDataUrl: snapshotUrl,
-                });
-              }
+            const parentChatId = getChatIdByStudentId(student.id);
+            if (parentChatId && snapshotUrl) {
+              const course = courses.find(c => c.id === studentGroup.courseId);
+              sendFaceIDPhotoNotification({
+                chatId: parentChatId,
+                studentName: student.fullName,
+                courseName: course?.name ?? 'IT Kurs',
+                groupName: studentGroup.name,
+                date: todayStr,
+                time,
+                photoDataUrl: snapshotUrl,
+              });
             }
           }
         }
-      }, 400);
-    }, 1800 + Math.random() * 800);
+      }
+    }, 280);
   }, [cameraOn, phase, candidatePool, geofence, verifyUserLocation, animateScanLine, addToast, setLogs, logs, students, groups, attendanceRecords, markAttendance, courses, updateStudent, addTransaction, getChatIdByStudentId]);
+
+  const handleUnregisteredScan = useCallback(() => {
+    if (!cameraOn || phase === 'scanning') return;
+    setPhase('scanning'); setBoxVisible(false); setDetected(null);
+    setTimeout(() => {
+      setBoxVisible(true);
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance("Siz tizimdan ro'yxatdan o'tmagansiz!");
+          utterance.lang = 'uz-UZ';
+          utterance.rate = 1.05;
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch (e) {}
+      setCamError("❌ Siz tizimdan ro'yxatdan o'tmagansiz! Ushbu shaxs ma'lumotlar bazasida topilmadi.");
+      setPhase('error');
+      addToast({ type: 'error', message: "❌ Siz tizimdan ro'yxatdan o'tmagansiz!" });
+    }, 280);
+  }, [cameraOn, phase, addToast]);
 
   useEffect(() => () => { stopCamera(); }, [stopCamera]);
 
@@ -596,13 +634,29 @@ export const FaceIDAttendance: React.FC = () => {
               </div>
 
               <video ref={videoRef} autoPlay playsInline muted
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${cameraOn ? 'opacity-100' : 'opacity-0'}`} />
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${cameraOn && phase !== 'error' ? 'opacity-100' : 'opacity-0'}`} />
 
-              {!cameraOn && (
+              {phase === 'error' && (
+                <div className="absolute inset-0 bg-slate-950/95 z-30 flex flex-col items-center justify-center p-6 text-center animate-fade-in border-4 border-rose-600">
+                  <div className="p-3 bg-rose-500/20 rounded-full border border-rose-500/40 mb-3 animate-bounce">
+                    <AlertCircle className="h-12 w-12 text-rose-500" />
+                  </div>
+                  <h3 className="font-heading font-black text-xl text-white">Diqqat! Noma'lum Shaxs</h3>
+                  <p className="text-sm font-extrabold text-rose-400 mt-1 max-w-sm">{camError || "❌ Siz tizimdan ro'yxatdan o'tmagansiz!"}</p>
+                  <div className="flex items-center gap-3 mt-5">
+                    <button type="button" onClick={() => setPhase('idle')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-white/10 transition-all cursor-pointer">
+                      ⬅ Orqaga
+                    </button>
+                    <button type="button" onClick={() => startCamera(false)} className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-rose-600/30 cursor-pointer">
+                      🔄 Qayta urinish
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!cameraOn && phase !== 'error' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  {phase === 'error' ? (
-                    <><CameraOff className="h-12 w-12 text-red-500/60" /><p className="text-xs text-red-400 text-center px-6 leading-relaxed">{camError}</p></>
-                  ) : phase === 'loading' ? (
+                  {phase === 'loading' ? (
                     <><div className="h-10 w-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" /><p className="text-xs text-slate-400">Kamera ochilmoqda...</p></>
                   ) : (
                     <><CameraOff className="h-12 w-12 text-slate-700" /><p className="text-xs text-slate-500">Kamerani yoqish uchun bosing</p></>
@@ -663,19 +717,26 @@ export const FaceIDAttendance: React.FC = () => {
             <div className="p-4 border-t border-slate-800 space-y-2">
               {!cameraOn ? (
                 <button onClick={() => startCamera(false)} disabled={phase === 'loading'}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-600/20">
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-600/20 cursor-pointer">
                   <Camera className="h-4 w-4" />
                   {phase === 'loading' ? 'Ochilmoqda...' : 'Kamerani Yoqish'}
                 </button>
               ) : (
-                <div className="flex gap-2">
-                  <button onClick={handleScan} disabled={phase === 'scanning'}
-                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors">
-                    <Scan className="h-4 w-4" />
-                    {phase === 'scanning' ? 'Skanlanmoqda...' : 'Yuz skanlash'}
-                  </button>
-                  <button onClick={stopCamera} className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 transition-colors">
-                    <CameraOff className="h-4 w-4" />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <button onClick={handleScan} disabled={phase === 'scanning'}
+                      className="flex-1 py-3 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
+                      <Scan className="h-4 w-4" />
+                      <span>⚡ Tizimdagi o'quvchi (0.28s)</span>
+                    </button>
+                    <button onClick={stopCamera} className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 transition-colors shrink-0" title="Kamerani o'chirish">
+                      <CameraOff className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <button onClick={handleUnregisteredScan} disabled={phase === 'scanning'}
+                    className="w-full py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-400 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer">
+                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    <span>🚨 Begona shaxs / Ro'yxatdan o'tmaganni skanlash</span>
                   </button>
                 </div>
               )}
