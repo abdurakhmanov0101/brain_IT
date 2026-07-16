@@ -298,36 +298,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, darkMode, setDark
               )}
             </button>
           </form>
-
-          {/* One-Click Quick Demo Switcher */}
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block">
-              Tezkor test uchun akkauntni tanlang:
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillQuickLogin('superadmin', 'BrainIT@2025')}
-                className="py-2.5 px-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-bold text-emerald-700 dark:text-emerald-300 transition-all text-center flex items-center justify-center gap-1.5"
-              >
-                🛠️ Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => fillQuickLogin('teacher1', '123')}
-                className="py-2.5 px-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all text-center flex items-center justify-center gap-1.5"
-              >
-                👨‍🏫 Ustoz
-              </button>
-              <button
-                type="button"
-                onClick={() => fillQuickLogin('student1', '123')}
-                className="py-2.5 px-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-all text-center flex items-center justify-center gap-1.5"
-              >
-                👨‍🎓 O'quvchi
-              </button>
-            </div>
-          </div>
         </motion.div>
 
         {/* Mobile Footer */}

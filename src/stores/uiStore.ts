@@ -46,7 +46,7 @@ export const useUIStore = create<UIState>()(
       removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     }),
     {
-      name: 'brain-it-ui',
+      name: 'brain-it-uiStore-v10',
       partialize: (s) => ({ darkMode: s.darkMode, language: s.language }),
     }
   )

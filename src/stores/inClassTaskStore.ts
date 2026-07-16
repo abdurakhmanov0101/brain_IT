@@ -90,7 +90,7 @@ export const useInClassTaskStore = create<InClassTaskState>()(
       }))
     }),
     {
-      name: 'brain-crm-inclass-tasks-prod-v3'
+      name: 'brain-it-inClassTaskStore-v10'
     }
   )
 );

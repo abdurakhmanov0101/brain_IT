@@ -100,6 +100,6 @@ export const useCoinStore = create<CoinState>()(
         return state;
       })
     }),
-    { name: 'brain-crm-coinstore-v2' }
+    { name: 'brain-it-coinStore-v10' }
   )
 );

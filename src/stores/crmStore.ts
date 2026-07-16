@@ -36,6 +36,6 @@ export const useCrmStore = create<CRMState>()(
         })),
       setLeads: (leads) => set({ leads }),
     }),
-    { name: 'brain-it-crm-leads' }
+    { name: 'brain-it-crmStore-v10' }
   )
 );

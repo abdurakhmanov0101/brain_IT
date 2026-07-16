@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user, token) => set({ currentUser: user, token }),
       logout: () => set({ currentUser: null, token: null }),
     }),
-    { name: 'brain-it-auth-v2' }
+    { name: 'brain-it-authStore-v10' }
   )
 );
 

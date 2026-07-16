@@ -176,6 +176,6 @@ export const useRoleStore = create<RoleState>()(
         return role.permissions.includes(permissionId);
       },
     }),
-    { name: 'brain_role_store_v1' }
+    { name: 'brain-it-roleStore-v10' }
   )
 );

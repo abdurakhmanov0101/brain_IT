@@ -36,6 +36,6 @@ export const useFaceStore = create<FaceState>()(
       isRegistered: (personId) => get().faces.some((f) => f.personId === personId),
       getFace: (personId) => get().faces.find((f) => f.personId === personId),
     }),
-    { name: 'brain-it-faces' }
+    { name: 'brain-it-faceStore-v10' }
   )
 );
