@@ -24,18 +24,7 @@ interface GroupState {
   removeStudentFromGroup: (groupId: string, studentId: string) => void;
 }
 
-const initialGroups: Group[] = [
-  { id: 'g1', name: 'Frontend G-1', courseId: 'ac2', teacherId: 'tr1', schedule: { days: ['Dushanba', 'Chorshanba', 'Juma'], time: '10:00' }, room: '101-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 1}`), startDate: '2026-02-01' },
-  { id: 'g2', name: 'Frontend G-2', courseId: 'ac2', teacherId: 'tr1', schedule: { days: ['Seshanba', 'Payshanba', 'Shanba'], time: '10:00' }, room: '102-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 11}`), startDate: '2026-02-01' },
-  { id: 'g3', name: 'Frontend G-3', courseId: 'ac2', teacherId: 'tr1', schedule: { days: ['Dushanba', 'Chorshanba', 'Juma'], time: '14:00' }, room: '103-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 21}`), startDate: '2026-02-01' },
-  { id: 'g4', name: 'Frontend G-4', courseId: 'ac2', teacherId: 'tr1', schedule: { days: ['Seshanba', 'Payshanba', 'Shanba'], time: '14:00' }, room: '104-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 31}`), startDate: '2026-02-01' },
-  { id: 'g5', name: 'Frontend G-5', courseId: 'ac2', teacherId: 'tr1', schedule: { days: ['Dushanba', 'Chorshanba', 'Juma'], time: '18:00' }, room: '105-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 41}`), startDate: '2026-02-01' },
-  { id: 'g6', name: 'Backend G-1', courseId: 'ac3', teacherId: 'tr2', schedule: { days: ['Seshanba', 'Payshanba', 'Shanba'], time: '10:00' }, room: '106-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 51}`), startDate: '2026-02-01' },
-  { id: 'g7', name: 'Backend G-2', courseId: 'ac3', teacherId: 'tr2', schedule: { days: ['Dushanba', 'Chorshanba', 'Juma'], time: '10:00' }, room: '107-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 61}`), startDate: '2026-02-01' },
-  { id: 'g8', name: 'Backend G-3', courseId: 'ac3', teacherId: 'tr2', schedule: { days: ['Seshanba', 'Payshanba', 'Shanba'], time: '14:00' }, room: '108-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 71}`), startDate: '2026-02-01' },
-  { id: 'g9', name: 'Backend G-4', courseId: 'ac3', teacherId: 'tr2', schedule: { days: ['Dushanba', 'Chorshanba', 'Juma'], time: '14:00' }, room: '109-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 81}`), startDate: '2026-02-01' },
-  { id: 'g10', name: 'Backend G-5', courseId: 'ac3', teacherId: 'tr2', schedule: { days: ['Seshanba', 'Payshanba', 'Shanba'], time: '18:00' }, room: '110-xona', maxStudents: 15, status: 'active', studentIds: Array.from({ length: 10 }, (_, i) => `st${i + 91}`), startDate: '2026-02-01' },
-];
+const initialGroups: Group[] = [];
 
 export const useGroupStore = create<GroupState>()(persist((set) => ({
   groups: initialGroups,
@@ -71,4 +60,4 @@ export const useGroupStore = create<GroupState>()(persist((set) => ({
       useStudentStore.getState().updateStudent(studentId, { groupIds: student.groupIds.filter((id) => id !== groupId) });
     }
   },
-}), { name: 'brain-it-groups-prod-v4' }));
+}), { name: 'brain-it-groups-prod-v5' }));

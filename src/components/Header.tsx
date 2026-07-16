@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useCoinStore } from '../stores/coinStore';
 import { useStudentStore } from '../stores/studentStore';
+import { useGroupStore } from '../stores/groupStore';
+import { useCourseStore } from '../stores/courseStore';
 import { useUIStore } from '../stores/uiStore';
 import { getTranslation } from '../utils/translations';
 
@@ -45,12 +47,8 @@ interface HeaderProps {
   onMobileMenuToggle?: () => void;
 }
 
-const NOTIFS = [
-  { id: '1', title: 'Yangi to\'lov', message: "Sardor Ahmedov oylik to'lovini amalga oshirdi", time: '5 daqiqa oldin', read: false, color: 'emerald' },
-  { id: '2', title: 'Yangi shartnoma', message: 'UzBank loyihasi shartnomasi imzolandi', time: '1 soat oldin', read: false, color: 'emerald' },
-  { id: '3', title: 'AI baholash', message: "Davron topshirig'i 95 ball bilan tekshirildi", time: '2 soat oldin', read: true, color: 'emerald' },
-  { id: '4', title: 'Moliya hisoboti', message: "Oylik to'lovlar hisoboti tayyorlandi", time: '1 kun oldin', read: true, color: 'amber' },
-];
+// Bildirishnomalar tizim tomonidan real vaqt rejimida qo'shiladi
+const NOTIFS: { id: string; title: string; message: string; time: string; read: boolean; color: string }[] = [];
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab, darkMode, setDarkMode, language, setLanguage, onLogout, onMobileMenuToggle,
@@ -61,6 +59,39 @@ export const Header: React.FC<HeaderProps> = ({
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [notifs, setNotifs] = useState(NOTIFS);
+
+  // Global Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = React.useRef<HTMLDivElement>(null);
+  
+  const { students } = useStudentStore();
+  const { groups } = useGroupStore();
+  const { courses } = useCourseStore();
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchResults = React.useMemo(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) return null;
+    const q = searchQuery.toLowerCase();
+    
+    return {
+      students: students.filter(s => 
+        s.fullName.toLowerCase().includes(q) || 
+        s.phone.replace(/\D/g, '').includes(q.replace(/\D/g, ''))
+      ).slice(0, 5),
+      groups: groups.filter(g => g.name.toLowerCase().includes(q)).slice(0, 3),
+      courses: courses.filter(c => c.name.toLowerCase().includes(q)).slice(0, 3)
+    };
+  }, [searchQuery, students, groups, courses]);
 
   if (!currentUser) return null;
 
@@ -96,15 +127,21 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Middle: Global Search */}
-      <div className="flex-1 max-w-xl hidden md:flex items-center px-6">
+      <div className="flex-1 max-w-xl hidden md:flex items-center px-6 relative" ref={searchRef}>
         <div className="relative w-full">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
             <Search className="w-4 h-4" />
           </div>
           <input
             type="text"
-            placeholder={getTranslation(language, 'searchPlaceholder')}
-            className="input-field w-full pl-10 pr-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 shadow-inner"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowResults(true);
+            }}
+            onFocus={() => setShowResults(true)}
+            placeholder="O'quvchi (ism/raqam), guruh yoki kurs qidirish..."
+            className="input-field w-full pl-10 pr-4 py-2 text-sm bg-zinc-50 dark:bg-zinc-900 shadow-inner focus:ring-2 focus:ring-emerald-500 transition-all"
           />
           <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
             <kbd className="hidden lg:inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold text-zinc-400 bg-zinc-200/50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700">
@@ -112,6 +149,68 @@ export const Header: React.FC<HeaderProps> = ({
             </kbd>
           </div>
         </div>
+
+        {/* Search Results Dropdown */}
+        {showResults && searchResults && (
+          <div className="absolute top-full left-6 right-6 mt-2 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-800 z-50 overflow-hidden max-h-[400px] overflow-y-auto custom-scrollbar animate-fade-in">
+            {(!searchResults.students.length && !searchResults.groups.length && !searchResults.courses.length) ? (
+              <div className="p-4 text-center text-sm text-zinc-500">Hech narsa topilmadi</div>
+            ) : (
+              <div className="py-2">
+                {searchResults.students.length > 0 && (
+                  <div className="mb-2">
+                    <div className="px-3 py-1 text-[10px] font-black uppercase text-zinc-400 tracking-wider">O'quvchilar</div>
+                    {searchResults.students.map(s => (
+                      <button 
+                        key={s.id} 
+                        onClick={() => { navigate('/students'); setShowResults(false); }}
+                        className="w-full text-left px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-between group transition-colors"
+                      >
+                        <div>
+                          <p className="text-sm font-bold text-zinc-900 dark:text-white">{s.fullName}</p>
+                          <p className="text-xs text-zinc-500">{s.phone}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-emerald-500" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {searchResults.groups.length > 0 && (
+                  <div className="mb-2">
+                    <div className="px-3 py-1 text-[10px] font-black uppercase text-zinc-400 tracking-wider">Guruhlar</div>
+                    {searchResults.groups.map(g => (
+                      <button 
+                        key={g.id}
+                        onClick={() => { navigate('/groups'); setShowResults(false); }}
+                        className="w-full text-left px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-between group transition-colors"
+                      >
+                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{g.name}</p>
+                        <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-emerald-500" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {searchResults.courses.length > 0 && (
+                  <div>
+                    <div className="px-3 py-1 text-[10px] font-black uppercase text-zinc-400 tracking-wider">Kurslar</div>
+                    {searchResults.courses.map(c => (
+                      <button 
+                        key={c.id}
+                        onClick={() => { navigate('/courses'); setShowResults(false); }}
+                        className="w-full text-left px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-between group transition-colors"
+                      >
+                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{c.name}</p>
+                        <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-emerald-500" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right side actions */}
@@ -176,16 +275,23 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </div>
               <div className="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                {notifs.map(n => (
-                  <div key={n.id} className={`px-5 py-4 flex gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${!n.read ? 'bg-emerald-500/5' : ''}`}>
-                    <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'}`} />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-zinc-900 dark:text-white">{n.title}</p>
-                      <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">{n.message}</p>
-                      <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase tracking-wider">{n.time}</p>
-                    </div>
+                {notifs.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-zinc-400 dark:text-zinc-600">
+                    <Bell className="h-8 w-8 mb-2 opacity-30" />
+                    <p className="text-xs font-semibold">Yangi xabarnomalar yo'q</p>
                   </div>
-                ))}
+                ) : (
+                  notifs.map(n => (
+                    <div key={n.id} className={`px-5 py-4 flex gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${!n.read ? 'bg-emerald-500/5' : ''}`}>
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-600'}`} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-zinc-900 dark:text-white">{n.title}</p>
+                        <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">{n.message}</p>
+                        <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-2 uppercase tracking-wider">{n.time}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

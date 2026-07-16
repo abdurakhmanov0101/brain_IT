@@ -106,10 +106,10 @@ export const TeacherPayroll: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] shadow-sm">
         <div>
           <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white">Ustoz Maoshlari</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Oylik maoshlar va to'lovlar</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Oylik maoshlar va to'lovlar monitoringi</p>
         </div>
         <div className="flex gap-2">
           <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 dark:border-dark-border bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-50">
@@ -121,61 +121,67 @@ export const TeacherPayroll: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2">
         {MONTHS.map((m) => (
           <button key={m} onClick={() => setSelectedMonth(m)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${selectedMonth === m ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap shrink-0 ${
+              selectedMonth === m 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 scale-100' 
+                : 'bg-white/60 dark:bg-slate-900/40 border border-white/40 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/60 scale-95 hover:scale-100'
+            }`}>
             {m}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
         <StatCard title="Olishi kerak (Jami)" value={`${(totalExpected / 1_000_000).toFixed(2)}M`} icon={DollarSign} iconColor="text-emerald-500" />
         <StatCard title="To'langan summa" value={`${(totalPaid / 1_000_000).toFixed(2)}M`} icon={CheckCircle} iconColor="text-emerald-500" />
         <StatCard title="Qoldiq summa" value={`${(totalPending / 1_000_000).toFixed(2)}M`} icon={AlertCircle} iconColor="text-amber-500" />
-        <StatCard title="Ustozlar soni" value={monthRecords.length} icon={DollarSign} />
+        <StatCard title="Ustozlar soni" value={monthRecords.length} icon={DollarSign} iconColor="text-indigo-500" />
       </div>
 
-      <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl overflow-hidden">
+      <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-dark-border">
+              <tr className="bg-white/40 dark:bg-slate-800/40 border-b border-slate-200/50 dark:border-slate-700/50">
                 {['Ustoz', 'Darslar', 'Jami maosh', "To'langan", 'Qoldiq', 'Holat', 'Amal'].map((h) => (
-                  <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="text-left px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-dark-border">
+            <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
               {monthRecords.map((record) => {
                 const teacher = getTeacher(record.teacherId);
                 const remaining = record.totalAmount - record.paidAmount;
                 const actualStatus = remaining <= 0 ? 'paid' : record.paidAmount > 0 ? 'partial' : 'pending';
                 
                 return (
-                  <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2.5">
-                        {teacher && <img src={teacher.photo} alt={teacher.fullName} className="h-8 w-8 rounded-full object-cover" />}
+                  <tr key={record.id} className="hover:bg-white/50 dark:hover:bg-slate-800/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {teacher && <img src={teacher.photo} alt={teacher.fullName} className="h-10 w-10 rounded-xl object-cover shadow-sm" />}
                         <div>
-                          <p className="font-semibold text-slate-800 dark:text-white">{teacher?.fullName ?? record.teacherId}</p>
-                          <p className="text-xs text-slate-400">{teacher?.specialization}</p>
+                          <p className="font-bold text-slate-800 dark:text-white">{teacher?.fullName ?? record.teacherId}</p>
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{teacher?.specialization}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-center font-medium text-slate-700 dark:text-slate-300">{record.lessonsCount}</td>
-                    <td className="px-5 py-4 font-bold text-slate-800 dark:text-white">{record.totalAmount.toLocaleString()}</td>
-                    <td className="px-5 py-4 text-emerald-600 dark:text-emerald-400 font-semibold">{record.paidAmount > 0 ? record.paidAmount.toLocaleString() : '0'}</td>
-                    <td className="px-5 py-4 text-red-500 font-semibold">{remaining > 0 ? remaining.toLocaleString() : '—'}</td>
-                    <td className="px-5 py-4">{statusBadge(actualStatus)}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">{record.lessonsCount} ta</span>
+                    </td>
+                    <td className="px-6 py-4 font-black text-slate-800 dark:text-white">{record.totalAmount.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold">{record.paidAmount > 0 ? record.paidAmount.toLocaleString() : '0'}</td>
+                    <td className="px-6 py-4 text-rose-500 font-bold">{remaining > 0 ? remaining.toLocaleString() : '—'}</td>
+                    <td className="px-6 py-4">{statusBadge(actualStatus)}</td>
+                    <td className="px-6 py-4">
                       {remaining > 0 ? (
-                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm shadow-emerald-500/30 transition-all flex items-center gap-1">
+                        <button onClick={() => { setPayOpen(record); setPartialAmount(''); }} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100">
                           <DollarSign className="w-3.5 h-3.5" /> To'lash
                         </button>
                       ) : (
-                        <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
+                        <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-xl w-fit">
                           <CheckCircle className="w-4 h-4" /> {record.paidDate || 'To\'landi'}
                         </span>
                       )}

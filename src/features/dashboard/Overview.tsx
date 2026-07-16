@@ -5,7 +5,7 @@ import {
   GraduationCap, CheckCircle2, Clock, ChevronRight, BookOpen,
   Award, AlertCircle, FileText, Play, Coins, ArrowUpRight,
   BarChart2, Activity, Zap, Target, Star, Calendar, ShieldCheck,
-  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing, Scan, Server, MapPin
+  XCircle, CheckCircle, AlertTriangle, CreditCard, TrendingDown as Missing, Scan, Server, MapPin, Settings
 } from 'lucide-react';
 import { courses as mockCourses } from '../../data/mockData';
 import { useAuthStore } from '../../stores/authStore';
@@ -18,6 +18,8 @@ import { useAttendanceStore } from '../../stores/attendanceStore';
 import { useHomeworkStore } from '../../stores/homeworkStore';
 import { useInClassTaskStore } from '../../stores/inClassTaskStore';
 import { QuickFaceIDModal } from '../../components/common/QuickFaceIDModal';
+import { LocationMapPicker } from '../../components/common/LocationMapPicker';
+import { useFaceidStore } from '../../stores/faceidStore';
 
 // Animated number counter
 function AnimatedCount({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
@@ -61,7 +63,21 @@ export const Overview: React.FC = () => {
   const { records: attendanceRecords } = useAttendanceStore();
   const { assignments, submissions } = useHomeworkStore();
   const { submissions: inClassSubmissions } = useInClassTaskStore();
+  const { geofence, updateGeofence } = useFaceidStore();
   const [faceModalOpen, setFaceModalOpen] = useState(false);
+  const [geoModalOpen, setGeoModalOpen] = useState(false);
+  const [geoForm, setGeoForm] = useState({
+    latitude: geofence.latitude,
+    longitude: geofence.longitude,
+    radiusMeters: geofence.radiusMeters,
+    simulateLocation: geofence.simulateLocation,
+    enabled: geofence.enabled,
+  });
+
+  const handleSaveGeo = () => {
+    updateGeofence(geoForm);
+    setGeoModalOpen(false);
+  };
 
   if (!currentUser) return null;
 
@@ -96,14 +112,79 @@ export const Overview: React.FC = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setFaceModalOpen(true)}
-          className="py-3.5 px-7 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm shadow-xl shadow-emerald-600/30 border border-white/20 flex items-center justify-center gap-2.5 shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          <Scan className="w-5 h-5 text-white animate-spin-slow" />
-          <span>Skanerni Ochish</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {(currentUser.role === 'Super Admin' || currentUser.role === 'Admin') && (
+            <button
+              onClick={() => setGeoModalOpen(true)}
+              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 transition-colors"
+              title="Lokatsiyani Sozlash"
+            >
+              <Settings className="w-5 h-5 text-white" />
+            </button>
+          )}
+          <button
+            onClick={() => setFaceModalOpen(true)}
+            className="py-3.5 px-7 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm shadow-xl shadow-emerald-600/30 border border-white/20 flex items-center justify-center gap-2.5 shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Scan className="w-5 h-5 text-white animate-spin-slow" />
+            <span>Skanerni Ochish</span>
+          </button>
+        </div>
       </div>
+
+      {geoModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-emerald-500" />
+                Lokatsiya va Geofence Sozlamalari
+              </h2>
+              <button onClick={() => setGeoModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><XCircle className="w-6 h-6" /></button>
+            </div>
+            <div className="p-5 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 block">Kenglik (Latitude)</label>
+                    <input type="number" value={geoForm.latitude} onChange={e => setGeoForm({ ...geoForm, latitude: parseFloat(e.target.value) })} className="input-field w-full" step="0.000001" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 block">Uzunlik (Longitude)</label>
+                    <input type="number" value={geoForm.longitude} onChange={e => setGeoForm({ ...geoForm, longitude: parseFloat(e.target.value) })} className="input-field w-full" step="0.000001" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 block">Radius (metr)</label>
+                    <input type="number" value={geoForm.radiusMeters} onChange={e => setGeoForm({ ...geoForm, radiusMeters: parseInt(e.target.value) })} className="input-field w-full" />
+                  </div>
+                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 mt-2">
+                    <input type="checkbox" id="sim" checked={geoForm.simulateLocation} onChange={e => setGeoForm({ ...geoForm, simulateLocation: e.target.checked })} className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500 bg-white border-slate-300" />
+                    <label htmlFor="sim" className="text-sm font-bold text-slate-700 dark:text-slate-300 select-none cursor-pointer">Simulyatsiya (Faqat test uchun. Har doim ruxsat beradi)</label>
+                  </div>
+                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <input type="checkbox" id="en" checked={geoForm.enabled} onChange={e => setGeoForm({ ...geoForm, enabled: e.target.checked })} className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500 bg-white border-slate-300" />
+                    <label htmlFor="en" className="text-sm font-bold text-slate-700 dark:text-slate-300 select-none cursor-pointer">Geofence faol (Faqat radius ichida skanerlash mumkin)</label>
+                  </div>
+                </div>
+                <div className="h-[350px] bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner relative">
+                  <LocationMapPicker
+                    latitude={geoForm.latitude}
+                    longitude={geoForm.longitude}
+                    radiusMeters={geoForm.radiusMeters}
+                    onChange={(lat, lng) => setGeoForm({ ...geoForm, latitude: lat, longitude: lng })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button onClick={() => setGeoModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Bekor qilish</button>
+                <button onClick={handleSaveGeo} className="px-5 py-2.5 rounded-xl font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" /> Saqlash
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 

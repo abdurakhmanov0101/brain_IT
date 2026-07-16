@@ -43,73 +43,68 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// Mock login API call
-export const mockLogin = async (username: string, password: string):Promise<{user: AuthUserType, token: string} | null> => {
+// ─── Login ──────────────────────────────────────────────────────────────────
+// Tizimda yagona Super Admin: avazbek / lummanazarov
+// Ustoz va o'quvchilar o'z tizimdan kiritilgan login/parollari orqali kiradi
+export const mockLogin = async (
+  username: string,
+  password: string
+): Promise<{ user: AuthUserType; token: string } | null> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // In a real app, this would be an API call verifying a hashed password.
-      const validLogins: Record<string, string> = {
-        'superadmin': 'BrainIT@2025',
-        'director': 'director123',
-        'bobur': 'bobur123',
-        'avaazbek': 'hello1212',
-        'student1': '123',
-        'teacher1': '123',
-      };
-      
-      if (validLogins[username] && (validLogins[username] === password || password === 'bobur123' || password === 'stud123' || password === 'Bobur@2025')) {
-        let role: AuthRoleType = 'Teacher';
-        let studentId: string | undefined = undefined;
-        if (username === 'superadmin') role = 'Super Admin';
-        if (username === 'director') role = 'Academy Director';
-        if (username === 'avaazbek') role = 'Super Admin';
-        if (username === 'student1') { role = 'Student'; studentId = 'st1'; }
-        if (username === 'teacher1') role = 'Teacher';
-        
-        const user: AuthUserType = {
-          id: username === 'teacher1' ? 'tr1' : `u_${username}`,
-          name: username === 'superadmin' ? 'Super Admin' : username === 'director' ? 'Feruza Salimova' : username === 'avaazbek' ? 'Avazbek' : username === 'student1' ? 'Aziz Alimov' : username === 'teacher1' ? 'Bobur Akbarov' : 'Bobur Akbarov',
-          role: role,
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
-          ...(studentId ? { studentId } : {}),
-        };
-        return resolve({ user, token: `mock_jwt_token_${Date.now()}` });
+      // ── 1. Super Admin ───────────────────────────────────────────────────
+      if (username === 'avazbek' && password === 'lummanazarov') {
+        return resolve({
+          user: {
+            id: 'superadmin_avazbek',
+            name: 'Avazbek Lummanazarov',
+            role: 'Super Admin',
+            avatar: undefined,
+          },
+          token: `jwt_${Date.now()}`,
+        });
       }
 
-      // Check Teacher store
-      const foundTeacher = useTeacherStore.getState().teachers.find(t => 
-        t.username === username && (t.password === password || password === 'bobur123' || password === 'Bobur@2025')
-      );
+      // ── 2. Ustozlar ─────────────────────────────────────────────────────
+      const foundTeacher = useTeacherStore
+        .getState()
+        .teachers.find(
+          (t) => t.username === username && t.password === password
+        );
       if (foundTeacher) {
         return resolve({
           user: {
             id: foundTeacher.id,
             name: foundTeacher.fullName,
             role: 'Teacher',
-            avatar: foundTeacher.photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+            avatar: foundTeacher.photo || undefined,
           },
-          token: `mock_jwt_token_${Date.now()}`,
+          token: `jwt_${Date.now()}`,
         });
       }
 
-      // Check Student store
-      const foundStudent = useStudentStore.getState().students.find(s => 
-        s.studentUsername === username && (s.studentPassword === password || password === 'stud123')
-      );
+      // ── 3. O'quvchilar ───────────────────────────────────────────────────
+      const foundStudent = useStudentStore
+        .getState()
+        .students.find(
+          (s) =>
+            s.studentUsername === username && s.studentPassword === password
+        );
       if (foundStudent) {
         return resolve({
           user: {
             id: `u_${foundStudent.id}`,
             name: foundStudent.fullName,
             role: 'Student',
-            avatar: foundStudent.photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop',
+            avatar: foundStudent.photo || undefined,
             studentId: foundStudent.id,
           },
-          token: `mock_jwt_token_${Date.now()}`,
+          token: `jwt_${Date.now()}`,
         });
       }
 
+      // Topilmadi
       resolve(null);
-    }, 500);
+    }, 400);
   });
 };

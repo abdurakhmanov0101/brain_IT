@@ -10,7 +10,7 @@ import { StatusBadge, type StatusType } from '../../components/common/StatusBadg
 type FormState = Omit<Staff, 'id' | 'username' | 'password'>;
 
 const emptyForm: FormState = {
-  fullName: '', phone: '', role: 'Menejer', salaryType: 'fix', fixedSalary: 0, salaryBalance: 0, hiredDate: new Date().toISOString().split('T')[0]
+  fullName: '', phone: '', role: '', salaryType: 'fix', fixedSalary: 0, salaryBalance: 0, hiredDate: new Date().toISOString().split('T')[0]
 };
 
 export const StaffModule: React.FC = () => {

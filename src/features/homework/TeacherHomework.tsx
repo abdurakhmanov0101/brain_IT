@@ -507,74 +507,79 @@ export const TeacherHomework: React.FC = () => {
             const daysLeft = Math.ceil((new Date(a.dueDate).getTime() - Date.now()) / 86400000);
 
             return (
-              <div key={a.id} className="group bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all flex flex-col gap-4">
+              <div key={a.id} className="group relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white/40 dark:border-slate-700/50 hover:border-emerald-400/60 dark:hover:border-emerald-500/50 hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-300 flex flex-col gap-5 overflow-hidden">
+                {/* Glow Effect */}
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
                 {/* Top row */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 shrink-0 mt-0.5">
-                      <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <div className="relative z-10 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20 border border-white/20">
+                      <FileText className="h-6 w-6 text-white" />
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-slate-800 dark:text-white line-clamp-2 leading-snug">{a.title}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <div className="min-w-0 pt-0.5">
+                      <h3 className="font-heading font-black text-lg text-slate-800 dark:text-white line-clamp-2 leading-tight tracking-tight">{a.title}</h3>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mt-1">
                         {course?.name ? `${course.name} · ` : ''}{groupData?.name || 'Guruh noma\'lum'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button onClick={() => { setEditing(a); setShowForm(true); }} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
+                  <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button onClick={() => { setEditing(a); setShowForm(true); }} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl transition-all shadow-sm">
                       <Edit3 className="h-4 w-4" />
                     </button>
-                    <button onClick={() => deleteAssignment(a.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors">
+                    <button onClick={() => deleteAssignment(a.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-all shadow-sm">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 flex-1">{a.description}</p>
+                <p className="relative z-10 text-sm font-medium text-slate-600 dark:text-slate-400 line-clamp-2 flex-1 leading-relaxed">{a.description}</p>
 
                 {/* Progress bar */}
-                <div>
-                  <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-1.5">
+                <div className="relative z-10">
+                  <div className="flex justify-between text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
                     <span>Topshirganlar</span>
-                    <span>{subsCount}/{groupStudentsCount}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{subsCount}/{groupStudentsCount}</span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner border border-slate-200/50 dark:border-slate-700/50">
                     <div
-                      className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-700"
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 transition-all duration-1000 shadow-[0_0_10px_rgb(52,211,153,0.5)]"
                       style={{ width: `${groupStudentsCount ? (subsCount / groupStudentsCount) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Badges + date */}
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative z-10 flex items-center gap-2 flex-wrap">
                   {pendingCount > 0 && (
-                    <span className="px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-black rounded-full flex items-center gap-1">
-                      <Clock className="h-3 w-3" />{pendingCount} kutmoqda
+                    <span className="px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-black rounded-xl flex items-center gap-1.5 shadow-sm">
+                      <Clock className="h-3.5 w-3.5" />{pendingCount} KUTMOQDA
                     </span>
                   )}
                   {gradedCount > 0 && (
-                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black rounded-full flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />{gradedCount} baholangan
+                    <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black rounded-xl flex items-center gap-1.5 shadow-sm">
+                      <CheckCircle2 className="h-3.5 w-3.5" />{gradedCount} BAHOLANGAN
                     </span>
                   )}
-                  <span className={`ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                    isOverdue ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                  <span className={`ml-auto text-[10px] font-black px-3 py-1.5 rounded-xl border shadow-sm tracking-wide ${
+                    isOverdue 
+                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' 
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                   }`}>
-                    {isOverdue ? '⚠ Muddat o\'tdi' : `${daysLeft} kun qoldi`}
+                    {isOverdue ? '⚠ MUDDAT O\'TDI' : `${daysLeft} KUN QOLDI`}
                   </span>
                 </div>
 
                 {/* Action button */}
                 <button
                   onClick={() => setSelectedAssignment(a)}
-                  className="w-full py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 dark:bg-emerald-900/20 dark:hover:bg-emerald-600 text-emerald-600 hover:text-white dark:text-emerald-400 dark:hover:text-white font-bold text-sm transition-all flex items-center justify-center gap-2 group/btn"
+                  className="relative z-10 w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm transition-all flex items-center justify-center gap-2 group/btn shadow-lg shadow-emerald-500/25 border border-white/20 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <Users className="h-4 w-4" />
+                  <Users className="h-4.5 w-4.5" />
                   Javoblarni tekshirish
-                  <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                  <ChevronRight className="h-4.5 w-4.5 group-hover/btn:translate-x-1 transition-transform" />
                 </button>
               </div>
             );

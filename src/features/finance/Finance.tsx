@@ -149,73 +149,86 @@ export const Finance: React.FC = () => {
         }
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard title="Jami daromad" value={`${fmt(totalIncome)} so'm`} icon={TrendingUp} iconColor="text-emerald-600 dark:text-emerald-400" trend={{ value: 12, label: '+12%' }} />
-        <StatCard title="Jami xarajat" value={`${fmt(totalExpense)} so'm`} icon={TrendingDown} iconColor="text-red-500" trend={{ value: 5, label: '-5%' }} />
-        <StatCard title="Sof foyda" value={`${fmt(netProfit)} so'm`} icon={DollarSign} iconColor={netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'} />
-        <StatCard title="Xarajat soni" value={expenses.length} icon={BarChart2} iconColor="text-emerald-600 dark:text-emerald-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+        <StatCard title="Jami daromad" value={`${fmt(totalIncome)} so'm`} icon={TrendingUp} iconColor="text-emerald-500" trend={{ value: 12, label: '+12%' }} />
+        <StatCard title="Jami xarajat" value={`${fmt(totalExpense)} so'm`} icon={TrendingDown} iconColor="text-rose-500" trend={{ value: 5, label: '-5%' }} />
+        <StatCard title="Sof foyda" value={`${fmt(netProfit)} so'm`} icon={DollarSign} iconColor={netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'} />
+        <StatCard title="Xarajat soni" value={expenses.length} icon={BarChart2} iconColor="text-indigo-500" />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3 bg-white/40 dark:bg-slate-900/40 p-1.5 rounded-2xl backdrop-blur-md border border-white/40 dark:border-slate-800/60 w-fit">
         {(['overview', 'students', 'expenses'] as const).map((v) => (
           <button key={v} onClick={() => setView(v)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${view === v ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+              view === v 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 scale-100' 
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800/60 scale-95 hover:scale-100'
+            }`}>
             {v === 'overview' ? 'Umumiy ko\'rinish' : v === 'students' ? 'Kirim (Kassa)' : 'Chiqim (Xarajatlar)'}
           </button>
         ))}
       </div>
 
       {view === 'overview' && (
-        <div className="space-y-5">
-          <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-            <h3 className="font-semibold text-slate-800 dark:text-white mb-5">Oylik daromad vs xarajat</h3>
-            <ResponsiveContainer width="100%" height={280}>
+        <div className="space-y-6">
+          <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-6 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.1)] transition-all duration-500">
+            <h3 className="font-heading font-black text-xl text-slate-800 dark:text-white mb-6">Oylik daromad va xarajat statistikasi</h3>
+            <ResponsiveContainer width="100%" height={320}>
               <AreaChart data={monthlyStats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => fmt(v)} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} />
-                <Legend />
-                <Area type="monotone" dataKey="income" name="Daromad" stroke="#10b981" fill="url(#colorIncome)" strokeWidth={2} />
-                <Area type="monotone" dataKey="expense" name="Xarajat" stroke="#ef4444" fill="url(#colorExpense)" strokeWidth={2} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={(v) => fmt(v)} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                  formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} 
+                />
+                <Legend iconType="circle" />
+                <Area type="monotone" dataKey="income" name="Daromad" stroke="#10b981" fill="url(#colorIncome)" strokeWidth={3} activeDot={{ r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="expense" name="Xarajat" stroke="#f43f5e" fill="url(#colorExpense)" strokeWidth={3} activeDot={{ r: 6, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><PieChartIcon className="h-4 w-4 text-emerald-500" /> Xarajat taqsimoti</h3>
-              <ResponsiveContainer width="100%" height={220}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-6 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.1)] transition-all duration-500">
+              <h3 className="font-heading font-black text-lg text-slate-800 dark:text-white mb-6 flex items-center gap-2"><PieChartIcon className="h-5 w-5 text-emerald-500" /> Xarajat taqsimoti</h3>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie data={categoryStats} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" nameKey="name" paddingAngle={3}>
+                  <Pie data={categoryStats} cx="50%" cy="50%" innerRadius={70} outerRadius={100} dataKey="value" nameKey="name" paddingAngle={5} stroke="none">
                     {categoryStats.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} />
-                  <Legend iconType="circle" iconSize={10} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                    formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} 
+                  />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-2xl p-5">
-              <h3 className="font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2"><BarChart2 className="h-4 w-4 text-emerald-500" /> Oylik foyda</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={monthlyStats.map((m) => ({ ...m, profit: m.income - m.expense }))} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tickFormatter={(v) => fmt(v)} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} />
-                  <Bar dataKey="profit" name="Foyda" radius={[6, 6, 0, 0]}>
-                    {monthlyStats.map((m, i) => <Cell key={i} fill={(m.income - m.expense) >= 0 ? '#10b981' : '#ef4444'} />)}
+            <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-6 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.1)] transition-all duration-500">
+              <h3 className="font-heading font-black text-lg text-slate-800 dark:text-white mb-6 flex items-center gap-2"><BarChart2 className="h-5 w-5 text-emerald-500" /> Oylik sof foyda</h3>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={monthlyStats.map((m) => ({ ...m, profit: m.income - m.expense }))} margin={{ top: 5, right: 10, left: 0, bottom: 5 }} barSize={32}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={false} />
+                  <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={(v) => fmt(v)} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                    formatter={(v) => [`${Number(v).toLocaleString()} so'm`]} 
+                  />
+                  <Bar dataKey="profit" name="Foyda" radius={[8, 8, 8, 8]}>
+                    {monthlyStats.map((m, i) => <Cell key={i} fill={(m.income - m.expense) >= 0 ? '#10b981' : '#f43f5e'} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

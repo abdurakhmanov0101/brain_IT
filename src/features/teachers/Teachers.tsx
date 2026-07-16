@@ -4,10 +4,12 @@ import { useTeacherStore, type Teacher } from '../../stores/teacherStore';
 import { useStudentStore } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useCourseStore } from '../../stores/courseStore';
+import { useContractStore } from '../../stores/contractStore';
 import { useUIStore } from '../../stores/uiStore';
 import { Badge, statusBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { Modal } from '../../components/Modal';
+import { printEmployeeContractPDF } from '../../utils/printContractPDF';
 
 type FormState = Omit<Teacher, 'id'>;
 
@@ -34,6 +36,7 @@ export const Teachers: React.FC = () => {
   const { students } = useStudentStore();
   const { groups } = useGroupStore();
   const { courses } = useCourseStore();
+  const { contracts } = useContractStore();
   const { addToast } = useUIStore();
 
   const [search, setSearch] = useState('');
@@ -61,7 +64,8 @@ export const Teachers: React.FC = () => {
 
   const openAdd = () => { setForm(emptyForm); setEditId(null); setAddOpen(true); };
   const openEdit = (t: Teacher) => {
-    const { id: _id, ...rest } = t;
+    const { id: _unused, ...rest } = t;
+    void _unused;
     setForm(rest);
     setEditId(t.id);
     setAddOpen(true);
@@ -382,6 +386,7 @@ export const Teachers: React.FC = () => {
           const tGroups   = getTeacherGroups(detailTeacher);
           const tStudents = getTeacherStudents(detailTeacher);
           const tCourses  = courses.filter((c) => detailTeacher.courseIds.includes(c.id));
+          const tContracts = contracts.filter((c) => c.employeeId === detailTeacher.id && c.type === 'employee');
           return (
             <div className="space-y-5">
               <div className="flex items-center gap-4">
@@ -449,6 +454,38 @@ export const Teachers: React.FC = () => {
                         <span className={`text-xs font-semibold ${s.balance < 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
                           {s.balance.toLocaleString()} so'm
                         </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {tContracts.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Mehnat shartnomalari</p>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {tContracts.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 rounded-xl px-3 py-2">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800 dark:text-white">№ {c.contractNumber || c.id.slice(-6)}</p>
+                          <p className="text-xs text-slate-400">{c.startDate} dan {c.contractDurationYears} yilga</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            printEmployeeContractPDF({
+                              contractNo: c.contractNumber || c.id.slice(-6),
+                              employeeName: detailTeacher.fullName,
+                              position: c.position || detailTeacher.specialization,
+                              startDate: c.startDate,
+                              contractDurationYears: c.contractDurationYears || 1,
+                              salaryAmount: c.salaryAmount || 0,
+                              signedDate: c.signedDate || c.startDate,
+                            });
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                        >
+                          Chop etish
+                        </button>
                       </div>
                     ))}
                   </div>

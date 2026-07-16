@@ -116,50 +116,53 @@ export const CoinPanel: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* ─── MODERN COMPACT HEADER ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Main Balance Card */}
-        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm premium-card-shadow">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none" />
+        <div className="lg:col-span-2 relative overflow-hidden rounded-[2.5rem] bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-sm hover:shadow-[0_8px_30px_rgb(245,158,11,0.15)] transition-all duration-500 group">
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
           
-          <div className="relative flex items-center gap-5 z-10">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/50 shadow-lg shadow-amber-500/20">
-              <Coins className="h-8 w-8 text-white" />
+          <div className="relative flex items-center gap-6 z-10">
+            <div className="w-20 h-20 rounded-[1.5rem] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-500 flex items-center justify-center shrink-0 border border-white/30 shadow-[0_0_20px_rgb(245,158,11,0.4)] animate-pulse-slow">
+              <Coins className="h-10 w-10 text-white drop-shadow-md" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">Mening Tangalarim</p>
-              <h1 className="font-heading font-black text-4xl text-slate-800 dark:text-white leading-none">
+              <p className="text-[11px] font-black uppercase tracking-widest text-amber-600/80 dark:text-amber-400/80 mb-1.5 drop-shadow-sm">Mening Tangalarim</p>
+              <h1 className="font-heading font-black text-5xl text-slate-800 dark:text-white leading-none tracking-tighter">
                 {myBalance.toLocaleString()}
-                <span className="text-xl text-amber-500 ml-1 font-bold">🪙</span>
+                <span className="text-3xl text-amber-500 ml-2 font-bold drop-shadow-md">🪙</span>
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">{currentUser.name} · {currentUser.role}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-bold bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full w-fit backdrop-blur-md">{currentUser.name} · {currentUser.role}</p>
             </div>
           </div>
           
           {isTeacher && (
-            <div className="shrink-0 relative z-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold rounded-xl border border-amber-200 dark:border-amber-500/20">
-              <Zap className="h-4 w-4" /> Auto-Refill yoniq!
+            <div className="shrink-0 relative z-10 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-700 dark:text-amber-400 font-bold rounded-2xl border border-amber-200/50 dark:border-amber-500/30 shadow-sm">
+              <Zap className="h-4 w-4 animate-bounce" /> Auto-Refill yoniq!
             </div>
           )}
         </div>
 
         {/* Right: Bento Stats */}
-        <div className="grid grid-cols-2 gap-3 lg:col-span-1">
+        <div className="grid grid-cols-2 gap-4 lg:col-span-1">
           {/* Earned */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
-            <div className="p-2 rounded-xl mb-2 bg-emerald-50 dark:bg-emerald-500/10">
-              <ArrowDownRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="relative overflow-hidden bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.15)] transition-all duration-500 group">
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="p-3 rounded-2xl mb-3 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 shadow-inner">
+              <ArrowDownRight className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1">+{earned.toLocaleString()}</p>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Tushgan</p>
+            <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-none mb-1.5 drop-shadow-sm">+{earned.toLocaleString()}</p>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tushgan</p>
           </div>
 
           {/* Spent */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
-            <div className="p-2 rounded-xl mb-2 bg-rose-50 dark:bg-rose-500/10">
-              <ArrowUpRight className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+          <div className="relative overflow-hidden bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-[0_8px_30px_rgb(244,63,94,0.15)] transition-all duration-500 group">
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="p-3 rounded-2xl mb-3 bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40 shadow-inner">
+              <ArrowUpRight className="h-6 w-6 text-rose-600 dark:text-rose-400" />
             </div>
-            <p className="text-2xl font-black text-rose-600 dark:text-rose-400 leading-none mb-1">-{spent.toLocaleString()}</p>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Ketgan</p>
+            <p className="text-3xl font-black text-rose-600 dark:text-rose-400 leading-none mb-1.5 drop-shadow-sm">-{spent.toLocaleString()}</p>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ketgan</p>
           </div>
         </div>
       </div>
@@ -169,8 +172,8 @@ export const CoinPanel: React.FC = () => {
 
         {/* --- SEND COINS (Admin/Teacher) --- */}
         {(isAdmin || isTeacher) && (
-          <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm">
-            <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+          <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] p-8 shadow-sm hover:shadow-[0_8px_30px_rgb(245,158,11,0.1)] transition-all duration-500">
+            <h3 className="font-heading font-black text-xl text-slate-800 dark:text-white mb-6 flex items-center gap-2">
               <Send className="h-5 w-5 text-amber-500" /> Tanga Yuborish
             </h3>
 
@@ -284,19 +287,19 @@ export const CoinPanel: React.FC = () => {
         )}
 
         {/* --- RIGHT PANEL: Rules + Leaderboard --- */}
-        <div className={`${isAdmin || isTeacher ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-5`}>
+        <div className={`${isAdmin || isTeacher ? 'lg:col-span-2' : 'lg:col-span-3'} space-y-6`}>
 
           {/* Tabs */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl w-fit">
+          <div className="flex bg-white/40 dark:bg-slate-900/40 p-1.5 rounded-2xl backdrop-blur-md border border-white/40 dark:border-slate-800/60 w-fit shadow-sm">
             <button
               onClick={() => setActiveTab('rules')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'rules' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${activeTab === 'rules' ? 'bg-white/80 dark:bg-slate-700/80 text-amber-600 dark:text-amber-400 shadow-md scale-100' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white scale-95 hover:scale-100'}`}
             >
               <Award className="h-4 w-4" /> Tanga Qoidalari
             </button>
             <button
               onClick={() => setActiveTab('leaderboard')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'leaderboard' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${activeTab === 'leaderboard' ? 'bg-white/80 dark:bg-slate-700/80 text-amber-600 dark:text-amber-400 shadow-md scale-100' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white scale-95 hover:scale-100'}`}
             >
               <TrendingUp className="h-4 w-4" /> Reyting
             </button>
@@ -308,7 +311,7 @@ export const CoinPanel: React.FC = () => {
                 const Icon = section.icon;
                 const colors = colorMap[section.color];
                 return (
-                  <div key={i} className="bg-white dark:bg-slate-800/50 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                  <div key={i} className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white/40 dark:border-slate-700/50 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-all duration-500">
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold mb-4 border ${colors}`}>
                       <Icon className="h-4 w-4" />
                       {section.title}
@@ -339,7 +342,7 @@ export const CoinPanel: React.FC = () => {
           )}
 
           {activeTab === 'leaderboard' && (
-            <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] border border-white/40 dark:border-slate-700/50 shadow-sm overflow-hidden">
               <div className="p-5 border-b border-slate-100 dark:border-slate-700/50">
                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-amber-500" /> O'quvchilar Reytingi (Top 10)
@@ -372,8 +375,8 @@ export const CoinPanel: React.FC = () => {
       </div>
 
       {/* Transaction History */}
-      <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700/50">
+      <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 rounded-[2rem] shadow-sm overflow-hidden mb-10 hover:shadow-[0_8px_30px_rgba(0,0,0,0.05)] transition-all duration-500">
+        <div className="flex items-center justify-between p-6 border-b border-slate-100/50 dark:border-slate-700/50">
           <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
             <History className="h-5 w-5 text-emerald-500" /> Tranzaksiya Tarixi
           </h3>

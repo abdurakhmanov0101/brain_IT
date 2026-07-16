@@ -1,16 +1,29 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export type ContractType = 'student' | 'employee';
+
 export interface Contract {
   id: string;
-  studentId: string;
-  courseId: string;
+  type: ContractType;
+  // For student contracts
+  studentId?: string;
+  courseId?: string;
+  parentName?: string;
+  // For employee contracts
+  employeeId?: string;  // teacher id
+  position?: string;
+  salaryAmount?: number;
+  contractDurationYears?: number;
+  // Shared
   startDate: string;
   endDate: string;
   totalPrice: number;
   status: 'active' | 'expired' | 'pending';
   signedDate?: string;
   leadId?: string;
+  // Contract number
+  contractNumber?: string;
 }
 
 interface ContractState {
@@ -36,6 +49,6 @@ export const useContractStore = create<ContractState>()(
       })),
       deleteContract: (id) => set((s) => ({ contracts: s.contracts.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-contracts-prod-v3' }
+    { name: 'brain-it-contracts-prod-v4' }
   )
 );

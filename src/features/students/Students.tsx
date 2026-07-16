@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound, ChevronLeft, ChevronRight, Send, MessageSquare, FileText, Download, PlusCircle, X as XIcon } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { printStudentContractPDF } from '../../utils/printContractPDF';
+import { Users, Plus, Search, Phone, AlertTriangle, CreditCard, Copy, CheckCheck, KeyRound, ChevronLeft, ChevronRight, Send, MessageSquare, FileText, Download, PlusCircle, X as XIcon, FileSignature, ShieldCheck, ScrollText } from 'lucide-react';
 import { useStudentStore, genStudentUsername, genParentUsername } from '../../stores/studentStore';
 import { useGroupStore } from '../../stores/groupStore';
 import { useTeacherStore } from '../../stores/teacherStore';
@@ -64,7 +65,7 @@ export const Students: React.FC = () => {
 
   // ─── SMART CONTRACT SYSTEM ────────────────────────────────────────────────
   const [contractStudentId, setContractStudentId] = useState<string | null>(null);
-  const [contractOverride, setContractOverride] = useState<{ totalPrice?: string; endDate?: string; status?: 'active' | 'pending' | 'expired' }>({});
+  const [contractOverride, setContractOverride] = useState<{ totalPrice?: string; endDate?: string; status?: 'active' | 'pending' | 'expired' }>({}); 
 
   const getStudentContract = (studentId: string) => contracts.find(c => c.studentId === studentId);
 
@@ -143,68 +144,47 @@ export const Students: React.FC = () => {
     const student = students.find(s => s.id === studentId);
     const contract = getStudentContract(studentId);
     const course = courses.find(c => c.id === contract?.courseId);
-    const studentGroup = groups.find(g => student?.groupIds.includes(g.id) && g.courseId === contract?.courseId);
-    if (!student || !contract) return;
+    if (!student || !contract) {
+      addToast({ type: 'error', message: "Shartnoma topilmadi!" });
+      return;
+    }
 
-    const contractNum = contract.id.toUpperCase();
-    const today = new Date().toLocaleDateString('uz-UZ');
+    const contractNum = (contract as any).contractNumber ?? contract.id.slice(-6).toUpperCase();
+    const months = Math.max(1, Math.ceil(
+      (new Date(contract.endDate).getTime() - new Date(contract.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)
+    ));
+    const totalPrice = Number(contract.totalPrice);
+    const monthlyPrice = course?.monthlyPrice ?? Math.round(totalPrice / months);
+    const lessonPrice = course?.lessonPrice ?? 0;
+    const durationMonths = course?.durationMonths ?? months;
+    const lessonsPerWeek = course?.lessonsPerWeek ?? 3;
 
-    const content = [
-      `BRAIN IT ACADEMY — O'QUV SHARTNOMASI`,
-      `${'═'.repeat(55)}`,
-      ``,
-      `Shartnoma raqami : ${contractNum}`,
-      `Tuzilgan sana    : ${contract.signedDate || contract.startDate}`,
-      `Holat            : ${contract.status === 'active' ? '✅ FAOL' : contract.status === 'expired' ? '❌ MUDDATI TUGAGAN' : '⏳ KUTILMOQDA'}`,
-      ``,
-      `${'─'.repeat(55)}`,
-      `👤  O'QUVCHI MA'LUMOTLARI`,
-      `${'─'.repeat(55)}`,
-      `Ism-familiya     : ${student.fullName}`,
-      `Telefon          : ${student.phone}`,
-      `Ota-ona          : ${student.parentName || '—'}`,
-      `Ota-ona telefoni : ${student.parentPhone}`,
-      ``,
-      `${'─'.repeat(55)}`,
-      `📚  TA'LIM MA'LUMOTLARI`,
-      `${'─'.repeat(55)}`,
-      `Kurs nomi        : ${course?.name || contract.courseId}`,
-      `Guruh            : ${studentGroup?.name || '—'}`,
-      `Dars kunlari     : ${studentGroup?.schedule.days.join(', ') || '—'}`,
-      `Dars vaqti       : ${studentGroup?.schedule.time || '—'}`,
-      `Kurs davomiyligi : ${course?.durationMonths || '—'} oy`,
-      ``,
-      `${'─'.repeat(55)}`,
-      `💰  MOLIYAVIY SHARTLAR`,
-      `${'─'.repeat(55)}`,
-      `Oylik to'lov     : ${course?.monthlyPrice.toLocaleString() || '—'} so'm`,
-      `Bir dars narxi   : ${course?.lessonPrice.toLocaleString() || '—'} so'm`,
-      `Boshlanish       : ${contract.startDate}`,
-      `Tugash           : ${contract.endDate}`,
-      `Jami summa       : ${Number(contract.totalPrice).toLocaleString()} so'm`,
-      ``,
-      `${'─'.repeat(55)}`,
-      `📋  IMZOLAR`,
-      `${'─'.repeat(55)}`,
-      ``,
-      `O'quvchi: ${student.fullName}`,
-      `Imzo: ______________________    Sana: __________`,
-      ``,
-      `Akademiya vakili:`,
-      `Imzo: ______________________    Muhr: __________`,
-      ``,
-      `${'═'.repeat(55)}`,
-      `Brain IT Academy | Yaratilgan: ${today}`,
-    ].join('\n');
+    // Find the student's group for this course
+    const studentGroup = groups.find(g =>
+      student.groupIds.includes(g.id) && g.courseId === contract.courseId
+    );
 
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Shartnoma_${student.fullName.replace(/\s+/g, '_')}_${contractNum}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addToast({ type: 'success', message: 'Shartnoma yuklab olindi!' });
+    printStudentContractPDF({
+      contractNo: contractNum,
+      studentName: student.fullName,
+      parentName: student.parentName ?? '',
+      studentPhone: student.phone,
+      parentPhone: student.parentPhone ?? '',
+      courseName: course?.name ?? contract.courseId ?? '',
+      durationMonths,
+      lessonsPerWeek,
+      monthlyPrice,
+      lessonPrice,
+      totalPrice,
+      startDate: contract.startDate,
+      endDate: contract.endDate,
+      signedDate: (contract as any).signedDate ?? contract.startDate,
+      groupName: studentGroup?.name,
+      groupDays: studentGroup?.schedule?.days?.join(', '),
+      groupTime: studentGroup?.schedule?.time,
+    });
+
+    addToast({ type: 'success', message: 'Shartnoma yangi oynada ochildi. PDF sifatida saqlang!' });
   };
 
   // Teacher sees their students or fallback
@@ -257,7 +237,7 @@ export const Students: React.FC = () => {
       parentPhone: addForm.parentPhone,
       parentName: addForm.parentName,
     });
-    addToast({ type: 'success', message: `${addForm.fullName} qo'shildi! Ota-onaga Telegram havolasini yuboring.` });
+    addToast({ type: 'success', message: `${addForm.fullName} qo'shildi! Ota-onasiga xabarnoma avtomatik yuborildi.` });
     setAddForm({ fullName: '', phone: '', parentPhone: '', parentName: '', groupIds: [], teacherId: isTeacher ? (currentUser?.id ?? '') : '', leadSource: 'Instagram', status: 'active' });
     setAddOpen(false);
   };
@@ -366,20 +346,20 @@ export const Students: React.FC = () => {
                         if (contract) {
                           return (
                             <div className="flex items-center gap-1.5">
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm transition-all duration-200 ${
                                 contract.status === 'active'
-                                  ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                  ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                                   : contract.status === 'expired'
-                                  ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
-                                  : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                                  ? 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'
+                                  : 'bg-amber-100/80 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
                               }`}>
-                                <FileText className="h-2.5 w-2.5" />
+                                <ShieldCheck className="h-3 w-3" />
                                 {contract.status === 'active' ? 'Faol' : contract.status === 'expired' ? 'Tugagan' : 'Kutilmoqda'}
                               </span>
                               <button
                                 onClick={() => handleDownloadContract(student.id)}
                                 title="Shartnomani yuklab olish"
-                                className="p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-400 bg-slate-50 dark:bg-slate-800/50 hover:text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800"
                               >
                                 <Download className="h-3.5 w-3.5" />
                               </button>
@@ -389,9 +369,9 @@ export const Students: React.FC = () => {
                         return (
                           <button
                             onClick={() => setContractStudentId(student.id)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-800 hover:text-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-600 transition-all shadow-sm hover:shadow-md"
                           >
-                            <PlusCircle className="h-2.5 w-2.5" /> Shartnoma
+                            <FileSignature className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" /> Shartnoma
                           </button>
                         );
                       })()}
@@ -530,7 +510,7 @@ export const Students: React.FC = () => {
               <div>
                 <p className="text-xs font-bold text-blue-700 dark:text-blue-400">Telegram xabarnomasi</p>
                 <p className="text-[11px] text-blue-600 dark:text-blue-500 mt-0.5">
-                  O'quvchi yaratilgandan so'ng ota-onaga Telegram ulanish havolasi ko'rsatiladi. Ularni WhatsApp orqali bir marta yuborasiz — keyingi barcha davomat xabarlari avtomatik boradi.
+                  O'quvchi yaratilgandan so'ng tizim avtomatik tarzda ota-onaga Telegram orqali xabarnoma yuboradi. Barcha davomat xabarlari avtomatik tarzda boradi.
                 </p>
               </div>
             </div>
@@ -553,17 +533,6 @@ export const Students: React.FC = () => {
 
       <Modal open={!!createdCreds} onClose={() => setCreatedCreds(null)} title="O'quvchi qo'shildi ✅" size="md">
         {createdCreds && (() => {
-          const botLink = `https://t.me/BIT_nazorat_bot?start=${createdCreds.studentId}`;
-          const waText = encodeURIComponent(
-            `Assalomu alaykum! Siz ${createdCreds.fullName}ning ota-onasisiz.\n\n` +
-            `Brain IT Academy davomat tizimimizda farzandingiz davomati haqida Telegram xabarnomalari olish uchun quyidagi havolani bosing:\n\n` +
-            `${botLink}\n\n` +
-            `(Havola bosilgandan so'ng "START" tugmasi bosing. Keyingi barcha xabarlar avtomatik keladi)\n\n` +
-            `Brain IT Academy`
-          );
-          const phoneClean = createdCreds.parentPhone.replace(/\D/g, '');
-          const waLink = `https://wa.me/${phoneClean}?text=${waText}`;
-          const tgLink = `https://t.me/${phoneClean}`;
           return (
             <div className="space-y-4">
               {/* Success Banner */}
@@ -571,50 +540,7 @@ export const Students: React.FC = () => {
                 <div className="text-2xl">🎉</div>
                 <div>
                   <p className="font-bold text-emerald-700 dark:text-emerald-400">{createdCreds.fullName} tizimga qo'shildi!</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-500">Ota-onaga Telegram ulanish havolasini yuboring</p>
-                </div>
-              </div>
-
-              {/* Telegram Bot Link - Primary Action */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-4">
-                <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Send className="h-3.5 w-3.5" /> Ota-onaga yuborish uchun Telegram havolasi
-                </p>
-                <p className="text-[10px] text-blue-600 dark:text-blue-500 mb-3">
-                  Ota-ona ushbu havolani bosib, botga ulanadi. Shundan so'ng barcha davomat xabarlari avtomatik boradi.
-                </p>
-                {/* Link display */}
-                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 rounded-xl px-3 py-2 mb-3">
-                  <span className="text-xs font-mono text-slate-600 dark:text-slate-300 truncate flex-1">{botLink}</span>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(botLink); addToast({ type: 'success', message: 'Havola nusxalandi!' }); }}
-                    className="shrink-0 p-1 rounded text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                {/* Share Buttons */}
-                <div className="flex gap-2">
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1ebe57] text-white text-xs font-bold transition-colors shadow-sm"
-                  >
-                    <span className="text-base">📱</span> WhatsApp orqali yuborish
-                  </a>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `Assalomu alaykum! Farzandingiz ${createdCreds.fullName} Brain IT Academyga qo'shildi.\n` +
-                        `Davomat xabarnomalarini olish uchun ushbu havolani bosing: ${botLink}`
-                      );
-                      addToast({ type: 'success', message: 'Xabar matn nusxalandi!' });
-                    }}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-200 transition-colors"
-                  >
-                    <Copy className="h-3.5 w-3.5" /> Xabarni nusxalash
-                  </button>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-500">Ota-onasiga tizim tomonidan avtomatik xabarnoma yuborildi ✅</p>
                 </div>
               </div>
 
@@ -686,14 +612,11 @@ export const Students: React.FC = () => {
                     <Send className="h-3 w-3" /> Telegram ulangan ✅
                   </div>
                 ) : (
-                  <a
-                    href={`https://t.me/BIT_nazorat_bot?start=${detailStudent.id}`}
-                    target="_blank"
-                    rel="noreferrer"
+                  <div
                     className="mt-1 flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-blue-600 transition-colors"
                   >
-                    <Send className="h-3 w-3" /> Telegram'ga ulash havolasi
-                  </a>
+                    <Send className="h-3 w-3" /> Telegram xabarnoma faol ✅
+                  </div>
                 )}
               </div>
               {statusBadge(detailStudent.status)}
@@ -772,13 +695,13 @@ export const Students: React.FC = () => {
             {/* Shartnoma bo'limi */}
             <div className="border-t border-slate-100 dark:border-dark-border pt-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Shartnoma</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><ScrollText className="h-3.5 w-3.5" /> Shartnoma</p>
                 {!getStudentContract(detailStudent.id) && (
                   <button
                     onClick={() => { setDetailOpen(null); setContractStudentId(detailStudent.id); }}
-                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                    className="group text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 dark:bg-emerald-900/20 dark:hover:bg-emerald-600 px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
                   >
-                    <PlusCircle className="h-3.5 w-3.5" /> Yaratish
+                    <PlusCircle className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform" /> Yaratish
                   </button>
                 )}
               </div>
@@ -787,36 +710,37 @@ export const Students: React.FC = () => {
                 const course = courses.find(c => c.id === contract?.courseId);
                 if (!contract) {
                   return (
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 text-center">
-                      <FileText className="h-6 w-6 text-slate-300 mx-auto mb-1" />
-                      <p className="text-xs text-slate-400">Shartnoma yo'q</p>
+                    <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-xl p-4 text-center">
+                      <ScrollText className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-50" />
+                      <p className="text-xs font-medium text-slate-400">Shartnoma rasmiylashtirilmagan</p>
                     </div>
                   );
                 }
                 return (
-                  <div className={`rounded-xl p-3 border ${
+                  <div className={`rounded-xl p-3.5 border transition-all hover:shadow-sm ${
                     contract.status === 'active'
-                      ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                      ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800'
                       : contract.status === 'expired'
-                      ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
-                      : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                      ? 'bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800'
+                      : 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'
                   }`}>
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <p className="text-xs font-bold text-slate-700 dark:text-slate-200">Kurs: {course?.name || contract.courseId}</p>
-                        <p className="text-[11px] text-slate-500">{contract.startDate} — {contract.endDate}</p>
-                        <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">{Number(contract.totalPrice).toLocaleString()} so'm</p>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          contract.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                          : contract.status === 'expired' ? 'bg-rose-100 text-rose-600'
-                          : 'bg-amber-100 text-amber-600'
+                        <p className="text-[11px] text-slate-500 font-medium">{contract.startDate} — {contract.endDate}</p>
+                        <p className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 tracking-wide">{Number(contract.totalPrice).toLocaleString()} so'm</p>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          contract.status === 'active' ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                          : contract.status === 'expired' ? 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'
+                          : 'bg-amber-100/80 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
                         }`}>
+                          <ShieldCheck className="h-3 w-3" />
                           {contract.status === 'active' ? 'Faol' : contract.status === 'expired' ? 'Tugagan' : 'Kutilmoqda'}
                         </span>
                       </div>
                       <button
                         onClick={() => handleDownloadContract(detailStudent.id)}
-                        className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-slate-500 hover:text-emerald-600 transition-colors"
+                        className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all shadow-sm"
                         title="Shartnomani yuklab olish"
                       >
                         <Download className="h-4 w-4" />

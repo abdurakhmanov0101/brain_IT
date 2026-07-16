@@ -72,56 +72,72 @@ export const Market: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between glass premium-inner-glow p-5 lg:p-6 rounded-3xl">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner" style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}>
-            <ShoppingBag className="h-6 w-6 text-white" />
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700/50 p-8 shadow-sm hover:shadow-[0_8px_30px_rgb(16,185,129,0.15)] transition-all duration-500 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between group">
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="h-20 w-20 rounded-[1.5rem] bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-[0_0_20px_rgb(16,185,129,0.4)] border border-white/30 shrink-0">
+            <ShoppingBag className="h-10 w-10 text-white drop-shadow-md" />
           </div>
           <div>
-            <h1 className="font-heading font-black text-2xl text-slate-800 dark:text-white">Brain IT Market</h1>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">O'z tangalaringizga zo'r narsalar xarid qiling!</p>
+            <h1 className="font-heading font-black text-4xl text-slate-800 dark:text-white tracking-tight drop-shadow-sm">Brain IT Market</h1>
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mt-2 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full w-fit backdrop-blur-md">O'z tangalaringizga zo'r narsalar xarid qiling!</p>
           </div>
         </div>
-        {isStudent && (
-          <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 px-5 py-3 rounded-2xl">
-            <Coins className="h-6 w-6 text-amber-500" />
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Balansingiz</span>
-              <span className="font-black text-xl text-amber-500 leading-none">{myCoins}</span>
+        
+        <div className="relative z-10 flex flex-wrap items-center gap-4">
+          {isStudent && (
+            <div className="flex items-center gap-4 bg-amber-500/10 border border-amber-500/20 px-6 py-3.5 rounded-2xl shadow-inner">
+              <Coins className="h-8 w-8 text-amber-500 drop-shadow-md animate-pulse-slow" />
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-black text-amber-600/70 dark:text-amber-400/70 tracking-widest">Balansingiz</span>
+                <span className="font-black text-2xl text-amber-500 leading-none drop-shadow-sm">{myCoins}</span>
+              </div>
             </div>
-          </div>
-        )}
-        {isAdmin && (
-          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-500/25">
-            <Plus className="h-5 w-5" /> Mahsulot qo'shish
-          </button>
-        )}
+          )}
+          {isAdmin && (
+            <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-6 py-3.5 rounded-2xl font-black transition-all shadow-lg shadow-emerald-500/25 border border-white/20 hover:scale-105 active:scale-95">
+              <Plus className="h-5 w-5" /> Mahsulot qo'shish
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {items.map(item => (
-          <motion.div key={item.id} whileHover={{ y: -5 }} className="glass premium-card rounded-2xl overflow-hidden flex flex-col relative group">
-            <div className="h-48 w-full bg-slate-200 dark:bg-slate-800 relative overflow-hidden">
-              <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
-                <Coins className="h-3.5 w-3.5 text-amber-400" /> {item.price}
+          <motion.div key={item.id} whileHover={{ y: -8 }} className="group relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2rem] overflow-hidden flex flex-col border border-white/40 dark:border-slate-700/50 hover:border-emerald-400/60 dark:hover:border-emerald-500/50 hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10" />
+            
+            <div className="h-56 w-full bg-slate-200 dark:bg-slate-800 relative overflow-hidden shrink-0">
+              <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-black px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-lg">
+                <Coins className="h-4 w-4 text-amber-400 drop-shadow-md" /> {item.price}
               </div>
             </div>
-            <div className="p-5 flex-1 flex flex-col">
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight mb-2">{item.name}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 flex-1 line-clamp-2">{item.description}</p>
+            
+            <div className="p-6 flex-1 flex flex-col relative z-20">
+              <h3 className="font-heading font-black text-xl text-slate-800 dark:text-white leading-tight mb-2 drop-shadow-sm">{item.name}</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed">{item.description}</p>
               
               <div className="flex items-center justify-between mt-auto">
-                <span className="text-xs font-bold text-slate-400">Qoldi: {item.stock} ta</span>
+                <span className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                  Qoldi: {item.stock} ta
+                </span>
+                
                 {isStudent && (
-                  <button onClick={() => handleBuy(item)} disabled={item.stock <= 0} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${item.stock > 0 ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg hover:shadow-emerald-500/25' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
+                  <button onClick={() => handleBuy(item)} disabled={item.stock <= 0} className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-sm ${
+                    item.stock > 0 
+                      ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95' 
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                  }`}>
                     Sotib olish
                   </button>
                 )}
                 {isAdmin && (
-                  <button onClick={() => deleteItem(item.id)} className="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-colors">
-                    <Trash className="h-4 w-4" />
+                  <button onClick={() => deleteItem(item.id)} className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-colors shadow-sm">
+                    <Trash className="h-5 w-5" />
                   </button>
                 )}
               </div>
