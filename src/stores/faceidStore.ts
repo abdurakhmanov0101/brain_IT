@@ -35,6 +35,6 @@ export const useFaceidStore = create<FaceIDState>()(
       addLog: (log) => set((state) => ({ logs: [log, ...state.logs] })),
       updateGeofence: (config) => set((state) => ({ geofence: { ...state.geofence, ...config } })),
     }),
-    { name: 'brain-it-faceidStore-v11' }
+    { name: 'brain-it-faceidStore-v12' }
   )
 );

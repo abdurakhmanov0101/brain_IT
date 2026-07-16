@@ -90,7 +90,7 @@ export const useInClassTaskStore = create<InClassTaskState>()(
       }))
     }),
     {
-      name: 'brain-it-inClassTaskStore-v11'
+      name: 'brain-it-inClassTaskStore-v12'
     }
   )
 );

@@ -42,6 +42,6 @@ export const useStaffStore = create<StaffState>()(
       })),
       deleteStaff: (id) => set((state) => ({ staffList: state.staffList.filter((stf) => stf.id !== id) })),
     }),
-    { name: 'brain-it-staffStore-v11' }
+    { name: 'brain-it-staffStore-v12' }
   )
 );

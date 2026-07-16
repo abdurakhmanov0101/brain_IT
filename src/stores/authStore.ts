@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user, token) => set({ currentUser: user, token }),
       logout: () => set({ currentUser: null, token: null }),
     }),
-    { name: 'brain-it-authStore-v11' }
+    { name: 'brain-it-authStore-v12' }
   )
 );
 
@@ -56,7 +56,7 @@ export const mockLogin = async (
       if (username === 'avazbek' && password === 'jummanazarov') {
         return resolve({
           user: {
-            id: 'superadmin_avazbek',
+            id: 'u_superadmin',
             name: 'Avazbek Jummanazarov',
             role: 'Super Admin',
             avatar: undefined,

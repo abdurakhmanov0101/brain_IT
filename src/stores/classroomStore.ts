@@ -102,6 +102,6 @@ export const useClassroomStore = create<ClassroomState>()(
         return get().lessons.filter((l) => l.groupId === groupId);
       },
     }),
-    { name: 'brain-it-classroomStore-v11' }
+    { name: 'brain-it-classroomStore-v12' }
   )
 );
