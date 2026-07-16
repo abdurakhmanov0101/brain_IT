@@ -98,71 +98,14 @@ const firstNames = ['Aziz', 'Malika', 'Sherzod', 'Dilnoza', 'Jasur', 'Kamola', '
 const lastNames = ['Alimov', 'Sobirova', 'Umarov', 'Rahimova', 'Toshmatov', 'Yusupova', 'Nazarov', 'Hasanova', 'Qodirov', 'Ismoilova', 'Bekmurodov', 'Razzaqova', 'Valiyev', 'Ergasheva', 'Sobirov', 'Mirova', 'Xolmatov', 'Abdullayeva', 'Normatov', 'Tursunova'];
 
 const generateStudents = (): InitStudent[] => {
-  const list: InitStudent[] = [];
-  let studentCount = 1;
-  
-  // 10 groups
-  for (let gNum = 1; gNum <= 10; gNum++) {
-    const groupId = `g${gNum}`;
-    const teacherId = gNum <= 5 ? 'tr1' : 'tr2'; // Bobur for first 5, Jasur for next 5
-    
-    // 10 students per group
-    for (let sNum = 1; sNum <= 10; sNum++) {
-      const id = `st${studentCount}`;
-      const fName = firstNames[(studentCount - 1) % firstNames.length];
-      const lName = lastNames[(studentCount * 3) % lastNames.length];
-      const fullName = `${fName} ${lName}`;
-      
-      const phoneDigits = (1000000 + studentCount).toString();
-      const parentPhoneDigits = (2000000 + studentCount).toString();
-      const phone = `+99890${phoneDigits}`;
-      const parentPhone = `+99890${parentPhoneDigits}`;
-      
-      list.push({
-        id,
-        fullName,
-        phone,
-        parentPhone,
-        photo: photos[(studentCount - 1) % photos.length],
-        groupIds: [groupId],
-        teacherId,
-        balance: 3000000 - ((studentCount % 4) * 500000),
-        leadSource: sNum % 3 === 0 ? 'Instagram' : sNum % 3 === 1 ? 'Telegram' : 'Tavsiya',
-        enrolledDate: '2026-02-01',
-        status: 'active'
-      });
-      
-      studentCount++;
-    }
-  }
-  return list;
+  return [];
 };
 
 const rawStudents: InitStudent[] = generateStudents();
 
-const initialStudents: Student[] = rawStudents.map((s) => ({
-  ...s,
-  studentUsername: genStudentUsername(s.fullName, s.phone),
-  studentPassword: phonePass(s.phone),
-  parentUsername: genParentUsername(s.fullName, s.parentPhone),
-  parentPassword: phonePass(s.parentPhone),
-  coins: 0,
-}));
+const initialStudents: Student[] = [];
 
-const initialPayments: Payment[] = [
-  { id: 'pay1', studentId: 'st1', amount: 4000000, type: 'payme', date: '2026-04-01', receivedBy: 'Feruza Salimova', note: "Aprel oyi to'lovi" },
-  { id: 'pay2', studentId: 'st2', amount: 4000000, type: 'cash', date: '2026-04-03', receivedBy: 'Admin', note: "Aprel to'lov" },
-  { id: 'pay3', studentId: 'st3', amount: 4500000, type: 'click', date: '2026-04-05', receivedBy: 'Feruza Salimova', note: 'Aprel oyi' },
-  { id: 'pay4', studentId: 'st4', amount: 4500000, type: 'card', date: '2026-04-10', receivedBy: 'Admin', note: '' },
-  { id: 'pay5', studentId: 'st1', amount: 4000000, type: 'payme', date: '2026-05-01', receivedBy: 'Feruza Salimova', note: "May oyi to'lovi" },
-  { id: 'pay6', studentId: 'st5', amount: 4000000, type: 'cash', date: '2026-05-02', receivedBy: 'Admin', note: "May to'lov" },
-  { id: 'pay7', studentId: 'st6', amount: 4000000, type: 'transfer', date: '2026-05-05', receivedBy: 'Feruza Salimova', note: '' },
-  { id: 'pay8', studentId: 'st9', amount: 8500000, type: 'payme', date: '2026-05-10', receivedBy: 'Admin', note: '2 kurs 2 oy' },
-  { id: 'pay9', studentId: 'st1', amount: 4000000, type: 'click', date: '2026-06-01', receivedBy: 'Feruza Salimova', note: 'Iyun oyi' },
-  { id: 'pay10', studentId: 'st11', amount: 4500000, type: 'cash', date: '2026-06-03', receivedBy: 'Admin', note: "Iyun to'lov" },
-  { id: 'pay11', studentId: 'st12', amount: 3500000, type: 'payme', date: '2026-06-05', receivedBy: 'Feruza Salimova', note: '' },
-  { id: 'pay12', studentId: 'st16', amount: 4000000, type: 'card', date: '2026-06-08', receivedBy: 'Admin', note: "Iyun to'lovi" },
-];
+const initialPayments: Payment[] = [];
 
 export const useStudentStore = create<StudentState>()(
   persist(
@@ -216,6 +159,6 @@ export const useStudentStore = create<StudentState>()(
         })),
       getStudentBalance: (id) => get().students.find((s) => s.id === id)?.balance ?? 0,
     }),
-    { name: 'brain-it-studentStore-v10' }
+    { name: 'brain-it-studentStore-v11' }
   )
 );

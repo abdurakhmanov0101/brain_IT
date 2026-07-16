@@ -155,6 +155,6 @@ export const useTelegramStore = create<TelegramBotState>()(
       setLastUpdateId: (id) => set({ lastUpdateId: id }),
       setPolling: (v) => set({ isPolling: v }),
     }),
-    { name: 'brain-it-telegramStore-v10' }
+    { name: 'brain-it-telegramStore-v11' }
   )
 );

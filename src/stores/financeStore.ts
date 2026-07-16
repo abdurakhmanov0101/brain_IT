@@ -60,4 +60,4 @@ export const useFinanceStore = create<FinanceState>()(persist((set, get) => ({
       expense: get().expenses.filter((e) => e.date.startsWith(month)).reduce((s, e) => s + e.amount, 0),
     }));
   },
-}), { name: 'brain-it-financeStore-v10' }));
+}), { name: 'brain-it-financeStore-v11' }));

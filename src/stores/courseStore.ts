@@ -38,6 +38,6 @@ export const useCourseStore = create<CourseState>()(
       })),
       deleteCourse: (id) => set((s) => ({ courses: s.courses.filter((c) => c.id !== id) })),
     }),
-    { name: 'brain-it-courseStore-v10' }
+    { name: 'brain-it-courseStore-v11' }
   )
 );

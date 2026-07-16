@@ -750,13 +750,19 @@ export const Overview: React.FC = () => {
   const totalStudents = students.length;
   const totalTeachers = teachers.length;
   const totalCoins = Object.values(balances).reduce((a, b) => a + b, 0);
+  const totalIncome = payments.reduce((sum, p) => sum + p.amount, 0);
+
+  // Calculate average attendance rate
+  const totalAttendance = attendanceRecords.filter(r => r.status !== 'freezed');
+  const presentCount = totalAttendance.filter(r => r.status === 'present' || r.status === 'late').length;
+  const avgAttendance = totalAttendance.length ? Math.round((presentCount / totalAttendance.length) * 100) : 0;
 
   const stats = [
-    { id: 1, name: 'Faol Talabalar', value: totalStudents, suffix: ' ta', change: '+15% o\'tgan oyga nisbatan', contextNote: "Davomat o'rtacha 94%", testimonialNote: "Davomat o'rtacha 94% — barqaror o'sish", up: true, icon: Users, iconBg: 'bg-brand-100 dark:bg-brand-500/20', iconColor: 'text-brand-600 dark:text-brand-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
-    { id: 2, name: 'Oylik Daromad', value: 142500000, prefix: '', suffix: ' UZS', change: '+22% o\'sdi', contextNote: "Kassa tushumi +22% o'sdi", testimonialNote: "Kassa tushumi +22% o'sdi — rekord ko'rsatkich", up: true, icon: DollarSign, iconBg: 'bg-emerald-100 dark:bg-emerald-500/20', iconColor: 'text-emerald-600 dark:text-emerald-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
-    { id: 3, name: 'Ustozlar', value: totalTeachers, suffix: ' ta faol', change: '+18% faollik', contextNote: "Ustozlar KPI 94.8 ball", testimonialNote: "Ustozlar KPI o'rtacha 94.8 ball", up: true, icon: GraduationCap, iconBg: 'bg-teal-100 dark:bg-teal-500/20', iconColor: 'text-teal-600 dark:text-teal-400', badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
-    { id: 5, name: 'Tizimda Coinlar', value: totalCoins, suffix: ' C', change: '+14% rag\'bat', contextNote: "Motivatsiya yuqori", testimonialNote: "O'quvchilar motivatsiyasi yuqori", up: true, icon: Coins, iconBg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: 'text-orange-600 dark:text-orange-400', badgeColor: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' },
-    { id: 6, name: "O'zlashtirish", value: 87, suffix: '%', change: '+4.5% sifat', contextNote: "O'rtacha sifat 91%", testimonialNote: "Davomat va imtihonlar o'rtacha 91%", up: true, icon: Target, iconBg: 'bg-sky-100 dark:bg-sky-500/20', iconColor: 'text-sky-600 dark:text-sky-400', badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' },
+    { id: 1, name: 'Faol Talabalar', value: totalStudents, suffix: ' ta', change: 'Hozirgi holat', contextNote: `Davomat o'rtacha ${avgAttendance}%`, testimonialNote: 'Tizimdagi barcha o\'quvchilar', up: true, icon: Users, iconBg: 'bg-brand-100 dark:bg-brand-500/20', iconColor: 'text-brand-600 dark:text-brand-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+    { id: 2, name: 'Oylik Daromad', value: totalIncome, prefix: '', suffix: ' UZS', change: 'Jami to\'lovlar', contextNote: 'Barcha kassa tushumlari', testimonialNote: 'Tizim bo\'yicha jami tushum', up: true, icon: DollarSign, iconBg: 'bg-emerald-100 dark:bg-emerald-500/20', iconColor: 'text-emerald-600 dark:text-emerald-400', badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+    { id: 3, name: 'Ustozlar', value: totalTeachers, suffix: ' ta faol', change: 'Hozirgi holat', contextNote: 'Tizimdagi ustozlar', testimonialNote: 'Barcha guruh rahbarlari', up: true, icon: GraduationCap, iconBg: 'bg-teal-100 dark:bg-teal-500/20', iconColor: 'text-teal-600 dark:text-teal-400', badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20' },
+    { id: 5, name: 'Tizimda Coinlar', value: totalCoins, suffix: ' C', change: 'Hozirgi holat', contextNote: 'Motivatsiya yuqori', testimonialNote: 'O\'quvchilar motivatsiyasi', up: true, icon: Coins, iconBg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: 'text-orange-600 dark:text-orange-400', badgeColor: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' },
+    { id: 6, name: "O'zlashtirish", value: avgAttendance, suffix: '%', change: 'Hozirgi holat', contextNote: `O'rtacha sifat ${avgAttendance}%`, testimonialNote: 'Davomat o\'rtachasi', up: true, icon: Target, iconBg: 'bg-sky-100 dark:bg-sky-500/20', iconColor: 'text-sky-600 dark:text-sky-400', badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' },
   ];
 
   const recentTx = transactions.slice(0, 6);

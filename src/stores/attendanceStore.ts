@@ -83,6 +83,6 @@ export const useAttendanceStore = create<AttendanceState>()(
         return Math.round((present / records.length) * 100);
       },
     }),
-    { name: 'brain-it-attendanceStore-v10' }
+    { name: 'brain-it-attendanceStore-v11' }
   )
 );
