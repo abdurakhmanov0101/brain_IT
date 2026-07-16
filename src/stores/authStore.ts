@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // ─── Login ──────────────────────────────────────────────────────────────────
-// Tizimda yagona Super Admin: avazbek / lummanazarov
+// Tizimda yagona Super Admin: avazbek / jummanazarov
 // Ustoz va o'quvchilar o'z tizimdan kiritilgan login/parollari orqali kiradi
 export const mockLogin = async (
   username: string,
@@ -53,11 +53,11 @@ export const mockLogin = async (
   return new Promise((resolve) => {
     setTimeout(() => {
       // ── 1. Super Admin ───────────────────────────────────────────────────
-      if (username === 'avazbek' && password === 'lummanazarov') {
+      if (username === 'avazbek' && password === 'jummanazarov') {
         return resolve({
           user: {
             id: 'superadmin_avazbek',
-            name: 'Avazbek Lummanazarov',
+            name: 'Avazbek Jummanazarov',
             role: 'Super Admin',
             avatar: undefined,
           },
